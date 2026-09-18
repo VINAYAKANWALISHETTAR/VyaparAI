@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.core.security import get_current_user
 from app.database.mongodb import db
 from app.models.transaction import transaction_document
-from app.schemas.transaction import TransactionCreate, TransactionUpdate
+from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
 
 
 router = APIRouter(
@@ -47,15 +47,16 @@ def serialize_transaction(transaction):
     return {
         "id": str(transaction["_id"]),
         "business_id": transaction["business_id"],
-        "transaction_type": transaction["transaction_type"],
+        "user_id": transaction.get("user_id"),
+        "type": transaction["type"],
         "amount": float(transaction["amount"]),
         "category": transaction["category"],
         "description": transaction.get("description"),
-        "transaction_date": transaction["transaction_date"].isoformat()
-        if transaction.get("transaction_date")
+        "date": transaction["date"].isoformat()
+        if transaction.get("date")
         else None,
         "source": transaction.get("source"),
-        "reference": transaction.get("reference"),
+        "reference_id": transaction.get("reference_id"),
         "created_at": transaction["created_at"].isoformat()
         if transaction.get("created_at")
         else None,
@@ -66,17 +67,35 @@ def serialize_transaction(transaction):
 
 
 @router.get("/summary")
-def get_transaction_summary(current_user=Depends(get_current_user)):
+def get_transaction_summary(
+    current_user=Depends(get_current_user),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
     user_id = str(current_user["_id"])
 
     businesses = db.businesses.find({"owner_id": user_id})
     business_ids = [str(business["_id"]) for business in businesses]
 
+    match_query = {"business_id": {"$in": business_ids}}
+
+    if start_date or end_date:
+        date_query = {}
+        if start_date:
+            date_query["$gte"] = datetime.combine(
+                start_date, datetime.min.time()
+            ).replace(tzinfo=timezone.utc)
+        if end_date:
+            date_query["$lte"] = datetime.combine(
+                end_date, datetime.max.time()
+            ).replace(tzinfo=timezone.utc)
+        match_query["date"] = date_query
+
     pipeline = [
-        {"$match": {"business_id": {"$in": business_ids}}},
+        {"$match": match_query},
         {
             "$group": {
-                "_id": "$transaction_type",
+                "_id": "$type",
                 "total_amount": {"$sum": "$amount"},
                 "count": {"$sum": 1},
             }
@@ -100,12 +119,12 @@ def get_transaction_summary(current_user=Depends(get_current_user)):
 
     total_income = float(totals["income"])
     total_expense = float(totals["expense"])
-    net_cash_flow = total_income - total_expense
+    current_balance = total_income - total_expense
 
     return {
         "total_income": total_income,
-        "total_expense": total_expense,
-        "net_cash_flow": net_cash_flow,
+        "total_expenses": total_expense,
+        "current_balance": current_balance,
         "transaction_count": transaction_count,
     }
 
@@ -113,8 +132,10 @@ def get_transaction_summary(current_user=Depends(get_current_user)):
 @router.get("/")
 def get_transactions(
     current_user=Depends(get_current_user),
-    transaction_type: str | None = Query(default=None),
+    business_id: str | None = Query(default=None),
+    type: str | None = Query(default=None, alias="type"),
     category: str | None = Query(default=None),
+    source: str | None = Query(default=None),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
 ):
@@ -125,11 +146,23 @@ def get_transactions(
 
     query = {"business_id": {"$in": business_ids}}
 
-    if transaction_type:
-        query["transaction_type"] = transaction_type.strip().lower()
+    if business_id:
+        business_object_id = validate_object_id(business_id, "business_id")
+        if str(business_object_id) not in business_ids:
+            raise HTTPException(
+                status_code=404,
+                detail="Business not found or access denied",
+            )
+        query["business_id"] = str(business_object_id)
+
+    if type:
+        query["type"] = type.strip().lower()
 
     if category:
         query["category"] = category.strip()
+
+    if source:
+        query["source"] = source.strip().lower()
 
     if start_date or end_date:
         date_query = {}
@@ -141,7 +174,7 @@ def get_transactions(
             date_query["$lte"] = datetime.combine(
                 end_date, datetime.max.time()
             ).replace(tzinfo=timezone.utc)
-        query["transaction_date"] = date_query
+        query["date"] = date_query
 
     transactions = db.transactions.find(query)
 
@@ -168,7 +201,7 @@ def get_transaction(
     return serialize_transaction(transaction)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=TransactionResponse)
 def create_transaction(
     transaction: TransactionCreate,
     current_user=Depends(get_current_user),
@@ -177,13 +210,14 @@ def create_transaction(
 
     new_transaction = transaction_document(
         business_id=transaction.business_id,
-        transaction_type=transaction.transaction_type,
+        type=transaction.type,
         amount=transaction.amount,
         category=transaction.category,
         description=transaction.description,
-        transaction_date=transaction.transaction_date,
+        date=transaction.date,
         source=transaction.source,
-        reference=transaction.reference,
+        reference_id=transaction.reference_id,
+        user_id=str(current_user["_id"]),
     )
 
     result = db.transactions.insert_one(new_transaction)
@@ -195,7 +229,7 @@ def create_transaction(
     return serialize_transaction(created_transaction)
 
 
-@router.put("/{transaction_id}")
+@router.put("/{transaction_id}", response_model=TransactionResponse)
 def update_transaction(
     transaction_id: str,
     transaction_data: TransactionUpdate,
@@ -225,9 +259,9 @@ def update_transaction(
             detail="No fields provided for update",
         )
 
-    if "transaction_date" in update_data:
-        update_data["transaction_date"] = datetime.combine(
-            update_data["transaction_date"],
+    if "date" in update_data:
+        update_data["date"] = datetime.combine(
+            update_data["date"],
             datetime.min.time(),
         ).replace(tzinfo=timezone.utc)
 
