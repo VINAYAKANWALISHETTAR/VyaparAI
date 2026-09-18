@@ -301,9 +301,48 @@ Then use Swagger UI at `http://localhost:8000/docs` to test all endpoints.
 
 1. **AI extracts, backend decides** — LLM proposes structured data, backend validates before storage
 2. **No direct LLM-to-database writes** — all data goes through Pydantic validation and business rules
-3. **Business isolation** — users can only access their own businesses and data
-4. **Reusable services** — OCR, extraction, matching, processing are independent modules
-5. **Deterministic calculations** — financial math is done in Python/MongoDB, not by LLM
+3. **Financial engine before voice** — build brain before mouth; voice sits on top of stable financial intelligence
+4. **LLM never controls money** — deterministic financial calculations only; LLM explains results
+5. **Business isolation** — users can only access their own businesses and data
+6. **Reusable services** — OCR, extraction, matching, processing are independent modules
+7. **Provider abstraction** — LLM, STT, TTS behind interfaces for future swapping
+
+## Implementation Order
+
+The correct sequence is:
+
+```text
+Phase 8:  Financial Intelligence Foundation
+Phase 9:  Cash-Flow Intelligence
+Phase 10: Reconciliation Intelligence
+Phase 11: Anomaly Detection
+Phase 12: Insights Engine
+Phase 13: AI Tool Layer
+Phase 14: AI Copilot (Text Q&A)
+Phase 15: Voice Backend
+Phase 16: Reminders + Notifications
+Phase 17: Dashboard + Reports
+Phase 18: Mobile Application
+```
+
+**Key principle:** Build the financial brain before the voice mouth. The voice agent should sit on top of a stable financial intelligence layer.
+
+## Database Strategy
+
+**Keep MongoDB Atlas.** There is no compelling reason to migrate to PostgreSQL at this stage. The existing MongoDB backend is already working and supports the required flexibility for document-based financial records.
+
+## Mobile Application
+
+The mobile app will be a separate repository/directory that consumes the backend APIs. Do not start mobile development until the backend financial intelligence milestone is complete.
+
+## AI & Speech Stack
+
+- **LLM:** Hybrid architecture — own AI workflow as product layer; strong API model for reasoning; local/open models where feasible
+- **STT:** Whisper-family transcription for MVP
+- **TTS:** API initially; abstract behind interface for future swapping
+- **Languages (MVP):** English + Hindi + Kannada
+- **Anomaly Detection:** Rule/statistical based first; ML later
+- **Reports:** In-app first → PDF second → Excel later
 
 ---
 
@@ -319,19 +358,24 @@ Then use Swagger UI at `http://localhost:8000/docs` to test all endpoints.
 - [x] Phase 7: UPI / Payment Screenshot Intelligence
 
 ### In Progress
-- [ ] Phase 8: Financial Intelligence Engine
-- [ ] Phase 9: AI Copilot Foundation
-- [ ] Phase 10: Voice Agent
+- [ ] Phase 8: Financial Intelligence Foundation
+- [ ] Phase 9: Cash-Flow Intelligence
+- [ ] Phase 10: Reconciliation Intelligence
+- [ ] Phase 11: Anomaly Detection
+- [ ] Phase 12: Insights Engine
+- [ ] Phase 13: AI Tool Layer
+- [ ] Phase 14: AI Copilot (Text Q&A)
+- [ ] Phase 15: Voice Backend
+- [ ] Phase 16: Reminders + Notifications
+- [ ] Phase 17: Dashboard + Reports
+- [ ] Phase 18: Mobile Application
 
 ### Future
-- [ ] Regional language support
-- [ ] Anomaly detection
-- [ ] Cash flow forecasting
-- [ ] Reminders & notifications
-- [ ] Reports & dashboard
-- [ ] Mobile app
+- [ ] Regional language expansion (English + Hindi + Kannada for MVP)
+- [ ] PDF/Excel exports
 - [ ] WhatsApp integration
 - [ ] Bank statement parsing
+- [ ] Advanced ML forecasting
 
 ---
 
