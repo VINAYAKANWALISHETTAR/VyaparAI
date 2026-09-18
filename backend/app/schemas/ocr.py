@@ -35,3 +35,35 @@ class OCRConfirmRequest(BaseModel):
     description: str | None = None
     source: str = "ocr"
     reference_id: str | None = None
+
+
+class PaymentExtraction(BaseModel):
+    amount: float | None = None
+    sender_name: str | None = None
+    receiver_name: str | None = None
+    transaction_reference: str | None = None
+    transaction_date: date | None = None
+    payment_status: str | None = None
+    payment_method: str | None = None
+    bank_or_upi_name: str | None = None
+    direction: str | None = None
+    raw_text: str | None = None
+
+
+class PaymentResponse(BaseModel):
+    status: str
+    payment: PaymentExtraction | None = None
+    matched_invoice: dict | None = None
+    after_payment: dict | None = None
+    message: str | None = None
+
+
+class PaymentConfirmRequest(BaseModel):
+    business_id: str
+    invoice_id: str | None = None
+    amount: float = Field(gt=0)
+    transaction_reference: str | None = None
+    transaction_date: date | None = None
+    description: str | None = None
+    source: str = "upi"
+    direction: str = "received"

@@ -10,9 +10,19 @@ from app.core.security import get_current_user
 from app.database.mongodb import db
 from app.models.invoice import invoice_document
 from app.schemas.invoice import InvoiceCreate
-from app.schemas.ocr import OCRConfirmRequest, OCRResponse, OCRExtraction
+from app.schemas.ocr import (
+    OCRConfirmRequest,
+    OCRResponse,
+    OCRExtraction,
+    PaymentConfirmRequest,
+    PaymentExtraction,
+    PaymentResponse,
+)
 from app.services.invoice_extractor import invoice_extractor
+from app.services.invoice_matching import invoice_matching_service
 from app.services.ocr_service import ocr_service
+from app.services.payment_extractor import payment_extractor
+from app.services.payment_processing import payment_processing_service
 
 router = APIRouter(
     prefix="/ocr",
@@ -159,3 +169,147 @@ def confirm_invoice(
 
     from app.api.invoices import serialize_invoice
     return serialize_invoice(created_invoice)
+
+
+@router.post("/payment", response_model=PaymentResponse)
+async def extract_payment(
+    business_id: str = Form(...),
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+):
+    verify_business_ownership(business_id, current_user)
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be an image",
+        )
+
+    content = await file.read()
+
+    try:
+        ocr_service.validate_file(file.filename or "upload", content, file.content_type or "application/octet-stream")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    try:
+        raw_text = ocr_service.extract_text(content)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    extracted = payment_extractor.extract(raw_text)
+
+    if not extracted.amount or extracted.amount <= 0:
+        return PaymentResponse(
+            status="needs_confirmation",
+            payment=extracted,
+            message="Could not extract payment amount. Please review.",
+        )
+
+    if extracted.payment_status in {"failed", "pending"}:
+        return PaymentResponse(
+            status="needs_confirmation",
+            payment=extracted,
+            message=f"Payment status is {extracted.payment_status}. Please review before recording.",
+        )
+
+    is_duplicate = payment_processing_service.check_duplicate_payment(
+        business_id, extracted.transaction_reference, extracted.amount, extracted.sender_name or extracted.receiver_name
+    )
+
+    if is_duplicate:
+        return PaymentResponse(
+            status="duplicate_payment",
+            payment=extracted,
+            message="A payment with this transaction reference already exists.",
+        )
+
+    match_result = invoice_matching_service.find_match(business_id, extracted)
+
+    if match_result.status == "multiple_matches":
+        return PaymentResponse(
+            status="multiple_matches",
+            payment=extracted,
+            candidates=match_result.candidates,
+            message="Multiple invoices match this payment. Please select one.",
+        )
+
+    if match_result.status == "overpayment_review":
+        return PaymentResponse(
+            status="overpayment_review",
+            payment=extracted,
+            matched_invoice=match_result.invoice,
+            after_payment=match_result.after_payment,
+            message="Payment exceeds invoice amount. Please review.",
+        )
+
+    if match_result.status == "no_match":
+        return PaymentResponse(
+            status="no_match",
+            payment=extracted,
+            message="No matching invoice found. You can record this as standalone income.",
+        )
+
+    return PaymentResponse(
+        status="needs_confirmation",
+        payment=extracted,
+        matched_invoice=match_result.invoice,
+        after_payment=match_result.after_payment,
+        message="Payment extracted. Please confirm to record.",
+    )
+
+
+@router.post("/payment/confirm", status_code=status.HTTP_201_CREATED)
+def confirm_payment(
+    payload: PaymentConfirmRequest,
+    current_user=Depends(get_current_user),
+):
+    verify_business_ownership(payload.business_id, current_user)
+
+    invoice_object_id = validate_object_id(payload.invoice_id, "invoice_id") if payload.invoice_id else None
+
+    if invoice_object_id:
+        invoice = db.invoices.find_one({"_id": invoice_object_id})
+        if not invoice:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+
+        if invoice.get("business_id") != payload.business_id:
+            raise HTTPException(status_code=404, detail="Invoice not found or access denied")
+
+    if invoice_object_id:
+        result = payment_processing_service.record_payment(
+            business_id=payload.business_id,
+            invoice_id=str(invoice_object_id),
+            amount=payload.amount,
+            description=payload.description,
+            source=payload.source,
+            direction=payload.direction,
+            transaction_reference=payload.transaction_reference,
+            user_id=str(current_user["_id"]),
+        )
+    else:
+        new_transaction = transaction_document(
+            business_id=payload.business_id,
+            type="income" if payload.direction == "received" else "expense",
+            amount=payload.amount,
+            category="customer_payment" if payload.direction == "received" else "supplier_payment",
+            description=payload.description or "Standalone payment",
+            date=payload.transaction_date or datetime.now(timezone.utc).date(),
+            source=payload.source,
+            reference_id=payload.transaction_reference,
+            user_id=str(current_user["_id"]),
+        )
+
+        transaction_result = db.transactions.insert_one(new_transaction)
+        result = {
+            "transaction_id": str(transaction_result.inserted_id),
+            "invoice_id": None,
+            "payment_amount": payload.amount,
+            "remaining_outstanding": None,
+            "invoice_status": None,
+        }
+
+    return {
+        "status": "recorded",
+        **result,
+    }
