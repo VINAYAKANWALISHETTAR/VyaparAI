@@ -29,6 +29,15 @@ def create_indexes():
         ]
     )
 
+    db.invoices.create_index(
+        [
+            ("business_id", 1),
+            ("invoice_number", 1),
+            ("customer_name", 1),
+            ("amount", 1)
+        ]
+    )
+
     db.transactions.create_index(
         "business_id"
     )
