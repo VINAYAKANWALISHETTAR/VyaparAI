@@ -1,0 +1,30 @@
+from app.database.mongodb import db
+
+
+def create_indexes():
+    db.users.create_index(
+        "email",
+        unique=True
+    )
+
+    db.businesses.create_index(
+        "owner_id"
+    )
+
+    db.invoices.create_index(
+        "business_id"
+    )
+
+    db.invoices.create_index(
+        [
+            ("business_id", 1),
+            ("status", 1)
+        ]
+    )
+
+    db.invoices.create_index(
+        [
+            ("business_id", 1),
+            ("due_date", 1)
+        ]
+    )
