@@ -1,7 +1,9 @@
 from datetime import date, datetime, timezone
+from decimal import Decimal
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from app.core.security import get_current_user
 from app.database.mongodb import db
@@ -53,7 +55,7 @@ def verify_business_ownership(
 
 
 def calculate_status(invoice):
-    if invoice["status"] == "paid":
+    if invoice.get("status") == "paid":
         return "paid"
 
     due_date = invoice.get("due_date")
@@ -65,6 +67,12 @@ def calculate_status(invoice):
         if due_date < date.today():
             return "overdue"
 
+    paid_amount = invoice.get("paid_amount", 0)
+    amount = invoice.get("amount", 0)
+    
+    if paid_amount > 0 and paid_amount < amount:
+        return "partially_paid"
+
     return "unpaid"
 
 
@@ -75,6 +83,8 @@ def serialize_invoice(invoice):
         "customer_name": invoice["customer_name"],
         "invoice_number": invoice.get("invoice_number"),
         "amount": float(invoice["amount"]),
+        "paid_amount": float(invoice.get("paid_amount", 0)),
+        "outstanding_amount": float(invoice.get("outstanding_amount", invoice["amount"])),
         "due_date": invoice["due_date"].isoformat()
         if invoice.get("due_date")
         else None,
@@ -295,6 +305,71 @@ def update_invoice_status(
         {
             "$set": {
                 "status": status_data.status,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+    updated_invoice = db.invoices.find_one({
+        "_id": invoice_object_id
+    })
+
+    return serialize_invoice(updated_invoice)
+
+
+class PaymentApplyRequest(BaseModel):
+    amount: float = Field(gt=0)
+
+
+@router.post("/{invoice_id}/payments")
+def apply_payment(
+    invoice_id: str,
+    payment: PaymentApplyRequest,
+    current_user=Depends(get_current_user),
+):
+    invoice_object_id = validate_object_id(
+        invoice_id,
+        "invoice_id",
+    )
+
+    invoice = db.invoices.find_one({
+        "_id": invoice_object_id
+    })
+
+    if not invoice:
+        raise HTTPException(
+            status_code=404,
+            detail="Invoice not found",
+        )
+
+    verify_business_ownership(
+        invoice["business_id"],
+        current_user,
+    )
+
+    current_paid = float(invoice.get("paid_amount", 0))
+    total_amount = float(invoice["amount"])
+    new_paid = current_paid + payment.amount
+    outstanding = max(0, total_amount - new_paid)
+
+    if outstanding < 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Payment exceeds outstanding amount. Outstanding: {total_amount - current_paid}",
+        )
+
+    if outstanding == 0:
+        new_status = "paid"
+    else:
+        new_status = "partially_paid"
+
+    db.invoices.update_one(
+        {"_id": invoice_object_id},
+        {
+            "$set": {
+                "paid_amount": new_paid,
+                "outstanding_amount": outstanding,
+                "status": new_status,
                 "updated_at": datetime.now(timezone.utc),
             }
         },

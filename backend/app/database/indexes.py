@@ -62,3 +62,7 @@ def create_indexes():
             ("category", 1)
         ]
     )
+
+    db.transactions.create_index(
+        "reference_id"
+    )
