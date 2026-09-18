@@ -36,14 +36,14 @@ def create_indexes():
     db.transactions.create_index(
         [
             ("business_id", 1),
-            ("transaction_type", 1)
+            ("type", 1)
         ]
     )
 
     db.transactions.create_index(
         [
             ("business_id", 1),
-            ("transaction_date", 1)
+            ("date", 1)
         ]
     )
 
