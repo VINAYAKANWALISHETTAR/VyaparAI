@@ -8,6 +8,7 @@ from app.api.businesses import router as businesses_router
 from app.api.auth import router as auth_router
 from app.api.invoices import router as invoices_router
 from app.api.transactions import router as transactions_router
+from app.api.ocr import router as ocr_router
 
 app = FastAPI(
     title="VyaparAI API",
@@ -34,6 +35,7 @@ app.include_router(users_router)
 app.include_router(auth_router)
 app.include_router(invoices_router)
 app.include_router(transactions_router)
+app.include_router(ocr_router)
 
 
 @app.get("/")
