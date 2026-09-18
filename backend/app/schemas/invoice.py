@@ -25,9 +25,16 @@ class InvoiceUpdate(BaseModel):
         gt=0
     )
 
+    paid_amount: float | None = Field(
+        default=None,
+        ge=0
+    )
+
     due_date: date | None = None
 
     description: str | None = None
+
+    status: str | None = None
 
 
 class InvoiceStatusUpdate(BaseModel):

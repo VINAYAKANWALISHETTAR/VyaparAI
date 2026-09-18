@@ -8,6 +8,9 @@ def invoice_document(
     due_date,
     description: str | None = None,
     invoice_number: str | None = None,
+    paid_amount: float = 0.0,
+    outstanding_amount: float | None = None,
+    status: str = "unpaid",
 ):
     if hasattr(due_date, "isoformat"):
         due_date = datetime.combine(
@@ -15,14 +18,19 @@ def invoice_document(
             datetime.min.time(),
         ).replace(tzinfo=timezone.utc)
 
+    if outstanding_amount is None:
+        outstanding_amount = amount
+
     return {
         "business_id": business_id,
         "customer_name": customer_name,
         "invoice_number": invoice_number,
         "amount": amount,
+        "paid_amount": paid_amount,
+        "outstanding_amount": outstanding_amount,
         "due_date": due_date,
         "description": description,
-        "status": "unpaid",
+        "status": status,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
