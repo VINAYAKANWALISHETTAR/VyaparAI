@@ -7,6 +7,7 @@ from app.api.users import router as users_router
 from app.api.businesses import router as businesses_router
 from app.api.auth import router as auth_router
 from app.api.invoices import router as invoices_router
+from app.api.transactions import router as transactions_router
 
 app = FastAPI(
     title="VyaparAI API",
@@ -32,6 +33,7 @@ app.include_router(businesses_router)
 app.include_router(users_router)
 app.include_router(auth_router)
 app.include_router(invoices_router)
+app.include_router(transactions_router)
 
 
 @app.get("/")
