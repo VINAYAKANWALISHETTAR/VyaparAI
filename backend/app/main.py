@@ -1,9 +1,12 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.mongodb import client, db
+from app.database.mongodb import db
+from app.database.indexes import create_indexes
 from app.api.users import router as users_router
 from app.api.businesses import router as businesses_router
 from app.api.auth import router as auth_router
+from app.api.invoices import router as invoices_router
 
 app = FastAPI(
     title="VyaparAI API",
@@ -11,9 +14,24 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.on_event("startup")
+def startup_event():
+    create_indexes()
+
+
 app.include_router(businesses_router)
 app.include_router(users_router)
 app.include_router(auth_router)
+app.include_router(invoices_router)
 
 
 @app.get("/")
@@ -32,7 +50,7 @@ def health():
 
 @app.get("/health/database")
 def database_health():
-    client.admin.command("ping")
+    db.command("ping")
 
     return {
         "database": db.name,
