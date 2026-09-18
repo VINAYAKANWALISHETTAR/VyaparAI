@@ -28,3 +28,28 @@ def create_indexes():
             ("due_date", 1)
         ]
     )
+
+    db.transactions.create_index(
+        "business_id"
+    )
+
+    db.transactions.create_index(
+        [
+            ("business_id", 1),
+            ("transaction_type", 1)
+        ]
+    )
+
+    db.transactions.create_index(
+        [
+            ("business_id", 1),
+            ("transaction_date", 1)
+        ]
+    )
+
+    db.transactions.create_index(
+        [
+            ("business_id", 1),
+            ("category", 1)
+        ]
+    )
