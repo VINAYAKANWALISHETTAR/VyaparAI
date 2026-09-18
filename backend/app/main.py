@@ -1,21 +1,49 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
-app = FastAPI(
-    title="VyaparAI API",
-    description="AI Financial Copilot for Small Businesses",
-    version="1.0.0"
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.database import client, database
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    # Test database connection
+    await database.command("ping")
+
+    print("MongoDB connected successfully")
+
+    yield
+
+    # Close database connection
+    await client.close()
+
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
 @app.get("/")
-def root():
+async def root():
     return {
-        "message": "VyaparAI Backend is running"
+        "message": "FastAPI is running"
     }
 
 
-@app.get("/health")
-def health():
+@app.get("/db-test")
+async def db_test():
+
+    result = await database.command("ping")
+
     return {
-        "status": "healthy"
+        "database": "connected",
+        "result": result,
     }
