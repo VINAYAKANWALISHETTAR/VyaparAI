@@ -3,29 +3,31 @@ from datetime import datetime, timezone
 
 def transaction_document(
     business_id: str,
-    transaction_type: str,
+    type: str,
     amount: float,
     category: str,
-    transaction_date,
+    date,
     description: str | None = None,
     source: str = "manual",
-    reference: str | None = None,
+    reference_id: str | None = None,
+    user_id: str | None = None,
 ):
-    if hasattr(transaction_date, "isoformat"):
-        transaction_date = datetime.combine(
-            transaction_date,
+    if hasattr(date, "isoformat"):
+        date = datetime.combine(
+            date,
             datetime.min.time(),
         ).replace(tzinfo=timezone.utc)
 
     return {
         "business_id": business_id,
-        "transaction_type": transaction_type,
+        "user_id": user_id,
+        "type": type,
         "amount": amount,
         "category": category,
         "description": description,
-        "transaction_date": transaction_date,
+        "date": date,
         "source": source,
-        "reference": reference,
+        "reference_id": reference_id,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
