@@ -167,12 +167,16 @@ class FinancialService:
             if due_date and due_date < today and outstanding > 0:
                 days_overdue = (today - due_date).days
                 status = "overdue"
-                overdue_amount += outstanding
+            else:
+                if status == "overdue":
+                    status = "unpaid"
 
             if overdue_only and status != "overdue":
                 continue
 
             total_receivables += outstanding
+            if status == "overdue":
+                overdue_amount += outstanding
 
             invoice_list.append({
                 "id": str(invoice["_id"]),
@@ -214,8 +218,6 @@ class FinancialService:
                 txn_date = txn_date.date()
 
             amount = float(txn["amount"])
-            total_liabilities += amount
-
             days_until_due = None
             status = "upcoming"
 
@@ -223,15 +225,19 @@ class FinancialService:
                 if txn_date < today:
                     status = "overdue"
                     days_until_due = (txn_date - today).days
-                    overdue_amount += amount
                 else:
                     days_until_due = (txn_date - today).days
-                    upcoming_amount += amount
 
             if overdue_only and status != "overdue":
                 continue
             if upcoming_only and status != "upcoming":
                 continue
+
+            total_liabilities += amount
+            if status == "upcoming":
+                upcoming_amount += amount
+            if status == "overdue":
+                overdue_amount += amount
 
             obligations.append({
                 "id": str(txn["_id"]),

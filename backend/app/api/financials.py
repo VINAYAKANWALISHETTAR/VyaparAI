@@ -21,8 +21,18 @@ router = APIRouter(
 financial_service = FinancialService()
 
 
+def validate_object_id(value: str, field_name: str):
+    try:
+        return ObjectId(value)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid {field_name}",
+        )
+
+
 def verify_business_ownership(business_id: str, current_user):
-    business_object_id = ObjectId(business_id)
+    business_object_id = validate_object_id(business_id, "business_id")
     business = db.businesses.find_one({
         "_id": business_object_id,
         "owner_id": str(current_user["_id"]),
