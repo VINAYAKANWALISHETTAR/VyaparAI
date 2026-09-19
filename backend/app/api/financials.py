@@ -5,11 +5,14 @@ from app.database.mongodb import db
 from app.schemas.financial import (
     CashFlowResponse,
     CashPositionResponse,
+    CustomerSummaryResponse,
     ExpenseResponse,
     IncomeResponse,
     LiabilityResponse,
     ProfitResponse,
+    ReceivableAgingResponse,
     ReceivableResponse,
+    SupplierSummaryResponse,
 )
 from app.services.financial_service import FinancialService
 from bson import ObjectId
@@ -218,3 +221,36 @@ def get_cash_position(
 ):
     user_id = str(current_user["_id"])
     return financial_service.get_cash_position(user_id)
+
+
+@router.get("/receivables/aging", response_model=ReceivableAgingResponse)
+def get_receivable_aging(
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_receivable_aging(business_id, user_id)
+
+
+@router.get("/receivables/customer-summary", response_model=CustomerSummaryResponse)
+def get_customer_summary(
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_customer_summary(business_id, user_id)
+
+
+@router.get("/liabilities/supplier-summary", response_model=SupplierSummaryResponse)
+def get_supplier_summary(
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_supplier_summary(business_id, user_id)

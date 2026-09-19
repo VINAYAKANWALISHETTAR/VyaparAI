@@ -53,3 +53,19 @@ class CashFlowResponse(BaseModel):
     upcoming_liabilities: float
     projected_balance: float
     risk_indicator: str
+
+
+class ReceivableAgingResponse(BaseModel):
+    total_receivables: float
+    aging_buckets: dict
+    invoices: list[dict]
+
+
+class CustomerSummaryResponse(BaseModel):
+    total_receivables: float
+    customers: list[dict]
+
+
+class SupplierSummaryResponse(BaseModel):
+    total_payables: float
+    suppliers: list[dict]
