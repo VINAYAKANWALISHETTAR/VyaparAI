@@ -1,10 +1,9 @@
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/features/auth/presentation/screens/splash_screen.dart';
 
 final router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   routes: <RouteBase>[
-    // Example screen routes:
-    // GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    // GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreenPlaceholder()),
   ],
 );

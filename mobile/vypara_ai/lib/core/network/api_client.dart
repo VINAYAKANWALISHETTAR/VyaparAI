@@ -1,15 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:vypara_ai/core/constants/app_constants.dart';
+import 'package:vypara_ai/core/network/auth_interceptor.dart';
+import 'package:vypara_ai/core/storage/storage_service.dart';
 
-/// Central HTTP client for the entire application.
-///
-/// All network communication must go through this client.
-/// Feature-specific API methods must NOT be added here.
-/// Those belong in feature-specific services/datasources.
 class ApiClient {
   late final Dio dio;
 
   ApiClient() {
+    final storage = StorageService();
     dio = Dio(BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
       connectTimeout: const Duration(seconds: 30),
@@ -29,5 +27,7 @@ class ApiClient {
         responseHeader: true,
       ));
     }
+
+    dio.interceptors.add(AuthInterceptor(dio: dio, storage: storage));
   }
 }
