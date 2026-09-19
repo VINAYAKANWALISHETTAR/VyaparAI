@@ -88,7 +88,7 @@ class ReminderService:
         today_income = financial_service.get_income(business_id, "today", user_id)
         today_expenses = financial_service.get_expenses(business_id, "today", user_id)
         receivables = financial_service.get_receivables(business_id, user_id)
-        liabilities = financial_service.get_liabilities(user_id, upcoming_only=True)
+        liabilities = financial_service.get_liabilities(user_id, business_id=business_id, upcoming_only=True)
 
         pending_reminders = []
         for reminder in reminders:

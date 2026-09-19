@@ -196,8 +196,11 @@ class FinancialService:
             "invoices": invoice_list,
         }
 
-    def get_liabilities(self, user_id: str, upcoming_only: bool = False, overdue_only: bool = False):
+    def get_liabilities(self, user_id: str, business_id: str | None = None, upcoming_only: bool = False, overdue_only: bool = False):
         business_ids = self._get_user_business_ids(user_id)
+        if business_id:
+            self._verify_business_access(business_id, user_id)
+            business_ids = [business_id]
 
         query = {
             "business_id": {"$in": business_ids},

@@ -11,7 +11,7 @@ def get_business_summary(user_id: str, business_id: str | None = None) -> dict:
     profit = financial_service.get_profit(business_id, "today", user_id)
     cash_position = financial_service.get_cash_position(user_id)
     receivables = financial_service.get_receivables(business_id, user_id)
-    liabilities = financial_service.get_liabilities(user_id, upcoming_only=True)
+    liabilities = financial_service.get_liabilities(user_id, business_id=business_id, upcoming_only=True)
     cash_flow = financial_service.get_cash_flow(user_id)
 
     return {

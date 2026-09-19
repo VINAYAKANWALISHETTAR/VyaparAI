@@ -12,11 +12,14 @@ def transaction_document(
     reference_id: str | None = None,
     user_id: str | None = None,
 ):
-    if hasattr(date, "isoformat"):
-        date = datetime.combine(
-            date,
-            datetime.min.time(),
-        ).replace(tzinfo=timezone.utc)
+    if date is not None:
+        if hasattr(date, "date") and not hasattr(date, "hour"):
+            date = datetime.combine(
+                date,
+                datetime.min.time(),
+            ).replace(tzinfo=timezone.utc)
+        elif hasattr(date, "isoformat") and not hasattr(date, "tzinfo"):
+            date = date.replace(tzinfo=timezone.utc)
 
     return {
         "business_id": business_id,

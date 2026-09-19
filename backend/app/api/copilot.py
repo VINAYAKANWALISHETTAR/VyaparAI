@@ -24,5 +24,5 @@ def chat(
             detail="Message cannot be empty",
         )
 
-    result = copilot_service.chat(user_id, message)
+    result = copilot_service.chat(user_id=user_id, message=message, business_id=None)
     return CopilotChatResponse(**result)

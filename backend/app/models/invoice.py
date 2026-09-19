@@ -12,11 +12,14 @@ def invoice_document(
     outstanding_amount: float | None = None,
     status: str = "unpaid",
 ):
-    if hasattr(due_date, "isoformat"):
-        due_date = datetime.combine(
-            due_date,
-            datetime.min.time(),
-        ).replace(tzinfo=timezone.utc)
+    if due_date is not None:
+        if hasattr(due_date, "date") and not hasattr(due_date, "hour"):
+            due_date = datetime.combine(
+                due_date,
+                datetime.min.time(),
+            ).replace(tzinfo=timezone.utc)
+        elif hasattr(due_date, "isoformat") and not hasattr(due_date, "tzinfo"):
+            due_date = due_date.replace(tzinfo=timezone.utc)
 
     if outstanding_amount is None:
         outstanding_amount = amount

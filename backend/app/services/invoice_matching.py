@@ -99,10 +99,7 @@ class InvoiceMatchingService:
             "outstanding_amount": new_outstanding,
         }
 
-        if new_outstanding == 0:
-            status = "match"
-        else:
-            status = "match"
+        status = "match" if new_outstanding == 0 else "partial_match"
 
         return InvoiceMatchResult(
             status=status,

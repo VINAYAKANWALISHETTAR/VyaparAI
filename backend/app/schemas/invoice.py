@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class InvoiceCreate(BaseModel):
@@ -39,3 +39,12 @@ class InvoiceUpdate(BaseModel):
 
 class InvoiceStatusUpdate(BaseModel):
     status: str
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        allowed = {"draft", "issued", "unpaid", "partially_paid", "paid", "overdue", "cancelled"}
+        value_lower = value.strip().lower()
+        if value_lower not in allowed:
+            raise ValueError(f"status must be one of: {', '.join(sorted(allowed))}")
+        return value_lower
