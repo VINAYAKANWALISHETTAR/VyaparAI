@@ -19,6 +19,14 @@ from app.schemas.financial import (
     SupplierSummaryResponse,
 )
 from app.services.financial_service import FinancialService
+from app.services.anomaly_service import get_anomalies
+from app.services.insight_service import get_insights
+from app.services.cashflow_service import get_cash_flow
+from app.services.reconciliation_service import (
+    get_receivable_aging,
+    get_customer_summary,
+    get_supplier_summary,
+)
 from bson import ObjectId
 
 router = APIRouter(
@@ -215,7 +223,7 @@ def get_anomalies(
     current_user=Depends(get_current_user),
 ):
     user_id = str(current_user["_id"])
-    return financial_service.get_anomalies(user_id)
+    return get_anomalies(user_id)
 
 
 @router.get("/insights", response_model=InsightsListResponse)
@@ -223,7 +231,7 @@ def get_insights(
     current_user=Depends(get_current_user),
 ):
     user_id = str(current_user["_id"])
-    return financial_service.get_insights(user_id)
+    return get_insights(user_id)
 
 
 @router.get("/cash-flow", response_model=CashFlowResponse)
@@ -232,7 +240,7 @@ def get_cash_flow(
     days: int = Query(default=7, ge=1, le=365),
 ):
     user_id = str(current_user["_id"])
-    return financial_service.get_cash_flow(user_id, days=days)
+    return get_cash_flow(user_id, days=days)
 
 
 @router.get("/cash-position", response_model=CashPositionResponse)
@@ -251,7 +259,7 @@ def get_receivable_aging(
     user_id = str(current_user["_id"])
     if business_id:
         verify_business_ownership(business_id, current_user)
-    return financial_service.get_receivable_aging(business_id, user_id)
+    return get_receivable_aging(business_id, user_id)
 
 
 @router.get("/receivables/customer-summary", response_model=CustomerSummaryResponse)
@@ -262,7 +270,7 @@ def get_customer_summary(
     user_id = str(current_user["_id"])
     if business_id:
         verify_business_ownership(business_id, current_user)
-    return financial_service.get_customer_summary(business_id, user_id)
+    return get_customer_summary(business_id, user_id)
 
 
 @router.get("/liabilities/supplier-summary", response_model=SupplierSummaryResponse)
@@ -273,4 +281,4 @@ def get_supplier_summary(
     user_id = str(current_user["_id"])
     if business_id:
         verify_business_ownership(business_id, current_user)
-    return financial_service.get_supplier_summary(business_id, user_id)
+    return get_supplier_summary(business_id, user_id)

@@ -1,14 +1,8 @@
 from app.services.financial_service import FinancialService
+from app.services.anomaly_service import get_anomalies
+from app.services.insight_service import get_insights
 
 financial_service = FinancialService()
-
-
-def get_anomalies(user_id: str) -> dict:
-    return financial_service.get_anomalies(user_id)
-
-
-def get_insights(user_id: str) -> dict:
-    return financial_service.get_insights(user_id)
 
 
 def get_business_summary(user_id: str, business_id: str | None = None) -> dict:
