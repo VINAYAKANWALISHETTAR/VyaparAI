@@ -69,3 +69,16 @@ class CustomerSummaryResponse(BaseModel):
 class SupplierSummaryResponse(BaseModel):
     total_payables: float
     suppliers: list[dict]
+
+
+class AnomalyResponse(BaseModel):
+    id: str
+    type: str
+    severity: str
+    message: str
+    data: dict
+
+
+class AnomaliesListResponse(BaseModel):
+    anomaly_count: int
+    anomalies: list[AnomalyResponse]

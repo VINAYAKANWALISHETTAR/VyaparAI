@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.core.security import get_current_user
 from app.database.mongodb import db
 from app.schemas.financial import (
+    AnomaliesListResponse,
+    AnomalyResponse,
     CashFlowResponse,
     CashPositionResponse,
     CustomerSummaryResponse,
@@ -204,6 +206,14 @@ def get_liabilities_overdue(
 ):
     user_id = str(current_user["_id"])
     return financial_service.get_liabilities(user_id, overdue_only=True)
+
+
+@router.get("/anomalies", response_model=AnomaliesListResponse)
+def get_anomalies(
+    current_user=Depends(get_current_user),
+):
+    user_id = str(current_user["_id"])
+    return financial_service.get_anomalies(user_id)
 
 
 @router.get("/cash-flow", response_model=CashFlowResponse)
