@@ -667,14 +667,33 @@ class FinancialService:
 
     def _check_receivable_alerts(self, business_ids: list[str]):
         insights = []
-        receivables = self.get_receivables(None, user_id="", overdue_only=True)
-        if receivables["overdue_amount"] > 0:
+        invoices = db.invoices.find({
+            "business_id": {"$in": business_ids},
+            "outstanding_amount": {"$gt": 0},
+        })
+
+        today = date.today()
+        overdue_amount = 0.0
+        overdue_count = 0
+
+        for invoice in invoices:
+            due_date = invoice.get("due_date")
+            if hasattr(due_date, "date"):
+                due_date = due_date.date()
+
+            outstanding = float(invoice.get("outstanding_amount", 0))
+
+            if due_date and due_date < today and outstanding > 0:
+                overdue_amount += outstanding
+                overdue_count += 1
+
+        if overdue_amount > 0:
             insights.append({
                 "type": "receivable_alert",
                 "title": "Overdue receivables",
-                "description": f"You have {receivables['overdue_amount']:.2f} in overdue receivables.",
+                "description": f"You have {overdue_amount:.2f} in overdue receivables.",
                 "severity": "medium",
-                "related_entities": [{"overdue_amount": receivables["overdue_amount"], "count": len(receivables["invoices"])}],
+                "related_entities": [{"overdue_amount": overdue_amount, "count": overdue_count}],
             })
         return insights
 

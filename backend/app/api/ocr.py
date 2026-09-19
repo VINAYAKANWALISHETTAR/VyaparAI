@@ -9,6 +9,7 @@ from fastapi.background import BackgroundTasks
 from app.core.security import get_current_user
 from app.database.mongodb import db
 from app.models.invoice import invoice_document
+from app.models.transaction import transaction_document
 from app.schemas.invoice import InvoiceCreate
 from app.schemas.ocr import (
     OCRConfirmRequest,

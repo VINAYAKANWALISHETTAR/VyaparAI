@@ -13,6 +13,7 @@ from app.schemas.invoice import (
     InvoiceUpdate,
     InvoiceStatusUpdate,
 )
+from app.services.payment_processing import payment_processing_service
 
 
 router = APIRouter(
@@ -347,32 +348,11 @@ def apply_payment(
         current_user,
     )
 
-    current_paid = float(invoice.get("paid_amount", 0))
-    total_amount = float(invoice["amount"])
-    new_paid = current_paid + payment.amount
-    outstanding = max(0, total_amount - new_paid)
-
-    if outstanding < 0:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Payment exceeds outstanding amount. Outstanding: {total_amount - current_paid}",
-        )
-
-    if outstanding == 0:
-        new_status = "paid"
-    else:
-        new_status = "partially_paid"
-
-    db.invoices.update_one(
-        {"_id": invoice_object_id},
-        {
-            "$set": {
-                "paid_amount": new_paid,
-                "outstanding_amount": outstanding,
-                "status": new_status,
-                "updated_at": datetime.now(timezone.utc),
-            }
-        },
+    result = payment_processing_service.record_payment(
+        business_id=invoice["business_id"],
+        invoice_id=invoice_id,
+        amount=payment.amount,
+        user_id=str(current_user["_id"]),
     )
 
     updated_invoice = db.invoices.find_one({
