@@ -32,8 +32,8 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 | 9 | Cash-Flow Intelligence | Done |
 | 10 | Reconciliation Intelligence | Done |
 | 11 | Anomaly Detection | Done |
-| 12 | Insights Engine | Pending |
-| 13 | AI Tool Layer | Pending |
+| 12 | Insights Engine | Done |
+| 13 | AI Tool Layer | Done |
 | 14 | AI Copilot (Text First) | Pending |
 | 15 | Voice Backend | Pending |
 | 16 | Reminders + Notifications | Pending |
@@ -59,35 +59,7 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 - `GET /financials/cash-position`
 - `GET /financials/cash-flow`
 - `GET /financials/anomalies`
-
----
-
-## Phase 12 — Insights Engine
-
-**Goal:** Generate deterministic insights from financial data.
-
-**Architecture:** MongoDB → Financial services → Insight engine → Insight objects. NOT MongoDB → LLM → random insight.
-
-**New Files:**
-- `backend/app/schemas/insight.py`
-- `backend/app/services/insight_service.py`
-- `backend/app/api/insights.py`
-
-**Modified Files:**
-- `backend/app/main.py` — register insights router
-
-**Endpoints:**
-- `GET /insights` — list all insights
-- `GET /insights/summary` — get business summary with key insights
-
-**Insight Types:**
-- Revenue trend
-- Expense trend
-- Receivable alerts
-- Cash-flow warnings
-- Anomaly flags
-
----
+- `GET /financials/insights`
 
 ## Phase 13 — AI Tool Layer
 
@@ -96,35 +68,33 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 **Architecture:** Router → AI Service → AI Tools → Business Services → Repositories → MongoDB
 
 **New Files:**
+- `backend/app/ai_tools/__init__.py`
 - `backend/app/ai_tools/financial_tools.py`
 - `backend/app/ai_tools/customer_tools.py`
 - `backend/app/ai_tools/invoice_tools.py`
 - `backend/app/ai_tools/reminder_tools.py`
 - `backend/app/ai_tools/analytics_tools.py`
 
-**Tools to implement:**
-- `get_today_income()`
-- `get_today_expenses()`
-- `get_today_profit()`
-- `get_cash_position()`
-- `get_receivables()`
-- `get_overdue_receivables()`
-- `get_liabilities()`
-- `get_upcoming_liabilities()`
-- `get_customer_balance(customer)`
-- `get_supplier_balance(supplier)`
-- `get_invoice(invoice)`
-- `get_payment_history(customer)`
-- `get_cash_flow_forecast(days)`
-- `get_anomalies()`
-- `get_insights()`
-- `get_business_summary()`
-- `create_transaction()`
-- `create_receivable()`
-- `create_liability()`
-- `create_reminder()`
+**Tools implemented:**
+- `get_today_income(business_id, user_id)`
+- `get_today_expenses(business_id, user_id)`
+- `get_today_profit(business_id, user_id)`
+- `get_cash_position(user_id)`
+- `get_receivables(business_id, user_id, overdue_only, customer_id)`
+- `get_overdue_receivables(business_id, user_id)`
+- `get_liabilities(user_id, upcoming_only, overdue_only)`
+- `get_upcoming_liabilities(user_id)`
+- `get_cash_flow_forecast(user_id, days)`
+- `get_customer_balance(customer_name, business_id, user_id)`
+- `get_supplier_balance(supplier_name, business_id, user_id)`
+- `get_payment_history(customer_name, business_id, user_id)`
+- `get_invoice(invoice_id, business_id)`
+- `get_anomalies(user_id)`
+- `get_insights(user_id)`
+- `get_business_summary(user_id, business_id)`
+- `create_reminder(user_id, business_id, title, description, due_at)`
 
-These are backend functions, not necessarily public REST APIs.
+These are backend functions, not public REST APIs.
 
 ---
 
