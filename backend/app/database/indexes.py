@@ -64,5 +64,25 @@ def create_indexes():
     )
 
     db.transactions.create_index(
-        "reference_id"
+        [
+            ("business_id", 1),
+            ("type", 1),
+            ("date", 1)
+        ]
+    )
+
+    db.transactions.create_index(
+        [
+            ("business_id", 1),
+            ("type", 1),
+            ("category", 1)
+        ]
+    )
+
+    db.invoices.create_index(
+        [
+            ("business_id", 1),
+            ("status", 1),
+            ("due_date", 1)
+        ]
     )
