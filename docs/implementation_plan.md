@@ -34,7 +34,7 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 | 11 | Anomaly Detection | Done |
 | 12 | Insights Engine | Done |
 | 13 | AI Tool Layer | Done |
-| 14 | AI Copilot (Text First) | Pending |
+| 14 | AI Copilot (Text First) | Done |
 | 15 | Voice Backend | Pending |
 | 16 | Reminders + Notifications | Pending |
 | 17 | Dashboard + Reports | Pending |
@@ -60,6 +60,7 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 - `GET /financials/cash-flow`
 - `GET /financials/anomalies`
 - `GET /financials/insights`
+- `POST /copilot/chat`
 
 ## Phase 13 — AI Tool Layer
 
