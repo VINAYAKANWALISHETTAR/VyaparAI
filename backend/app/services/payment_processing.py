@@ -23,10 +23,12 @@ class PaymentProcessingService:
         current_paid = float(invoice.get("paid_amount", 0))
         total_amount = float(invoice["amount"])
         new_paid = current_paid + amount
-        outstanding = max(0, total_amount - new_paid)
+        outstanding = total_amount - new_paid
 
         if outstanding < 0:
             raise ValueError(f"Payment exceeds outstanding amount. Outstanding: {total_amount - current_paid}")
+
+        outstanding = max(0, outstanding)
 
         if outstanding == 0:
             new_status = "paid"
