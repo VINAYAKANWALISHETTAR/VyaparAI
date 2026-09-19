@@ -44,3 +44,12 @@ class CashPositionResponse(BaseModel):
     pending_receivables: float
     pending_liabilities: float
     available_cash: float
+
+
+class CashFlowResponse(BaseModel):
+    days: int
+    current_cash: float
+    expected_receivables: float
+    upcoming_liabilities: float
+    projected_balance: float
+    risk_indicator: str

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.core.security import get_current_user
 from app.database.mongodb import db
 from app.schemas.financial import (
+    CashFlowResponse,
     CashPositionResponse,
     ExpenseResponse,
     IncomeResponse,
@@ -200,6 +201,15 @@ def get_liabilities_overdue(
 ):
     user_id = str(current_user["_id"])
     return financial_service.get_liabilities(user_id, overdue_only=True)
+
+
+@router.get("/cash-flow", response_model=CashFlowResponse)
+def get_cash_flow(
+    current_user=Depends(get_current_user),
+    days: int = Query(default=7, ge=1, le=365),
+):
+    user_id = str(current_user["_id"])
+    return financial_service.get_cash_flow(user_id, days=days)
 
 
 @router.get("/cash-position", response_model=CashPositionResponse)

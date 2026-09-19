@@ -296,5 +296,32 @@ class FinancialService:
             "available_cash": available_cash,
         }
 
+    def get_cash_flow(self, user_id: str, days: int = 7):
+        cash_position = self.get_cash_position(user_id)
+        receivables = self.get_receivables(None, user_id)
+        liabilities = self.get_liabilities(user_id, upcoming_only=True)
+
+        current_cash = cash_position["recorded_cash_position"]
+        expected_receivables = receivables["total_receivables"]
+        upcoming_liabilities = liabilities["upcoming_amount"]
+
+        projected_balance = current_cash + expected_receivables - upcoming_liabilities
+
+        if upcoming_liabilities == 0:
+            risk_indicator = "low"
+        elif projected_balance >= 0:
+            risk_indicator = "medium"
+        else:
+            risk_indicator = "high"
+
+        return {
+            "days": days,
+            "current_cash": current_cash,
+            "expected_receivables": expected_receivables,
+            "upcoming_liabilities": upcoming_liabilities,
+            "projected_balance": projected_balance,
+            "risk_indicator": risk_indicator,
+        }
+
 
 financial_service = FinancialService()
