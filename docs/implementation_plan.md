@@ -36,7 +36,7 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 | 13 | AI Tool Layer | Done |
 | 14 | AI Copilot (Text First) | Done |
 | 15 | Voice Backend | Done |
-| 16 | Reminders + Notifications | Pending |
+| 16 | Reminders + Notifications | Done |
 | 17 | Dashboard + Reports | Pending |
 | 18 | Mobile Application | Pending |
 
@@ -62,6 +62,14 @@ The backend sits between the mobile app and the intelligence layer. FastAPI is t
 - `GET /financials/insights`
 - `POST /copilot/chat`
 - `POST /voice/query`
+- `POST /reminders/`
+- `GET /reminders/`
+- `GET /reminders/{id}`
+- `PATCH /reminders/{id}`
+- `DELETE /reminders/{id}`
+- `GET /reminders/morning-briefing`
+- `GET /notifications/`
+- `PATCH /notifications/{id}/read`
 
 ## Phase 13 — AI Tool Layer
 

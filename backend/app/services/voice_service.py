@@ -2,9 +2,21 @@ import os
 from typing import Optional
 
 from app.services.copilot_service import copilot_service
+from app.services.reminder_service import reminder_service
 
 
 class VoiceService:
+    BOT_ACTIVATION = [
+        "vyaparai",
+        "vyapara ai",
+        "vyapar",
+        "hey vyaparai",
+        "hi vyaparai",
+        "hello vyaparai",
+        "vyaparai please",
+        "vyaparai help",
+    ]
+
     def __init__(self):
         self._simulation_mode = os.getenv("VOICE_SIMULATION_MODE", "true").lower() == "true"
 
@@ -15,12 +27,74 @@ class VoiceService:
         text = text.strip()
         language = self._detect_language(text)
 
-        result = copilot_service.chat(user_id=user_id, message=text, business_id=business_id)
+        if not self._is_bot_activated(text):
+            return {
+                "transcription": text,
+                "answer": "I'm here to help with your business. Try saying 'VyaparAI, what is my profit today?' or 'VyaparAI, show my morning briefing'.",
+                "intent": "not_activated",
+                "language": language,
+            }
+
+        activated_text = self._remove_activation(text)
+        if self._is_morning_briefing(activated_text):
+            return self._handle_morning_briefing(user_id, business_id, activated_text, language)
+
+        result = copilot_service.chat(user_id=user_id, message=activated_text, business_id=business_id)
 
         return {
             "transcription": text,
             "answer": result["answer"],
             "intent": result.get("intent"),
+            "language": language,
+        }
+
+    def _is_bot_activated(self, text: str) -> bool:
+        text_lower = text.lower().strip()
+        return any(activation in text_lower for activation in self.BOT_ACTIVATION)
+
+    def _remove_activation(self, text: str) -> str:
+        text_lower = text.lower().strip()
+        for activation in self.BOT_ACTIVATION:
+            if activation in text_lower:
+                idx = text_lower.index(activation)
+                return text[idx + len(activation):].strip(" ,.!?")
+        return text.strip()
+
+    def _is_morning_briefing(self, text: str) -> bool:
+        morning_keywords = ["morning briefing", "daily briefing", "what's today", "what is today", "today's update", "todays update", "morning update"]
+        text_lower = text.lower().strip()
+        return any(keyword in text_lower for keyword in morning_keywords)
+
+    def _handle_morning_briefing(self, user_id: str, business_id: str | None, text: str, language: str) -> dict:
+        if not business_id:
+            from app.services.financial_service import FinancialService
+            financial_service = FinancialService()
+            business_ids = financial_service._get_user_business_ids(user_id)
+            if business_ids:
+                business_id = business_ids[0]
+            else:
+                return {
+                    "transcription": text,
+                    "answer": "You don't have any business set up yet. Please create a business first.",
+                    "intent": "morning_briefing",
+                    "language": language,
+                }
+
+        briefing = reminder_service.get_morning_briefing(user_id, business_id)
+
+        if not briefing["notifications"]:
+            answer = f"Good morning! You have no urgent notifications for today. Your income today is ₹{briefing['today_income']:.2f} and expenses are ₹{briefing['today_expenses']:.2f}."
+        else:
+            notification_summary = "\n".join([
+                f"- {n['title']}: {n['message']}"
+                for n in briefing["notifications"]
+            ])
+            answer = f"Good morning! Here's your briefing for today:\n\n{notification_summary}\n\nToday's income: ₹{briefing['today_income']:.2f}\nToday's expenses: ₹{briefing['today_expenses']:.2f}"
+
+        return {
+            "transcription": text,
+            "answer": answer,
+            "intent": "morning_briefing",
             "language": language,
         }
 

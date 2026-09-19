@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
 from app.core.security import get_current_user
 from app.schemas.voice import VoiceQueryResponse
@@ -15,6 +15,7 @@ def voice_query(
     current_user=Depends(get_current_user),
     text: str | None = None,
     file: UploadFile | None = File(default=None),
+    business_id: str | None = Query(default=None),
 ):
     user_id = str(current_user["_id"])
 
@@ -33,7 +34,7 @@ def voice_query(
         )
 
     try:
-        result = voice_service.process_query(text=text, user_id=user_id)
+        result = voice_service.process_query(text=text, user_id=user_id, business_id=business_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:

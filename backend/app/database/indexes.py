@@ -86,3 +86,35 @@ def create_indexes():
             ("due_date", 1)
         ]
     )
+
+    db.reminders.create_index(
+        [
+            ("user_id", 1),
+            ("business_id", 1),
+            ("status", 1)
+        ]
+    )
+
+    db.reminders.create_index(
+        [
+            ("user_id", 1),
+            ("business_id", 1),
+            ("due_at", 1)
+        ]
+    )
+
+    db.notifications.create_index(
+        [
+            ("user_id", 1),
+            ("business_id", 1),
+            ("read", 1)
+        ]
+    )
+
+    db.notifications.create_index(
+        [
+            ("user_id", 1),
+            ("business_id", 1),
+            ("created_at", 1)
+        ]
+    )
