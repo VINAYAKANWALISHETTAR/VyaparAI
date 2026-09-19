@@ -57,7 +57,13 @@ class VoiceService:
         for activation in self.BOT_ACTIVATION:
             if activation in text_lower:
                 idx = text_lower.index(activation)
-                return text[idx + len(activation):].strip(" ,.!?")
+                prefix = text[:idx].strip(" ,.!?")
+                suffix = text[idx + len(activation):].strip(" ,.!?")
+                if suffix:
+                    return suffix
+                if prefix:
+                    return prefix
+                return text.strip()
         return text.strip()
 
     def _is_morning_briefing(self, text: str) -> bool:
