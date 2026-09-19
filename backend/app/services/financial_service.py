@@ -573,7 +573,6 @@ class FinancialService:
 
         return anomalies
 
-
     def get_insights(self, user_id: str):
         business_ids = self._get_user_business_ids(user_id)
         insights = []
