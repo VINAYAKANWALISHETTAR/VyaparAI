@@ -11,6 +11,7 @@ from app.api.transactions import router as transactions_router
 from app.api.ocr import router as ocr_router
 from app.api.financials import router as financials_router
 from app.api.copilot import router as copilot_router
+from app.api.voice import router as voice_router
 
 app = FastAPI(
     title="VyaparAI API",
@@ -40,6 +41,7 @@ app.include_router(transactions_router)
 app.include_router(ocr_router)
 app.include_router(financials_router)
 app.include_router(copilot_router)
+app.include_router(voice_router)
 
 
 @app.get("/")
