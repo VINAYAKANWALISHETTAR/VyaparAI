@@ -82,3 +82,17 @@ class AnomalyResponse(BaseModel):
 class AnomaliesListResponse(BaseModel):
     anomaly_count: int
     anomalies: list[AnomalyResponse]
+
+
+class InsightResponse(BaseModel):
+    type: str
+    title: str
+    description: str
+    severity: str
+    related_entities: list[dict]
+    created_at: str | None = None
+
+
+class InsightsListResponse(BaseModel):
+    insight_count: int
+    insights: list[InsightResponse]

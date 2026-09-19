@@ -10,6 +10,8 @@ from app.schemas.financial import (
     CustomerSummaryResponse,
     ExpenseResponse,
     IncomeResponse,
+    InsightResponse,
+    InsightsListResponse,
     LiabilityResponse,
     ProfitResponse,
     ReceivableAgingResponse,
@@ -214,6 +216,14 @@ def get_anomalies(
 ):
     user_id = str(current_user["_id"])
     return financial_service.get_anomalies(user_id)
+
+
+@router.get("/insights", response_model=InsightsListResponse)
+def get_insights(
+    current_user=Depends(get_current_user),
+):
+    user_id = str(current_user["_id"])
+    return financial_service.get_insights(user_id)
 
 
 @router.get("/cash-flow", response_model=CashFlowResponse)
