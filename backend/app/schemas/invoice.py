@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -7,7 +7,7 @@ class InvoiceCreate(BaseModel):
     customer_name: str = Field(min_length=1, max_length=200)
     invoice_number: str | None = None
     amount: float = Field(gt=0)
-    due_date: date
+    due_date: dt.date = Field(default_factory=dt.date.today)
     description: str | None = None
 
 
@@ -30,7 +30,7 @@ class InvoiceUpdate(BaseModel):
         ge=0
     )
 
-    due_date: date | None = None
+    due_date: dt.date | None = None
 
     description: str | None = None
 
