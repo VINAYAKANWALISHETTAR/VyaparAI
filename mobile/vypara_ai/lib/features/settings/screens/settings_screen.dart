@@ -298,7 +298,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                           setState(() => _selectedLanguage = lang.name);
                           Navigator.pop(ctx);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Language switched to \${lang.name} (\${lang.nativeName})')),
+                            SnackBar(content: Text('Language switched to ${lang.name} (${lang.nativeName})')),
                           );
                         },
                         borderRadius: BorderRadius.circular(12),
