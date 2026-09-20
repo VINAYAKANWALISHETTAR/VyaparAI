@@ -21,27 +21,35 @@ class VoiceService:
     def __init__(self):
         self._simulation_mode = os.getenv("VOICE_SIMULATION_MODE", "true").lower() == "true"
 
-    def process_query(self, text: str, user_id: str, business_id: str | None = None) -> dict:
+    def process_query(self, text: str, user_id: str, business_id: str | None = None, language: str | None = None) -> dict:
         if not text or not text.strip():
             raise ValueError("Empty voice transcription")
 
         text = text.strip()
-        language = self._detect_language(text)
+        detected_lang = self._detect_language(text)
+        final_language = (language.lower() if language else None) or detected_lang
+        if final_language not in ("en", "kn", "hi"):
+            final_language = detected_lang
 
         activated_text = self._remove_activation(text)
 
         # Check for morning briefing intent
         if self._is_morning_briefing(activated_text):
-            return self._handle_morning_briefing(user_id, business_id, activated_text, language)
+            return self._handle_morning_briefing(user_id, business_id, activated_text, final_language)
 
         # Process through copilot service (with transaction creation, financial analysis & greetings)
-        result = copilot_service.chat(user_id=user_id, message=activated_text, business_id=business_id)
+        result = copilot_service.chat(
+            user_id=user_id,
+            message=activated_text,
+            business_id=business_id,
+            language=final_language,
+        )
 
         return {
             "transcription": text,
             "answer": result["answer"],
             "intent": result.get("intent"),
-            "language": language,
+            "language": final_language,
             "action_buttons": result.get("action_buttons", []),
         }
 

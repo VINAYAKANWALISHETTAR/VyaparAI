@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 
-class AppBottomNav extends StatelessWidget {
+class AppBottomNav extends ConsumerWidget {
   const AppBottomNav({super.key, required this.location});
 
   final String location;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tr = ref.watch(appTranslationsProvider);
     final isHome = location == '/app/home' || location == '/';
     final isRecords = location.startsWith('/app/records') || location.startsWith('/app/transactions');
     final isReports = location.startsWith('/app/reports');
@@ -39,7 +42,7 @@ class AppBottomNav extends StatelessWidget {
                 context: context,
                 icon: Icons.home_outlined,
                 activeIcon: Icons.home_rounded,
-                label: 'Home',
+                label: tr('home'),
                 isSelected: isHome,
                 onTap: () => context.go('/app/home'),
               ),
@@ -47,7 +50,7 @@ class AppBottomNav extends StatelessWidget {
                 context: context,
                 icon: Icons.receipt_long_outlined,
                 activeIcon: Icons.receipt_long_rounded,
-                label: 'Records',
+                label: tr('records'),
                 isSelected: isRecords,
                 onTap: () => context.go('/app/records'),
               ),
@@ -85,7 +88,7 @@ class AppBottomNav extends StatelessWidget {
                 context: context,
                 icon: Icons.bar_chart_outlined,
                 activeIcon: Icons.bar_chart_rounded,
-                label: 'Reports',
+                label: tr('reports'),
                 isSelected: isReports,
                 onTap: () => context.go('/app/reports'),
               ),
@@ -93,7 +96,7 @@ class AppBottomNav extends StatelessWidget {
                 context: context,
                 icon: Icons.more_horiz_rounded,
                 activeIcon: Icons.more_horiz_rounded,
-                label: 'More',
+                label: tr('more'),
                 isSelected: isSettings,
                 onTap: () => context.go('/app/settings'),
               ),

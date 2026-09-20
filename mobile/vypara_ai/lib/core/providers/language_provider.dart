@@ -17,14 +17,8 @@ class LanguageModel {
 
 const List<LanguageModel> supportedLanguages = [
   LanguageModel(code: 'EN', name: 'English', nativeName: 'English', speechLocale: 'en_IN'),
-  LanguageModel(code: 'HI', name: 'Hindi', nativeName: 'हिंदी', speechLocale: 'hi_IN'),
   LanguageModel(code: 'KN', name: 'Kannada', nativeName: 'ಕನ್ನಡ', speechLocale: 'kn_IN'),
-  LanguageModel(code: 'TA', name: 'Tamil', nativeName: 'தமிழ்', speechLocale: 'ta_IN'),
-  LanguageModel(code: 'TE', name: 'Telugu', nativeName: 'తెలుగు', speechLocale: 'te_IN'),
-  LanguageModel(code: 'ML', name: 'Malayalam', nativeName: 'മലയാളം', speechLocale: 'ml_IN'),
-  LanguageModel(code: 'MR', name: 'Marathi', nativeName: 'मराठी', speechLocale: 'mr_IN'),
-  LanguageModel(code: 'GU', name: 'Gujarati', nativeName: 'ગુજરાતી', speechLocale: 'gu_IN'),
-  LanguageModel(code: 'BN', name: 'Bengali', nativeName: 'বাংলা', speechLocale: 'bn_IN'),
+  LanguageModel(code: 'HI', name: 'Hindi', nativeName: 'हिंदी', speechLocale: 'hi_IN'),
 ];
 
 class LanguageNotifier extends Notifier<LanguageModel> {

@@ -4,6 +4,8 @@ from pydantic import BaseModel
 class VoiceQueryRequest(BaseModel):
     audio_file: bytes | None = None
     text: str | None = None
+    language: str | None = None
+    business_id: str | None = None
 
 
 class VoiceQueryResponse(BaseModel):

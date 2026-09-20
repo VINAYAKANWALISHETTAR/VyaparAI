@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
@@ -20,15 +21,16 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
-  String _getGreeting() {
+  String _getGreeting(String Function(String) tr) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return tr('good_morning');
+    if (hour < 17) return tr('good_afternoon');
+    return tr('good_evening');
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = ref.watch(appTranslationsProvider);
     final location = GoRouterState.of(context).uri.path;
     final isHome = location == '/app/home' || location == '/';
     final auth = ref.watch(authProvider);
@@ -43,7 +45,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            _getGreeting(),
+            _getGreeting(tr),
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -62,27 +64,27 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ],
       );
     } else {
-      String displayTitle = title ?? 'VyparaAI';
+      String displayTitle = title ?? 'VyaparAI';
       if (title == null) {
         if (location.startsWith('/app/reports')) {
-          displayTitle = 'Reports';
+          displayTitle = tr('reports');
         } else if (location.startsWith('/app/ai')) {
-          displayTitle = 'AI Copilot';
+          displayTitle = tr('ai_copilot');
         } else if (location.startsWith('/app/records') ||
             location.startsWith('/app/transactions')) {
-          displayTitle = 'Transactions';
+          displayTitle = tr('records');
         } else if (location.startsWith('/app/settings')) {
-          displayTitle = 'Settings';
+          displayTitle = tr('settings');
         } else if (location.startsWith('/app/cash-flow')) {
-          displayTitle = 'Cash Flow';
+          displayTitle = tr('cash_flow');
         } else if (location.startsWith('/app/reminders')) {
-          displayTitle = 'Reminders';
+          displayTitle = tr('reminders');
         } else if (location.startsWith('/app/customers')) {
-          displayTitle = 'Customers';
+          displayTitle = tr('customers');
         } else if (location.startsWith('/app/suppliers')) {
-          displayTitle = 'Suppliers';
+          displayTitle = tr('suppliers');
         } else if (location.startsWith('/app/upload')) {
-          displayTitle = 'Upload';
+          displayTitle = tr('upload');
         }
       }
 

@@ -177,10 +177,31 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
     return "unknown", {}
 
 
-def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[dict]]:
+def generate_answer(intent: str, data: dict, message: str, language: str = "en") -> tuple[str, list[dict]]:
+    lang = (language or "en").lower()
     action_buttons = []
 
     if intent == "greeting":
+        if lang == "kn":
+            return (
+                "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ಇಂದು ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ? "
+                "ನಿಮ್ಮ ಲಾಭ, ಆದಾಯ, ವೆಚ್ಚಗಳು, ಬಾಕಿ ಇರುವ ಹಣದ ಬಗ್ಗೆ ಕೇಳಬಹುದು ಅಥವಾ 'ರಮೇಶ್ 5000 ಪಾವತಿಸಿದ್ದಾರೆ' ಎಂದು ವಹಿವಾಟು ದಾಖಲಿಸಲು ಹೇಳಬಹುದು.",
+                [
+                    {"label": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?", "query": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?"},
+                    {"label": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?", "query": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?"},
+                    {"label": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ", "query": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ"},
+                ],
+            )
+        elif lang == "hi":
+            return (
+                "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। आज मैं आपके व्यवसाय में कैसे मदद कर सकता हूँ? "
+                "आप अपने लाभ, राजस्व, खर्च या बकाया राशि के बारे में पूछ सकते हैं, या 'रमेश ने 5000 दिए' कहकर लेनदेन रिकॉर्ड कर सकते हैं।",
+                [
+                    {"label": "आज मेरा लाभ कितना है?", "query": "आज मेरा लाभ कितना है?"},
+                    {"label": "मुझ पर किसका बकाया है?", "query": "मुझ पर किसका बकाया है?"},
+                    {"label": "व्यवसाय सारांश दिखाएं", "query": "व्यवसाय सारांश दिखाएं"},
+                ],
+            )
         return (
             "Hello! I am your VyaparAI bot. How can I assist your business today? "
             "You can ask about your profit, revenue, expenses, who owes you money, "
@@ -205,6 +226,33 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "Show Reports", "route": "/app/reports"},
         ]
 
+        if lang == "kn":
+            if ttype == "income":
+                return (
+                    f"ನಾನು ನಿಮ್ಮ ದಾಖಲೆಗಳಲ್ಲಿ ₹{amt:,.0f} ({desc}) ಮಾರಾಟ/ಆದಾಯವನ್ನು ದಾಖಲಿಸಿದ್ದೇನೆ! ✓\n"
+                    f"ನಿಮ್ಮ ಇಂದಿನ ಒಟ್ಟು ಆದಾಯ ಈಗ ₹{today_income:,.0f} ಆಗಿದೆ.",
+                    action_buttons,
+                )
+            else:
+                return (
+                    f"ನಾನು ನಿಮ್ಮ ದಾಖಲೆಗಳಲ್ಲಿ ₹{amt:,.0f} ({desc}) ವೆಚ್ಚವನ್ನು ದಾಖಲಿಸಿದ್ದೇನೆ! ✓\n"
+                    f"ನಿಮ್ಮ ಇಂದಿನ ಒಟ್ಟು ವೆಚ್ಚ ಈಗ ₹{today_expense:,.0f} ಆಗಿದೆ.",
+                    action_buttons,
+                )
+        elif lang == "hi":
+            if ttype == "income":
+                return (
+                    f"मैंने आपके रिकॉर्ड में ₹{amt:,.0f} ({desc}) की बिक्री/आय दर्ज कर ली है! ✓\n"
+                    f"आज का आपका कुल राजस्व अब ₹{today_income:,.0f} है।",
+                    action_buttons,
+                )
+            else:
+                return (
+                    f"मैंने आपके रिकॉर्ड में ₹{amt:,.0f} ({desc}) का खर्च दर्ज कर लिया है! ✓\n"
+                    f"आज का आपका कुल खर्च अब ₹{today_expense:,.0f} है।",
+                    action_buttons,
+                )
+
         if ttype == "income":
             return (
                 f"I have recorded a sale/income of ₹{amt:,.0f} ({desc}) into your records! ✓\n"
@@ -224,27 +272,47 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "Show Reports", "route": "/app/reports"},
             {"label": "View Details", "route": "/app/transactions"},
         ]
+        if lang == "kn":
+            return f"ಇಂದು ನಿಮ್ಮ ದಾಖಲಾದ ನಿವ್ವಳ ಲಾಭ ₹{prof:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आज आपका दर्ज किया गया शुद्ध लाभ ₹{prof:,.0f} है।", action_buttons
         return f"Your recorded profit today is ₹{prof:,.0f}.", action_buttons
 
     if intent == "get_today_income":
         inc = data.get("total_income", 0.0)
         action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        if lang == "kn":
+            return f"ಇಂದು ನಿಮ್ಮ ಒಟ್ಟು ಆದಾಯ/ಮಾರಾಟ ₹{inc:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आज आपकी कुल आय/राजस्व ₹{inc:,.0f} है।", action_buttons
         return f"Your revenue/income today is ₹{inc:,.0f}.", action_buttons
 
     if intent == "get_today_expenses":
         exp = data.get("total_expenses", 0.0)
         action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        if lang == "kn":
+            return f"ಇಂದು ನಿಮ್ಮ ಒಟ್ಟು ವೆಚ್ಚ ₹{exp:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आज आपका कुल खर्च ₹{exp:,.0f} है।", action_buttons
         return f"Your expenses today are ₹{exp:,.0f}.", action_buttons
 
     if intent == "get_cash_position":
         cash = data.get("recorded_cash_position", 0.0)
         action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        if lang == "kn":
+            return f"ನಿಮ್ಮ ದಾಖಲಾದ ನಿವ್ವಳ ನಗದು ಸ್ಥಿತಿ ₹{cash:,.0f} ಆಗಿದೆ.", action_buttons
+        elif lang == "hi":
+            return f"आपकी दर्ज की गई शुद्ध नकद स्थिति ₹{cash:,.0f} है।", action_buttons
         return f"Your recorded net cash position is ₹{cash:,.0f}.", action_buttons
 
     if intent == "get_cash_flow_forecast":
         bal = data.get("projected_balance", 0.0)
         risk = data.get("risk_indicator", "low")
         action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        if lang == "kn":
+            return f"ನಿಮ್ಮ 30 ದಿನಗಳ ಅಂದಾಜು ನಗದು ಬಾಕಿ ₹{bal:,.0f} ಆಗಿದೆ ({risk} ಅಪಾಯ).", action_buttons
+        elif lang == "hi":
+            return f"आपका 30 दिनों का अनुमानित नकद शेष ₹{bal:,.0f} है ({risk} जोखिम)।", action_buttons
         return f"Your projected 30-day cash balance is ₹{bal:,.0f} with a {risk} liquidity risk.", action_buttons
 
     if intent == "get_receivables":
@@ -259,13 +327,31 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
 
         count = len(cust_totals)
         if count > 0:
+            if lang == "kn":
+                lines = [f"ನಿಮ್ಮ {count} ಗ್ರಾಹಕರಿಂದ ಒಟ್ಟು ₹{total:,.0f} ಬಾಕಿ ಪಾವತಿಗಳಿವೆ:"]
+                for idx, (name, amt) in enumerate(list(cust_totals.items())[:5], 1):
+                    lines.append(f"{idx}. {name} – ₹{amt:,.0f}")
+                return "\n".join(lines), action_buttons
+            elif lang == "hi":
+                lines = [f"आपके पास {count} ग्राहकों से कुल ₹{total:,.0f} का बकाया है:"]
+                for idx, (name, amt) in enumerate(list(cust_totals.items())[:5], 1):
+                    lines.append(f"{idx}. {name} – ₹{amt:,.0f}")
+                return "\n".join(lines), action_buttons
             lines = [f"You have ₹{total:,.0f} in pending payments from {count} customer{'s' if count > 1 else ''}:"]
             for idx, (name, amt) in enumerate(list(cust_totals.items())[:5], 1):
                 lines.append(f"{idx}. {name} – ₹{amt:,.0f}")
             return "\n".join(lines), action_buttons
         elif total > 0:
+            if lang == "kn":
+                return f"ನಿಮ್ಮ ಗ್ರಾಹಕರಿಂದ ಒಟ್ಟು ₹{total:,.0f} ಬಾಕಿ ಹಣವಿದೆ.", action_buttons
+            elif lang == "hi":
+                return f"आपके पास कुल ₹{total:,.0f} का प्राप्य बकाया है।", action_buttons
             return f"You have ₹{total:,.0f} in pending receivables.", action_buttons
         else:
+            if lang == "kn":
+                return "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಬಾಕಿ ಪಾವತಿಗಳಿಲ್ಲ. ಎಲ್ಲಾ ಖಾತೆಗಳು ಪಾವತಿಯಾಗಿವೆ!", action_buttons
+            elif lang == "hi":
+                return "वर्तमान में कोई बकाया प्राप्य नहीं है। सभी खाते चुकता हैं!", action_buttons
             return "You have no outstanding receivables currently. All customer accounts are settled!", action_buttons
 
     if intent == "get_overdue_receivables":
@@ -274,6 +360,10 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "View All Receivables", "route": "/app/customers"},
             {"label": "Set Reminder", "route": "/app/reminders"},
         ]
+        if lang == "kn":
+            return f"ನೀವು ವಸೂಲಿ ಮಾಡಬೇಕಾದ ₹{od:,.0f} ಮಿತಿಮೀರಿದ ಬಾಕಿ ಹಣವಿದೆ.", action_buttons
+        elif lang == "hi":
+            return f"आपके पास ₹{od:,.0f} की अतिदेय प्राप्य राशि है।", action_buttons
         return f"You have ₹{od:,.0f} in overdue receivables that require follow-up.", action_buttons
 
     if intent in ("get_liabilities", "get_upcoming_liabilities"):
@@ -282,6 +372,10 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "Set Reminder", "route": "/app/reminders"},
             {"label": "Check Cash Flow", "route": "/app/cash-flow"},
         ]
+        if lang == "kn":
+            return f"ನೀವು ಪಾವತಿಸಬೇಕಾದ ಮುಂಬರುವ ಬಾಧ್ಯತೆಗಳು ₹{total:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आपकी आगामी देयताएं ₹{total:,.0f} हैं।", action_buttons
         return f"You have ₹{total:,.0f} in upcoming liabilities.", action_buttons
 
     if intent == "get_business_summary":
@@ -296,11 +390,42 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "Set Reminder", "route": "/app/reminders"},
             {"label": "Check Cash Flow", "route": "/app/cash-flow"},
         ]
+        if lang == "kn":
+            return (
+                f"ನಿಮ್ಮ ವ್ಯಾಪಾರ ಅವಲೋಕನ: ಇಂದಿನ ಆದಾಯ ₹{inc:,.0f}, ವೆಚ್ಚ ₹{exp:,.0f}, ಮತ್ತು ನಿವ್ವಳ ಲಾಭ ₹{prof:,.0f}. "
+                f"ನಿಮ್ಮಲ್ಲಿ ಒಟ್ಟು ₹{rec:,.0f} ಮೊತ್ತದ {rec_count} ಬಾಕಿ ಪಾವತಿಗಳಿವೆ.",
+                action_buttons,
+            )
+        elif lang == "hi":
+            return (
+                f"आपके व्यवसाय का विवरण: आज का राजस्व ₹{inc:,.0f}, खर्च ₹{exp:,.0f}, और शुद्ध लाभ ₹{prof:,.0f} है। "
+                f"आपके पास कुल ₹{rec:,.0f} की {rec_count} बकाया राशियां हैं।",
+                action_buttons,
+            )
         return (
             f"Here is your business overview: Today's revenue is ₹{inc:,.0f}, expenses are ₹{exp:,.0f}, "
             f"and net profit is ₹{prof:,.0f}. "
             f"You have {rec_count} pending receivable{'s' if rec_count != 1 else ''} totaling ₹{rec:,.0f}.",
             action_buttons,
+        )
+
+    if lang == "kn":
+        return (
+            "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ನಿಮ್ಮ ಆದಾಯ, ವೆಚ್ಚ, ಲಾಭ ಮತ್ತು ನಗದು ಹರಿವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಅಥವಾ ಧ್ವನಿ ಮೂಲಕ ವಹಿವಾಟು ದಾಖಲಿಸಲು ನಾನು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. 'ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?' ಎಂದು ಕೇಳಿ ನೋಡಿ.",
+            [
+                {"label": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?", "query": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?"},
+                {"label": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?", "query": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?"},
+                {"label": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ", "query": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ"},
+            ],
+        )
+    elif lang == "hi":
+        return (
+            "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। मैं आपकी आय, व्यय, लाभ और नकदी प्रवाह का विश्लेषण करने या आवाज द्वारा लेनदेन दर्ज करने में मदद कर सकता हूँ।",
+            [
+                {"label": "आज मेरा लाभ कितना है?", "query": "आज मेरा लाभ कितना है?"},
+                {"label": "मुझ पर किसका बकाया है?", "query": "मुझ पर किसका बकाया है?"},
+                {"label": "व्यवसाय सारांश दिखाएं", "query": "व्यवसाय सारांश दिखाएं"},
+            ],
         )
 
     return (
@@ -333,14 +458,14 @@ class CopilotService:
             "get_business_summary": self._handle_business_summary,
         }
 
-    def chat(self, user_id: str, message: str, business_id: str | None = None) -> dict:
+    def chat(self, user_id: str, message: str, business_id: str | None = None, language: str = "en") -> dict:
         intent, params = classify_intent(message)
         handler = self._intent_handlers.get(intent)
 
         if handler:
             try:
                 data = handler(user_id, business_id, **(params or {}))
-                answer, buttons = generate_answer(intent, data, message)
+                answer, buttons = generate_answer(intent, data, message, language=language)
                 return {"answer": answer, "intent": intent, "data": data, "action_buttons": buttons}
             except Exception as exc:
                 return {
@@ -350,7 +475,7 @@ class CopilotService:
                     "action_buttons": [],
                 }
 
-        answer, buttons = generate_answer(intent, {}, message)
+        answer, buttons = generate_answer(intent, {}, message, language=language)
         return {
             "answer": answer,
             "intent": "unknown",

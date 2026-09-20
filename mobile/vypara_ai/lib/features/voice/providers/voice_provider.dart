@@ -85,8 +85,15 @@ class VoiceProvider extends Notifier<VoiceState> {
   }
 
   Future<void> speakGreeting() async {
-    const greeting = "Hello! I am your VyaparAI bot. How can I help your business today?";
     final lang = ref.read(languageProvider);
+    String greeting;
+    if (lang.code.toUpperCase() == 'KN') {
+      greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ಇಂದು ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?";
+    } else if (lang.code.toUpperCase() == 'HI') {
+      greeting = "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। आज मैं आपके व्यवसाय में कैसे मदद कर सकता हूँ?";
+    } else {
+      greeting = "Hello! I am your VyaparAI bot. How can I help your business today?";
+    }
     _initTts();
     await _tts.stop();
     await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});

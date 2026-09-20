@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/voice/providers/voice_provider.dart';
 
 class VoiceScreenPlaceholder extends ConsumerStatefulWidget {
@@ -18,14 +19,6 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
   late Animation<double> _pulseAnim;
   final _textController = TextEditingController();
   bool? _isLiked;
-
-  final List<String> _suggestedPhrases = [
-    'Ramesh paid 5000',
-    'Spent 450 on transport',
-    'What is my profit today?',
-    'Who owes me money?',
-    'Show cash flow forecast',
-  ];
 
   @override
   void initState() {
@@ -50,6 +43,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final voiceState = ref.watch(voiceProvider);
     final isListening = voiceState.status == VoiceStatus.listening;
     final isProcessing = voiceState.status == VoiceStatus.processing;
@@ -67,9 +61,9 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           icon: const Icon(Icons.close, color: Color(0xFF1E293B)),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'AI Assistant',
-          style: TextStyle(
+        title: Text(
+          tr('voice_assistant'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
@@ -82,9 +76,9 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 setState(() => _isLiked = null);
                 ref.read(voiceProvider.notifier).reset();
               },
-              child: const Text(
-                'New Query',
-                style: TextStyle(
+              child: Text(
+                tr('new_query'),
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -94,14 +88,15 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
       ),
       body: SafeArea(
         child: hasResponse
-            ? _buildResponseMode(voiceState)
+            ? _buildResponseMode(voiceState, tr)
             : permissionDenied
-                ? _buildPermissionDenied()
+                ? _buildPermissionDenied(tr)
                 : _buildListeningMode(
                     voiceState,
                     isListening,
                     isProcessing,
                     hasError,
+                    tr,
                   ),
       ),
     );
@@ -114,7 +109,16 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
     bool isListening,
     bool isProcessing,
     bool hasError,
+    String Function(String) tr,
   ) {
+    final suggestedPhrases = [
+      tr('phrase_1'),
+      tr('phrase_2'),
+      tr('phrase_3'),
+      tr('phrase_4'),
+      tr('phrase_5'),
+    ];
+
     return Column(
       children: [
         // Bot Greeting Banner
@@ -145,21 +149,21 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello! I am your VyaparAI Bot',
-                      style: TextStyle(
+                      tr('bot_greeting_title'),
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1E293B),
                       ),
                     ),
                     Text(
-                      'Speak to record transactions or ask financial insights',
-                      style: TextStyle(
+                      tr('bot_greeting_subtitle'),
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF64748B),
                       ),
@@ -189,12 +193,12 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
         const SizedBox(height: 8),
         Text(
           isListening
-              ? 'Listening...'
+              ? tr('listening')
               : isProcessing
-                  ? 'Analyzing business data...'
+                  ? tr('analyzing_data')
                   : hasError
-                      ? 'Try Again'
-                      : 'Tap mic to speak',
+                      ? tr('try_again')
+                      : tr('tap_mic_to_speak'),
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -328,7 +332,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 child: TextField(
                   controller: _textController,
                   decoration: InputDecoration(
-                    hintText: 'Or type your question...',
+                    hintText: tr('type_question'),
                     hintStyle: const TextStyle(
                       color: AppColors.textTertiary,
                       fontSize: 14,
@@ -399,16 +403,16 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'You can say...',
-                style: TextStyle(
+              Text(
+                tr('you_can_say'),
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 10),
-              ..._suggestedPhrases.map((phrase) {
+              ...suggestedPhrases.map((phrase) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: InkWell(
@@ -463,7 +467,9 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
 
   // ─── Response Mode (AI Answer Card - Screen 4) ────────────────────────────
 
-  Widget _buildResponseMode(VoiceState voiceState) {
+  // ─── Response Mode (AI Answer Card - Screen 4) ────────────────────────────
+
+  Widget _buildResponseMode(VoiceState voiceState, String Function(String) tr) {
     final responseText = voiceState.response ?? '';
     final hasFinancialBreakdown = responseText.toLowerCase().contains('profit') ||
         responseText.toLowerCase().contains('revenue') ||
@@ -551,9 +557,9 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
-                          'VyaparAI Answer',
-                          style: TextStyle(
+                        Text(
+                          tr('voice_answer'),
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1E293B),
@@ -597,7 +603,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              voiceState.isSpeaking ? 'Speaking...' : 'Listen',
+                              voiceState.isSpeaking ? tr('speaking') : tr('listen'),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -636,11 +642,11 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildMiniMetric('Revenue', const Color(0xFF10B981)),
+                        _buildMiniMetric(tr('today_revenue'), const Color(0xFF10B981)),
                         Container(width: 1, height: 30, color: const Color(0xFFE2E8F0)),
-                        _buildMiniMetric('Expense', const Color(0xFFEF4444)),
+                        _buildMiniMetric(tr('today_expense'), const Color(0xFFEF4444)),
                         Container(width: 1, height: 30, color: const Color(0xFFE2E8F0)),
-                        _buildMiniMetric('Profit', const Color(0xFF2155F5)),
+                        _buildMiniMetric(tr('today_profit'), const Color(0xFF2155F5)),
                       ],
                     ),
                   ),
@@ -654,9 +660,9 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Was this helpful?',
-                      style: TextStyle(
+                    Text(
+                      tr('was_helpful'),
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF94A3B8),
                         fontWeight: FontWeight.w500,
@@ -693,16 +699,29 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
 
           // Action buttons
           ...voiceState.actionButtons.map((pill) {
-            final label = pill['label'] ?? '';
+            final rawLabel = pill['label'] ?? '';
             final route = pill['route'] ?? '';
+            String displayLabel = rawLabel;
+            if (rawLabel.contains('Detail') || rawLabel.contains('Transaction')) {
+              displayLabel = tr('view_details');
+            } else if (rawLabel.contains('Report')) {
+              displayLabel = tr('show_reports');
+            } else if (rawLabel.contains('Reminder')) {
+              displayLabel = tr('set_reminder');
+            } else if (rawLabel.contains('Cash')) {
+              displayLabel = tr('check_cash_flow');
+            } else if (rawLabel.contains('Receivable')) {
+              displayLabel = tr('view_all_receivables');
+            }
+
             IconData iconData = Icons.arrow_forward_ios_rounded;
-            if (label.contains('Detail') || label.contains('Transaction')) {
+            if (rawLabel.contains('Detail') || rawLabel.contains('Transaction')) {
               iconData = Icons.receipt_long_outlined;
-            } else if (label.contains('Report')) {
+            } else if (rawLabel.contains('Report')) {
               iconData = Icons.bar_chart_outlined;
-            } else if (label.contains('Reminder')) {
+            } else if (rawLabel.contains('Reminder')) {
               iconData = Icons.alarm_outlined;
-            } else if (label.contains('Cash')) {
+            } else if (rawLabel.contains('Cash')) {
               iconData = Icons.account_balance_wallet_outlined;
             }
 
@@ -717,7 +736,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                   },
                   icon: Icon(iconData, size: 20, color: AppColors.primary),
                   label: Text(
-                    label,
+                    displayLabel,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -747,7 +766,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 ref.read(voiceProvider.notifier).reset();
               },
               icon: const Icon(Icons.mic, size: 18),
-              label: const Text('Ask Another Question'),
+              label: Text(tr('ask_another')),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
               ),
@@ -784,7 +803,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
 
   // ─── Permission Denied ─────────────────────────────────────────────────────
 
-  Widget _buildPermissionDenied() {
+  Widget _buildPermissionDenied(String Function(String) tr) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -822,7 +841,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
               onPressed: () =>
                   ref.read(voiceProvider.notifier).startListening(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(tr('try_again')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
@@ -48,9 +49,10 @@ class HomeScreenPlaceholder extends ConsumerWidget {
   }
 
   void _openAddTransactionSheet(BuildContext context, WidgetRef ref, {required String initialType}) {
+    final tr = ref.read(appTranslationsProvider);
     final amountController = TextEditingController();
     final categoryController = TextEditingController(
-      text: initialType == 'Income' ? 'Sale' : 'General Expense',
+      text: initialType == 'Income' ? tr('add_sale') : tr('add_expense'),
     );
     final descController = TextEditingController();
     String selectedType = initialType;
@@ -80,7 +82,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        selectedType == 'Income' ? 'Add Sale / Income' : 'Add Expense',
+                        selectedType == 'Income' ? tr('add_sale_income') : tr('add_expense_title'),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -103,8 +105,8 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Income';
-                              if (categoryController.text == 'General Expense') {
-                                categoryController.text = 'Sale';
+                              if (categoryController.text == 'General Expense' || categoryController.text == tr('add_expense')) {
+                                categoryController.text = tr('add_sale');
                               }
                             });
                           },
@@ -113,13 +115,13 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               color: selectedType == 'Income'
-                                  ? const Color(0xFF10B981)
+                                   ? const Color(0xFF10B981)
                                   : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(AppRadius.pill),
                             ),
                             child: Center(
                               child: Text(
-                                'Income',
+                                tr('income'),
                                 style: TextStyle(
                                   color: selectedType == 'Income'
                                       ? Colors.white
@@ -137,8 +139,8 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Expense';
-                              if (categoryController.text == 'Sale') {
-                                categoryController.text = 'General Expense';
+                              if (categoryController.text == 'Sale' || categoryController.text == tr('add_sale')) {
+                                categoryController.text = tr('add_expense');
                               }
                             });
                           },
@@ -153,7 +155,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                             ),
                             child: Center(
                               child: Text(
-                                'Expense',
+                                tr('expense'),
                                 style: TextStyle(
                                   color: selectedType == 'Expense'
                                       ? Colors.white
@@ -174,7 +176,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Amount (₹)',
+                      labelText: tr('amount_label'),
                       prefixIcon: const Icon(Icons.currency_rupee, color: AppColors.primary),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -190,7 +192,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                   TextField(
                     controller: categoryController,
                     decoration: InputDecoration(
-                      labelText: 'Category / Source',
+                      labelText: tr('category_label'),
                       prefixIcon: const Icon(Icons.category_outlined, color: AppColors.primary),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -206,7 +208,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
-                      labelText: 'Description / Customer Name (Optional)',
+                      labelText: tr('desc_label'),
                       prefixIcon: const Icon(Icons.description_outlined, color: AppColors.primary),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -223,7 +225,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                       final amount = double.tryParse(amountController.text.trim()) ?? 0;
                       if (amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid amount')),
+                          SnackBar(content: Text(tr('valid_amount_error'))),
                         );
                         return;
                       }
@@ -251,7 +253,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '$selectedType of ₹${amount.toStringAsFixed(0)} added successfully!',
+                                '$selectedType: ₹${amount.toStringAsFixed(0)} ✓',
                               ),
                               backgroundColor: AppColors.success,
                             ),
@@ -276,9 +278,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
-                    child: const Text(
-                      'Save Record',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    child: Text(
+                      tr('save_record'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -292,6 +294,7 @@ class HomeScreenPlaceholder extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = ref.watch(appTranslationsProvider);
     final homeState = ref.watch(homeProvider);
     final txState = ref.watch(transactionsProvider);
     final summary = homeState.summary;
@@ -350,9 +353,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                       ),
 
                     // Subtitle
-                    const Text(
-                      "Here's your business overview for today",
-                      style: TextStyle(
+                    Text(
+                      tr('business_overview_today'),
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w400,
@@ -384,9 +387,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  "Today Revenue",
-                                  style: TextStyle(
+                                Text(
+                                  tr('today_revenue'),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFF0F764F),
                                     fontWeight: FontWeight.w600,
@@ -454,9 +457,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  "Today Expense",
-                                  style: TextStyle(
+                                Text(
+                                  tr('today_expense'),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFFD92D20),
                                     fontWeight: FontWeight.w600,
@@ -530,9 +533,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                "Today's Profit",
-                                style: TextStyle(
+                              Text(
+                                tr('today_profit'),
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600,
@@ -609,9 +612,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
-                            'Tap to talk with VyaparaAI',
-                            style: TextStyle(
+                          Text(
+                            tr('tap_to_talk'),
+                            style: const TextStyle(
                               fontSize: 13,
                               color: Color(0xFF475569),
                               fontWeight: FontWeight.w600,
@@ -636,28 +639,28 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                         children: [
                           _buildRoundActionTile(
                             icon: Icons.add_rounded,
-                            label: 'Add Sale',
+                            label: tr('add_sale'),
                             iconColor: const Color(0xFF10B981),
                             bgColor: const Color(0xFFE8F8F0),
                             onTap: () => _openAddTransactionSheet(context, ref, initialType: 'Income'),
                           ),
                           _buildRoundActionTile(
                             icon: Icons.remove_rounded,
-                            label: 'Add Expense',
+                            label: tr('add_expense'),
                             iconColor: const Color(0xFFEF4444),
                             bgColor: const Color(0xFFFEECEB),
                             onTap: () => _openAddTransactionSheet(context, ref, initialType: 'Expense'),
                           ),
                           _buildRoundActionTile(
                             icon: Icons.cloud_upload_outlined,
-                            label: 'Upload',
+                            label: tr('upload_btn'),
                             iconColor: const Color(0xFF2155F5),
                             bgColor: const Color(0xFFEFF6FF),
                             onTap: () => context.push('/app/upload'),
                           ),
                           _buildRoundActionTile(
                             icon: Icons.auto_awesome_rounded,
-                            label: 'Ask AI',
+                            label: tr('ask_ai'),
                             iconColor: const Color(0xFF7C3AED),
                             bgColor: const Color(0xFFF5F3FF),
                             onTap: () => context.push('/app/voice'),
@@ -671,9 +674,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Recent Activity',
-                          style: TextStyle(
+                        Text(
+                          tr('recent_activity'),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1E293B),
@@ -681,9 +684,9 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                         ),
                         TextButton(
                           onPressed: () => context.push('/app/transactions'),
-                          child: const Text(
-                            'View All',
-                            style: TextStyle(
+                          child: Text(
+                            tr('view_all'),
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primary,
@@ -712,18 +715,18 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                               color: Colors.grey.shade400,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'No recent transactions',
-                              style: TextStyle(
+                            Text(
+                              tr('no_recent_transactions'),
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF475569),
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Record a sale or upload an invoice to see activity',
-                              style: TextStyle(
+                            Text(
+                              tr('record_sale_sub'),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
