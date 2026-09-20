@@ -53,6 +53,8 @@ class CashFlowResponse(BaseModel):
     upcoming_liabilities: float
     projected_balance: float
     risk_indicator: str
+    growth_rate: float = 0.0
+    timeline: list[dict] = []
 
 
 class ReceivableAgingResponse(BaseModel):
