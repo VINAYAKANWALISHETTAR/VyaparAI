@@ -1,285 +1,318 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/features/home/providers/home_provider.dart';
 
-class HomeScreenPlaceholder extends StatelessWidget {
+class HomeScreenPlaceholder extends ConsumerWidget {
   const HomeScreenPlaceholder({super.key});
 
+  String _formatCurrency(double amount) {
+    if (amount == 0) return '₹ 0';
+    final parts = amount.toStringAsFixed(0).split('.');
+    String intPart = parts[0];
+    if (intPart.length > 3) {
+      String lastThree = intPart.substring(intPart.length - 3);
+      String remaining = intPart.substring(0, intPart.length - 3);
+      String formatted = '';
+      while (remaining.length > 2) {
+        formatted = ',${remaining.substring(remaining.length - 2)}$formatted';
+        remaining = remaining.substring(0, remaining.length - 2);
+      }
+      intPart = '$remaining$formatted,$lastThree';
+    }
+    return '₹ $intPart';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(homeProvider);
+    final summary = homeState.summary;
+
+    final incomeStr = summary != null ? _formatCurrency(summary.todayIncome) : '₹ 0';
+    final expenseStr = summary != null ? _formatCurrency(summary.todayExpenses) : '₹ 0';
+    final profitStr = summary != null ? _formatCurrency(summary.todayProfit) : '₹ 0';
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Subtitle
-            const Text(
-              "Here's your business overview for today",
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Top Metric Cards (Income & Expenses)
-            Row(
-              children: [
-                // Today's Income
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F8F0),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '₹ 18,500',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F764F),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "Today's Income",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: const [
-                            Icon(Icons.arrow_upward, size: 12, color: Color(0xFF0F764F)),
-                            SizedBox(width: 2),
-                            Text(
-                              '12%',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F764F),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () => ref.read(homeProvider.notifier).loadDashboard(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Subtitle
+              const Text(
+                "Here's your business overview for today",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w400,
                 ),
-                const SizedBox(width: 12),
-
-                // Today's Expenses
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEECEB),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '₹ 6,200',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFD92D20),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "Today's Expenses",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: const [
-                            Icon(Icons.arrow_downward, size: 12, color: Color(0xFFD92D20)),
-                            SizedBox(width: 2),
-                            Text(
-                              '4%',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFD92D20),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Today's Profit Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: AppShadows.card,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        '₹ 12,300',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "Today's Profit",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: const Icon(Icons.bar_chart, color: AppColors.primary, size: 24),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-            // Center Voice Assistant / AI Mic Wave Button (Screen 3 & 4)
-            Center(
-              child: Column(
+              // Top Metric Cards (Income & Expenses) - Screen 3
+              Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => context.push('/app/voice'),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer animated soundwaves
-                        Container(
-                          width: 170,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF2155F5).withAlpha(15),
-                                const Color(0xFF6C3EF0).withAlpha(35),
-                                const Color(0xFF2155F5).withAlpha(15),
-                              ],
+                  // Today's Income
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F8F0),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            incomeStr,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F764F),
                             ),
-                            borderRadius: BorderRadius.circular(35),
                           ),
-                        ),
-                        // Center Circular Button
-                        Container(
-                          width: 68,
-                          height: 68,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF2155F5), Color(0xFF6C3EF0)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                          const SizedBox(height: 4),
+                          const Text(
+                            "Today's Income",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
                             ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF2155F5).withAlpha(80),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.arrow_upward, size: 12, color: Color(0xFF0F764F)),
+                              const SizedBox(width: 2),
+                              Text(
+                                summary?.incomeChange != null
+                                    ? '${summary!.incomeChange!.abs().toStringAsFixed(0)}%'
+                                    : '12%',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F764F),
+                                ),
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.mic,
-                            color: Colors.white,
-                            size: 32,
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Today's Expenses
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEECEB),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            expenseStr,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFFD92D20),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            "Today's Expenses",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.arrow_downward, size: 12, color: Color(0xFFD92D20)),
+                              const SizedBox(width: 2),
+                              Text(
+                                summary?.expenseChange != null
+                                    ? '${summary!.expenseChange!.abs().toStringAsFixed(0)}%'
+                                    : '4%',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD92D20),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Today's Profit Card - Screen 3
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  boxShadow: AppShadows.card,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profitStr,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Today's Profit",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Tap to talk with VyaparaAI',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: const Icon(Icons.bar_chart, color: AppColors.primary, size: 24),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 36),
+              const SizedBox(height: 32),
 
-            // Quick Actions Row (Upload, Camera, Record, More)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: AppShadows.subtle,
+              // Center Voice Assistant Button - Screen 3 & 4
+              Center(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.push('/app/voice'),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 170,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF2155F5).withAlpha(15),
+                                  const Color(0xFF6C3EF0).withAlpha(35),
+                                  const Color(0xFF2155F5).withAlpha(15),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(35),
+                            ),
+                          ),
+                          Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2155F5), Color(0xFF6C3EF0)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF2155F5).withAlpha(80),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.mic,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Tap to talk with VyaparaAI',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildQuickActionButton(
-                    icon: Icons.upload_outlined,
-                    label: 'Upload',
-                    onTap: () => context.push('/app/upload'),
-                  ),
-                  _buildQuickActionButton(
-                    icon: Icons.camera_alt_outlined,
-                    label: 'Camera',
-                    onTap: () => context.push('/app/upload'),
-                  ),
-                  _buildQuickActionButton(
-                    icon: Icons.mic_none_outlined,
-                    label: 'Record',
-                    iconColor: AppColors.error,
-                    onTap: () => context.push('/app/voice'),
-                  ),
-                  _buildQuickActionButton(
-                    icon: Icons.more_horiz,
-                    label: 'More',
-                    onTap: () => _showMoreMenu(context),
-                  ),
-                ],
+              const SizedBox(height: 36),
+
+              // Quick Actions Row (Upload, Camera, Record, More) - Screen 3
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  boxShadow: AppShadows.subtle,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildQuickActionButton(
+                      icon: Icons.upload_outlined,
+                      label: 'Upload',
+                      onTap: () => context.push('/app/upload'),
+                    ),
+                    _buildQuickActionButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: 'Camera',
+                      onTap: () => context.push('/app/upload'),
+                    ),
+                    _buildQuickActionButton(
+                      icon: Icons.mic_none_outlined,
+                      label: 'Record',
+                      iconColor: AppColors.error,
+                      onTap: () => context.push('/app/voice'),
+                    ),
+                    _buildQuickActionButton(
+                      icon: Icons.more_horiz,
+                      label: 'More',
+                      onTap: () => _showMoreMenu(context),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
