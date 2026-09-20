@@ -1,144 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 
-class LanguageSelector extends StatefulWidget {
+class LanguageSelector extends ConsumerWidget {
   const LanguageSelector({super.key});
 
-  @override
-  State<LanguageSelector> createState() => _LanguageSelectorState();
-}
-
-class _LanguageSelectorState extends State<LanguageSelector> {
-  String _selectedLanguage = 'English';
-  String _selectedCode = 'EN';
-
-  final List<({String code, String name, String nativeName})> _languages = const [
-    (code: 'EN', name: 'English', nativeName: 'English'),
-    (code: 'HI', name: 'Hindi', nativeName: 'हिंदी'),
-    (code: 'TA', name: 'Tamil', nativeName: 'தமிழ்'),
-    (code: 'TE', name: 'Telugu', nativeName: 'తెలుగు'),
-    (code: 'KN', name: 'Kannada', nativeName: 'ಕನ್ನಡ'),
-    (code: 'ML', name: 'Malayalam', nativeName: 'മലയാളം'),
-    (code: 'BN', name: 'Bengali', nativeName: 'বাংলা'),
-  ];
-
-  void _openLanguageModal() {
+  void _openLanguageModal(BuildContext context, WidgetRef ref, LanguageModel currentLang) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (modalContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with Close Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Header with Close Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Select Language',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: AppColors.textSecondary),
-                          onPressed: () => Navigator.pop(modalContext),
-                        ),
-                      ],
+                    const Text(
+                      'Select Language',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    const Divider(height: 1, color: AppColors.outline),
-                    const SizedBox(height: 8),
-
-                    // Language list
-                    ..._languages.map((lang) {
-                      final isSelected = lang.name == _selectedLanguage;
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedLanguage = lang.name;
-                            _selectedCode = lang.code;
-                          });
-                          setModalState(() {});
-                          Navigator.pop(modalContext);
-                        },
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                          child: Row(
-                            children: [
-                              Text(
-                                lang.nativeName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                lang.name,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                                ),
-                              ),
-                              const Spacer(),
-                              if (isSelected)
-                                const Icon(Icons.check, color: AppColors.primary, size: 20),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 12),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                      onPressed: () => Navigator.pop(modalContext),
+                    ),
                   ],
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 8),
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 8),
+
+                // Language list
+                ...supportedLanguages.map((lang) {
+                  final isSelected = lang.code == currentLang.code;
+                  return InkWell(
+                    onTap: () {
+                      ref.read(languageProvider.notifier).setLanguage(lang);
+                      Navigator.pop(modalContext);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Language switched to ${lang.name} (${lang.nativeName})'),
+                          backgroundColor: AppColors.primary,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      child: Row(
+                        children: [
+                          Text(
+                            lang.nativeName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            lang.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isSelected ? AppColors.primary : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const Spacer(),
+                          if (isSelected)
+                            const Icon(Icons.check, color: AppColors.primary, size: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeLang = ref.watch(languageProvider);
+
     return InkWell(
-      onTap: _openLanguageModal,
+      onTap: () => _openLanguageModal(context, ref, activeLang),
       borderRadius: BorderRadius.circular(AppRadius.pill),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(color: AppColors.outline, width: 1),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _selectedCode,
+              activeLang.code,
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Color(0xFF1E293B),
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+            const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
           ],
         ),
       ),

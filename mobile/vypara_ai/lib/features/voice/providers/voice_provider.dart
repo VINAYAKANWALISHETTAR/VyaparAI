@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vypara_ai/core/constants/api_endpoints.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 
 enum VoiceStatus {
   idle,
@@ -75,7 +76,8 @@ class VoiceProvider extends Notifier<VoiceState> {
     _tts.setErrorHandler((_) {
       state = state.copyWith(isSpeaking: false);
     });
-    _tts.setLanguage('en-IN').catchError((_) {});
+    final lang = ref.read(languageProvider);
+    _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
     _tts.setSpeechRate(0.5).catchError((_) {});
     _tts.setPitch(1.0).catchError((_) {});
   }
@@ -83,8 +85,10 @@ class VoiceProvider extends Notifier<VoiceState> {
   Future<void> speakCurrentResponse() async {
     final text = state.response;
     if (text == null || text.isEmpty) return;
+    final lang = ref.read(languageProvider);
     _initTts();
     await _tts.stop();
+    await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
     await _tts.speak(text);
   }
 
@@ -117,6 +121,7 @@ class VoiceProvider extends Notifier<VoiceState> {
       return;
     }
 
+    final lang = ref.read(languageProvider);
     state = state.copyWith(status: VoiceStatus.listening, transcript: '');
     await _speech.listen(
       onResult: (result) {
@@ -128,7 +133,7 @@ class VoiceProvider extends Notifier<VoiceState> {
       listenOptions: SpeechListenOptions(
         listenFor: const Duration(seconds: 15),
         pauseFor: const Duration(seconds: 3),
-        localeId: 'en_IN',
+        localeId: lang.speechLocale,
       ),
     );
   }
@@ -162,9 +167,13 @@ class VoiceProvider extends Notifier<VoiceState> {
 
     try {
       final client = ApiClient();
+      final lang = ref.read(languageProvider);
       final response = await client.dio.post(
         ApiEndpoints.voiceQuery,
-        data: {'text': text},
+        data: {
+          'text': text,
+          'language': lang.code,
+        },
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -199,7 +208,7 @@ class VoiceProvider extends Notifier<VoiceState> {
         error: null,
       );
 
-      // Auto speak aloud the assistant response
+      // Auto speak aloud the assistant response in the selected language
       speakCurrentResponse();
     } on DioException catch (e) {
       final detail = e.response?.data is Map
@@ -226,4 +235,3 @@ class VoiceProvider extends Notifier<VoiceState> {
 
 final voiceProvider =
     NotifierProvider<VoiceProvider, VoiceState>(VoiceProvider.new);
-

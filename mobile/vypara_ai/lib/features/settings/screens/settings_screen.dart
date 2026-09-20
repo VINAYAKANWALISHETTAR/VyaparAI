@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/core/widgets/app_card.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
@@ -14,11 +15,11 @@ class SettingsScreenPlaceholder extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
-  String _selectedLanguage = 'English';
-
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final currentLang = ref.watch(languageProvider);
+
     final userEmail = auth.user?.email ?? '';
     final userName = (auth.user?.name.isNotEmpty == true && auth.user!.name != userEmail)
         ? auth.user!.name
@@ -123,8 +124,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                   _buildSettingItem(
                     icon: Icons.language_outlined,
                     title: 'Language',
-                    trailingText: _selectedLanguage,
-                    onTap: () => _showLanguageModal(context),
+                    trailingText: '${currentLang.name} (${currentLang.nativeName})',
+                    onTap: () => _showLanguageModal(context, currentLang),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
@@ -245,18 +246,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
     return const Divider(height: 1, thickness: 0.5, color: Color(0xFFF1F5F9), indent: 52);
   }
 
-  // Screen 13: Language Selection Modal
-  void _showLanguageModal(BuildContext context) {
-    const languages = [
-      (code: 'EN', name: 'English', nativeName: 'English'),
-      (code: 'HI', name: 'Hindi', nativeName: 'हिंदी'),
-      (code: 'TA', name: 'Tamil', nativeName: 'தமிழ்'),
-      (code: 'TE', name: 'Telugu', nativeName: 'తెలుగు'),
-      (code: 'KN', name: 'Kannada', nativeName: 'ಕನ್ನಡ'),
-      (code: 'ML', name: 'Malayalam', nativeName: 'മലയാളം'),
-      (code: 'BN', name: 'Bengali', nativeName: 'বাংলা'),
-    ];
-
+  // Screen 14: Language Selection Modal
+  void _showLanguageModal(BuildContext context, LanguageModel currentLang) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
@@ -264,78 +255,78 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Select Language',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
+                    const Text(
+                      'Select Language',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
                     ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                    const SizedBox(height: 8),
-                    ...languages.map((lang) {
-                      final isSelected = lang.name == _selectedLanguage;
-                      return InkWell(
-                        onTap: () {
-                          setState(() => _selectedLanguage = lang.name);
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Language switched to ${lang.name} (${lang.nativeName})')),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          child: Row(
-                            children: [
-                              Text(
-                                lang.nativeName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                lang.name,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isSelected ? AppColors.primary : const Color(0xFF64748B),
-                                ),
-                              ),
-                              const Spacer(),
-                              if (isSelected)
-                                const Icon(Icons.check, color: AppColors.primary, size: 20),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 12),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
                   ],
                 ),
-              ),
-            );
-          },
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 8),
+                ...supportedLanguages.map((lang) {
+                  final isSelected = lang.code == currentLang.code;
+                  return InkWell(
+                    onTap: () {
+                      ref.read(languageProvider.notifier).setLanguage(lang);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Language switched to ${lang.name} (${lang.nativeName})'),
+                          backgroundColor: AppColors.primary,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      child: Row(
+                        children: [
+                          Text(
+                            lang.nativeName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? AppColors.primary : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            lang.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isSelected ? AppColors.primary : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const Spacer(),
+                          if (isSelected)
+                            const Icon(Icons.check, color: AppColors.primary, size: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
         );
       },
     );
