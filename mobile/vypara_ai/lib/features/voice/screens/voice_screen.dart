@@ -123,8 +123,8 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
       children: [
         // Bot Greeting Banner
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFFEFF6FF), Color(0xFFF5F3FF)],
@@ -190,7 +190,72 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
             ],
           ),
         ),
-        const SizedBox(height: 8),
+
+        // Wake-Word Activation Standby Card
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: voiceState.isWakeWordListening
+                ? const Color(0xFFECFDF5)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: voiceState.isWakeWordListening
+                  ? const Color(0xFFA7F3D0)
+                  : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                voiceState.isWakeWordListening
+                    ? Icons.hearing_rounded
+                    : Icons.hearing_disabled_rounded,
+                size: 20,
+                color: voiceState.isWakeWordListening
+                    ? const Color(0xFF059669)
+                    : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      voiceState.isWakeWordListening
+                          ? tr('wake_word_active')
+                          : tr('wake_word_standby'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: voiceState.isWakeWordListening
+                            ? const Color(0xFF065F46)
+                            : const Color(0xFF334155),
+                      ),
+                    ),
+                    Text(
+                      tr('wake_word_desc'),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: voiceState.isWakeWordListening,
+                activeTrackColor: const Color(0xFF10B981),
+                onChanged: (val) {
+                  ref.read(voiceProvider.notifier).toggleWakeWordMode(val);
+                },
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 6),
         Text(
           isListening
               ? tr('listening')

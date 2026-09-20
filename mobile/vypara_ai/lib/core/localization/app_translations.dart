@@ -95,6 +95,11 @@ class AppTranslations {
       'security_pin': 'Security & App PIN',
       'terms_privacy': 'Terms & Privacy',
       'logout': 'Log Out',
+
+      // Wake-word & Background Voice
+      'wake_word_standby': 'Voice Wake-Up Mode',
+      'wake_word_desc': "Say 'Hey Vyapar' or 'Vyapar' anytime to wake up the assistant",
+      'wake_word_active': 'Always Listening for Wake-Word',
     },
     'KN': {
       'home': 'ಮುಖಪುಟ',
@@ -188,6 +193,11 @@ class AppTranslations {
       'security_pin': 'ಭದ್ರತೆ ಮತ್ತು ಆಪ್ ಪಿನ್',
       'terms_privacy': 'ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತೆ',
       'logout': 'ಲಾಗ್ ಔಟ್',
+
+      // Wake-word & Background Voice
+      'wake_word_standby': 'ಧ್ವನಿ ವೇಕ್-ಅಪ್ ಮೋಡ್',
+      'wake_word_desc': "'ಹೇ ವ್ಯಾಪಾರ್' ಅಥವಾ 'ವ್ಯಾಪಾರ್' ಎಂದು ಹೇಳಿ ಬಾಟ್ ಅನ್ನು ಎಬ್ಬಿಸಿ",
+      'wake_word_active': 'ವೇಕ್-ವರ್ಡ್‌ಗಾಗಿ ಸದಾ ಆಲಿಸುತ್ತಿದೆ',
     },
     'HI': {
       'home': 'होम',
@@ -281,6 +291,11 @@ class AppTranslations {
       'security_pin': 'सुरक्षा और ऐप पिन',
       'terms_privacy': 'शर्तें और गोपनीयता',
       'logout': 'लॉग आउट',
+
+      // Wake-word & Background Voice
+      'wake_word_standby': 'वॉयस वेक-अप मोड',
+      'wake_word_desc': "'हे व्यापार' या 'व्यापार' बोलकर कभी भी बॉट को सक्रिय करें",
+      'wake_word_active': 'वेक-वर्ड के लिए लगातार सुन रहा है',
     },
   };
 

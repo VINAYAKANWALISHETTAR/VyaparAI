@@ -5,6 +5,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vypara_ai/core/constants/api_endpoints.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
 import 'package:vypara_ai/core/providers/language_provider.dart';
+import 'package:vypara_ai/core/services/notification_service.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
@@ -25,6 +26,7 @@ class VoiceState {
   final List<Map<String, String>> actionButtons;
   final String? error;
   final bool isSpeaking;
+  final bool isWakeWordListening;
 
   const VoiceState({
     this.status = VoiceStatus.idle,
@@ -33,6 +35,7 @@ class VoiceState {
     this.actionButtons = const [],
     this.error,
     this.isSpeaking = false,
+    this.isWakeWordListening = false,
   });
 
   VoiceState copyWith({
@@ -42,6 +45,7 @@ class VoiceState {
     List<Map<String, String>>? actionButtons,
     String? error,
     bool? isSpeaking,
+    bool? isWakeWordListening,
   }) {
     return VoiceState(
       status: status ?? this.status,
@@ -50,6 +54,7 @@ class VoiceState {
       actionButtons: actionButtons ?? this.actionButtons,
       error: error,
       isSpeaking: isSpeaking ?? this.isSpeaking,
+      isWakeWordListening: isWakeWordListening ?? this.isWakeWordListening,
     );
   }
 }
@@ -59,6 +64,21 @@ class VoiceProvider extends Notifier<VoiceState> {
   final FlutterTts _tts = FlutterTts();
   bool _speechAvailable = false;
   bool _ttsInitialized = false;
+
+  static const List<String> _wakeWords = [
+    'hey vyapar',
+    'vyapar',
+    'vyaparai',
+    'vyapar ai',
+    'vyapar bot',
+    'ವ್ಯಾಪಾರ್',
+    'ಹೇ ವ್ಯಾಪಾರ್',
+    'ವ್ಯಾಪಾರ',
+    'ವ್ಯಾಪಾರ್ ಬಾಟ್',
+    'व्यापार',
+    'हे व्यापार',
+    'व्यापार बॉट',
+  ];
 
   @override
   VoiceState build() {
@@ -98,6 +118,13 @@ class VoiceProvider extends Notifier<VoiceState> {
     await _tts.stop();
     await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
     await _tts.speak(greeting);
+
+    // Show wake up alert
+    NotificationService().showVoiceWakeupAlert(
+      query: 'Voice Wakeup',
+      responseText: greeting,
+      language: lang.code,
+    );
   }
 
   Future<void> speakCurrentResponse() async {
@@ -113,6 +140,15 @@ class VoiceProvider extends Notifier<VoiceState> {
   Future<void> stopSpeaking() async {
     await _tts.stop();
     state = state.copyWith(isSpeaking: false);
+  }
+
+  Future<void> toggleWakeWordMode(bool enable) async {
+    state = state.copyWith(isWakeWordListening: enable);
+    if (enable) {
+      await startListening();
+    } else {
+      await stopListening();
+    }
   }
 
   Future<void> startListening() async {
@@ -143,13 +179,30 @@ class VoiceProvider extends Notifier<VoiceState> {
     state = state.copyWith(status: VoiceStatus.listening, transcript: '');
     await _speech.listen(
       onResult: (result) {
-        state = state.copyWith(transcript: result.recognizedWords);
+        final words = result.recognizedWords;
+        state = state.copyWith(transcript: words);
+        
+        // Check for wake word trigger
+        final lower = words.toLowerCase().trim();
+        for (final wake in _wakeWords) {
+          if (lower.startsWith(wake) || lower.contains(wake)) {
+            final queryPart = lower.replaceAll(wake, '').trim();
+            if (queryPart.isEmpty && result.finalResult) {
+              speakGreeting();
+              return;
+            } else if (queryPart.isNotEmpty && result.finalResult) {
+              _processQuery(queryPart);
+              return;
+            }
+          }
+        }
+
         if (result.finalResult) {
-          _processQuery(result.recognizedWords);
+          _processQuery(words);
         }
       },
       listenOptions: SpeechListenOptions(
-        listenFor: const Duration(seconds: 15),
+        listenFor: const Duration(seconds: 20),
         pauseFor: const Duration(seconds: 3),
         localeId: lang.speechLocale,
       ),
@@ -162,7 +215,12 @@ class VoiceProvider extends Notifier<VoiceState> {
       if (transcript.isNotEmpty && state.status == VoiceStatus.listening) {
         _processQuery(transcript);
       } else if (state.status == VoiceStatus.listening) {
-        state = state.copyWith(status: VoiceStatus.idle);
+        if (state.isWakeWordListening) {
+          // Restart listening for continuous wake-word standby
+          startListening();
+        } else {
+          state = state.copyWith(status: VoiceStatus.idle);
+        }
       }
     }
   }
@@ -235,6 +293,13 @@ class VoiceProvider extends Notifier<VoiceState> {
 
       // Auto speak aloud the assistant response in the selected language
       speakCurrentResponse();
+
+      // Send real-time high-priority heads-up notification (wakes up lock screen / closed phone)
+      NotificationService().showVoiceWakeupAlert(
+        query: text,
+        responseText: answer,
+        language: lang.code,
+      );
     } on DioException catch (e) {
       final detail = e.response?.data is Map
           ? e.response!.data['detail']?.toString()
@@ -260,3 +325,4 @@ class VoiceProvider extends Notifier<VoiceState> {
 
 final voiceProvider =
     NotifierProvider<VoiceProvider, VoiceState>(VoiceProvider.new);
+
