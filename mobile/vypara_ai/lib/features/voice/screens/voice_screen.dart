@@ -17,6 +17,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
   late AnimationController _animController;
   late Animation<double> _pulseAnim;
   final _textController = TextEditingController();
+  bool? _isLiked;
 
   final List<String> _suggestedPhrases = [
     'What is my profit today?',
@@ -66,7 +67,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Voice Assistant',
+          'AI Assistant',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -76,7 +77,10 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
         actions: [
           if (hasResponse || hasError)
             TextButton(
-              onPressed: () => ref.read(voiceProvider.notifier).reset(),
+              onPressed: () {
+                setState(() => _isLiked = null);
+                ref.read(voiceProvider.notifier).reset();
+              },
               child: const Text(
                 'New Query',
                 style: TextStyle(
@@ -117,7 +121,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           isListening
               ? 'Listening...'
               : isProcessing
-                  ? 'Processing...'
+                  ? 'Analyzing business data...'
                   : hasError
                       ? 'Try Again'
                       : 'Tap mic to speak',
@@ -139,7 +143,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
               style: const TextStyle(
                 fontSize: 15,
                 color: AppColors.primary,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -188,7 +192,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primary.withValues(
-                        alpha: isListening ? 0.07 : 0.04,
+                        alpha: isListening ? 0.08 : 0.04,
                       ),
                     ),
                   ),
@@ -198,7 +202,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primary.withValues(
-                        alpha: isListening ? 0.14 : 0.08,
+                        alpha: isListening ? 0.16 : 0.08,
                       ),
                     ),
                   ),
@@ -207,12 +211,17 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     height: 96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isProcessing
-                          ? AppColors.textTertiary
-                          : AppColors.primary,
+                      gradient: isProcessing
+                          ? null
+                          : const LinearGradient(
+                              colors: [Color(0xFF2155F5), Color(0xFF6C3EF0)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                      color: isProcessing ? AppColors.textTertiary : null,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
+                          color: const Color(0xFF2155F5).withValues(alpha: 0.35),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -227,7 +236,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                             ),
                           )
                         : Icon(
-                            isListening ? Icons.stop_rounded : Icons.mic,
+                            isListening ? Icons.stop_rounded : Icons.mic_rounded,
                             size: 44,
                             color: Colors.white,
                           ),
@@ -257,22 +266,16 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.pill),
-                      borderSide:
-                          const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.pill),
-                      borderSide:
-                          const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.pill),
-                      borderSide:
-                          const BorderSide(color: AppColors.primary),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      borderSide: const BorderSide(color: AppColors.primary),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -330,7 +333,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 'You can say...',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B),
                 ),
               ),
@@ -350,19 +353,31 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                         horizontal: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: const Color(0xFFE2E8F0),
                         ),
                       ),
-                      child: Text(
-                        '"$phrase"',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF334155),
-                        ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '"$phrase"',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF334155),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -376,9 +391,14 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
     );
   }
 
-  // ─── Response Mode ─────────────────────────────────────────────────────────
+  // ─── Response Mode (AI Answer Card - Screen 4) ────────────────────────────
 
   Widget _buildResponseMode(VoiceState voiceState) {
+    final responseText = voiceState.response ?? '';
+    final hasFinancialBreakdown = responseText.toLowerCase().contains('profit') ||
+        responseText.toLowerCase().contains('revenue') ||
+        responseText.toLowerCase().contains('expense');
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Column(
@@ -424,7 +444,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           ),
           const SizedBox(height: 16),
 
-          // AI Response card
+          // AI Response Card (Screen 4 Layout)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -446,13 +466,30 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'VyaparaAI says:',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFEFF4FF),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'VyaparAI Answer',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
                     ),
                     InkWell(
                       onTap: () {
@@ -505,20 +542,84 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Text(
-                  voiceState.response ?? '',
+                  responseText,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF1E293B),
                     height: 1.5,
                   ),
                 ),
+
+                // Mini Visual Financial Breakdown if relevant
+                if (hasFinancialBreakdown) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMiniMetric('Revenue', const Color(0xFF10B981)),
+                        Container(width: 1, height: 30, color: const Color(0xFFE2E8F0)),
+                        _buildMiniMetric('Expense', const Color(0xFFEF4444)),
+                        Container(width: 1, height: 30, color: const Color(0xFFE2E8F0)),
+                        _buildMiniMetric('Profit', const Color(0xFF2155F5)),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 16),
+                const Divider(color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 6),
+
+                // Feedback section (Thumbs Up / Down)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Was this helpful?',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _isLiked == true ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
+                            size: 18,
+                            color: _isLiked == true ? AppColors.primary : const Color(0xFF94A3B8),
+                          ),
+                          onPressed: () => setState(() => _isLiked = true),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _isLiked == false ? Icons.thumb_down_alt : Icons.thumb_down_alt_outlined,
+                            size: 18,
+                            color: _isLiked == false ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
+                          ),
+                          onPressed: () => setState(() => _isLiked = false),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Action buttons
           ...voiceState.actionButtons.map((pill) {
@@ -571,7 +672,10 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           const SizedBox(height: 8),
           Center(
             child: TextButton.icon(
-              onPressed: () => ref.read(voiceProvider.notifier).reset(),
+              onPressed: () {
+                setState(() => _isLiked = null);
+                ref.read(voiceProvider.notifier).reset();
+              },
               icon: const Icon(Icons.mic, size: 18),
               label: const Text('Ask Another Question'),
               style: TextButton.styleFrom(
@@ -581,6 +685,30 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMiniMetric(String label, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Container(
+          width: 32,
+          height: 4,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ],
     );
   }
 

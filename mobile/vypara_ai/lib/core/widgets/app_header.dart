@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
-import 'package:vypara_ai/core/widgets/notification_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
@@ -146,9 +145,33 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       actions: showActions
           ? [
               const LanguageSelector(),
-              const SizedBox(width: 4),
-              const NotificationButton(),
               const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => context.push('/app/settings'),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF4FF),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFD0E0FF),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ]
           : null,
     );
