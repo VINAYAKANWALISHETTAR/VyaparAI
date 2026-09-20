@@ -48,6 +48,9 @@ def create_reminder(
         title=reminder.title,
         description=reminder.description,
         due_at=reminder.due_at,
+        amount=reminder.amount,
+        party_name=reminder.party_name,
+        reminder_type=reminder.reminder_type,
     )
 
 

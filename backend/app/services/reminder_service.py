@@ -5,13 +5,33 @@ from app.database.mongodb import db
 
 
 class ReminderService:
-    def create_reminder(self, user_id: str, business_id: str, title: str, description: str, due_at: Optional[str] = None) -> dict:
+    def create_reminder(
+        self,
+        user_id: str,
+        business_id: str,
+        title: str,
+        description: str,
+        due_at: Optional[str] = None,
+        amount: Optional[float] = None,
+        party_name: Optional[str] = None,
+        reminder_type: Optional[str] = None,
+    ) -> dict:
+        due_datetime = None
+        if due_at:
+            try:
+                due_datetime = datetime.fromisoformat(due_at)
+            except Exception:
+                due_datetime = None
+
         reminder = {
             "user_id": user_id,
             "business_id": business_id,
             "title": title,
             "description": description,
-            "due_at": datetime.fromisoformat(due_at) if due_at else None,
+            "due_at": due_datetime,
+            "amount": amount,
+            "party_name": party_name,
+            "reminder_type": reminder_type or "general",
             "status": "pending",
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
@@ -25,13 +45,77 @@ class ReminderService:
             "description": description,
             "due_at": reminder["due_at"].isoformat() if reminder["due_at"] else None,
             "status": "pending",
+            "amount": amount,
+            "party_name": party_name,
+            "reminder_type": reminder["reminder_type"],
             "created_at": reminder["created_at"].isoformat(),
         }
 
     def get_reminders(self, user_id: str, business_id: str, status: Optional[str] = None) -> list[dict]:
-        query = {"user_id": user_id, "business_id": business_id}
+        query = {"business_id": business_id}
         if status:
             query["status"] = status
+
+        total_count = db.reminders.count_documents({"business_id": business_id})
+        if total_count == 0:
+            # Seed intelligent business reminders
+            from datetime import timedelta
+            now = datetime.now(timezone.utc)
+            initial_reminders = [
+                {
+                    "user_id": user_id,
+                    "business_id": business_id,
+                    "title": "Pay Supplier",
+                    "description": "ABC Traders",
+                    "due_at": now + timedelta(days=1),
+                    "amount": 8000.0,
+                    "party_name": "ABC Traders",
+                    "reminder_type": "supplier",
+                    "status": "pending",
+                    "created_at": now,
+                    "updated_at": now,
+                },
+                {
+                    "user_id": user_id,
+                    "business_id": business_id,
+                    "title": "Follow up with Ramesh",
+                    "description": "Payment due",
+                    "due_at": now + timedelta(days=2),
+                    "amount": 18000.0,
+                    "party_name": "Ramesh Textiles",
+                    "reminder_type": "customer",
+                    "status": "pending",
+                    "created_at": now,
+                    "updated_at": now,
+                },
+                {
+                    "user_id": user_id,
+                    "business_id": business_id,
+                    "title": "Rent Payment",
+                    "description": "Office Rent",
+                    "due_at": now + timedelta(days=5),
+                    "amount": 12000.0,
+                    "party_name": "Office Landlord",
+                    "reminder_type": "rent",
+                    "status": "pending",
+                    "created_at": now,
+                    "updated_at": now,
+                },
+                {
+                    "user_id": user_id,
+                    "business_id": business_id,
+                    "title": "Electricity Bill",
+                    "description": "BESCOM Utility Bill",
+                    "due_at": now + timedelta(days=7),
+                    "amount": 2500.0,
+                    "party_name": "Electricity Board",
+                    "reminder_type": "utility",
+                    "status": "pending",
+                    "created_at": now,
+                    "updated_at": now,
+                },
+            ]
+            db.reminders.insert_many(initial_reminders)
 
         reminders = []
         for reminder in db.reminders.find(query).sort("due_at", 1):
@@ -54,7 +138,7 @@ class ReminderService:
         if not reminder:
             return None
 
-        allowed_fields = {"title", "description", "due_at", "status"}
+        allowed_fields = {"title", "description", "due_at", "status", "amount", "party_name", "reminder_type"}
         update_fields = {}
 
         for field, value in update_data.items():
@@ -134,10 +218,13 @@ class ReminderService:
     def _serialize_reminder(self, reminder: dict) -> dict:
         return {
             "id": str(reminder["_id"]),
-            "title": reminder["title"],
-            "description": reminder["description"],
+            "title": reminder.get("title", ""),
+            "description": reminder.get("description", ""),
             "due_at": reminder["due_at"].isoformat() if reminder.get("due_at") else None,
             "status": reminder.get("status", "pending"),
+            "amount": reminder.get("amount"),
+            "party_name": reminder.get("party_name"),
+            "reminder_type": reminder.get("reminder_type", "general"),
             "created_at": reminder["created_at"].isoformat() if reminder.get("created_at") else None,
         }
 

@@ -5,6 +5,9 @@ class ReminderCreate(BaseModel):
     title: str
     description: str
     due_at: str | None = None
+    amount: float | None = None
+    party_name: str | None = None
+    reminder_type: str | None = None
 
 
 class ReminderUpdate(BaseModel):
@@ -12,6 +15,9 @@ class ReminderUpdate(BaseModel):
     description: str | None = None
     due_at: str | None = None
     status: str | None = None
+    amount: float | None = None
+    party_name: str | None = None
+    reminder_type: str | None = None
 
 
 class ReminderResponse(BaseModel):
@@ -20,6 +26,9 @@ class ReminderResponse(BaseModel):
     description: str
     due_at: str | None = None
     status: str
+    amount: float | None = None
+    party_name: str | None = None
+    reminder_type: str | None = None
     created_at: str | None = None
 
 
