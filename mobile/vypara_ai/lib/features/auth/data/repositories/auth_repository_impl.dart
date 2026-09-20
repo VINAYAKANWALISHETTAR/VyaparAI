@@ -13,6 +13,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<User> login(String email, String password) async {
     final request = LoginRequest(email: email, password: password);
     final response = await remoteDataSource.login(request);
+    // name is intentionally set to email here; AuthProvider will hydrate
+    // the real name from GET /users/me immediately after login succeeds.
     return User(
       id: response.accessToken,
       name: email,
