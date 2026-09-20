@@ -9,6 +9,7 @@ class VoiceService:
     BOT_ACTIVATION = [
         "vyaparai",
         "vyapara ai",
+        "vyapar ai",
         "vyapar",
         "hey vyaparai",
         "hi vyaparai",
@@ -27,18 +28,13 @@ class VoiceService:
         text = text.strip()
         language = self._detect_language(text)
 
-        if not self._is_bot_activated(text):
-            return {
-                "transcription": text,
-                "answer": "I'm here to help with your business. Try saying 'VyaparAI, what is my profit today?' or 'VyaparAI, show my morning briefing'.",
-                "intent": "not_activated",
-                "language": language,
-            }
-
         activated_text = self._remove_activation(text)
+
+        # Check for morning briefing intent
         if self._is_morning_briefing(activated_text):
             return self._handle_morning_briefing(user_id, business_id, activated_text, language)
 
+        # Process through copilot service (with transaction creation, financial analysis & greetings)
         result = copilot_service.chat(user_id=user_id, message=activated_text, business_id=business_id)
 
         return {
@@ -46,6 +42,7 @@ class VoiceService:
             "answer": result["answer"],
             "intent": result.get("intent"),
             "language": language,
+            "action_buttons": result.get("action_buttons", []),
         }
 
     def _is_bot_activated(self, text: str) -> bool:
@@ -67,7 +64,15 @@ class VoiceService:
         return text.strip()
 
     def _is_morning_briefing(self, text: str) -> bool:
-        morning_keywords = ["morning briefing", "daily briefing", "what's today", "what is today", "today's update", "todays update", "morning update"]
+        morning_keywords = [
+            "morning briefing",
+            "daily briefing",
+            "what's today",
+            "what is today",
+            "today's update",
+            "todays update",
+            "morning update",
+        ]
         text_lower = text.lower().strip()
         return any(keyword in text_lower for keyword in morning_keywords)
 
@@ -81,37 +86,56 @@ class VoiceService:
             else:
                 return {
                     "transcription": text,
-                    "answer": "You don't have any business set up yet. Please create a business first.",
+                    "answer": "Hello! I am your VyaparAI bot. You don't have any business set up yet. Please create a business first.",
                     "intent": "morning_briefing",
                     "language": language,
+                    "action_buttons": [],
                 }
 
         briefing = reminder_service.get_morning_briefing(user_id, business_id)
 
-        if not briefing["notifications"]:
-            answer = f"Good morning! You have no urgent notifications for today. Your income today is ₹{briefing['today_income']:.2f} and expenses are ₹{briefing['today_expenses']:.2f}."
+        if not briefing.get("notifications"):
+            answer = (
+                f"Good morning! I am your VyaparAI bot. You have no overdue alerts for today. "
+                f"Your revenue today is ₹{briefing.get('today_income', 0):,.0f} and expenses are ₹{briefing.get('today_expenses', 0):,.0f}."
+            )
         else:
             notification_summary = "\n".join([
-                f"- {n['title']}: {n['message']}"
+                f"- {n.get('title')}: {n.get('message')}"
                 for n in briefing["notifications"]
             ])
-            answer = f"Good morning! Here's your briefing for today:\n\n{notification_summary}\n\nToday's income: ₹{briefing['today_income']:.2f}\nToday's expenses: ₹{briefing['today_expenses']:.2f}"
+            answer = (
+                f"Good morning! I am your VyaparAI bot. Here is your briefing for today:\n\n{notification_summary}\n\n"
+                f"Today's revenue: ₹{briefing.get('today_income', 0):,.0f}\n"
+                f"Today's expenses: ₹{briefing.get('today_expenses', 0):,.0f}"
+            )
 
         return {
             "transcription": text,
             "answer": answer,
             "intent": "morning_briefing",
             "language": language,
+            "action_buttons": [
+                {"label": "View Details", "route": "/app/transactions"},
+                {"label": "Show Reports", "route": "/app/reports"},
+                {"label": "Check Reminders", "route": "/app/reminders"},
+            ],
         }
 
     def _detect_language(self, text: str) -> str:
         devanagari_chars = sum(1 for char in text if "\u0900" <= char <= "\u097F")
         kannada_chars = sum(1 for char in text if "\u0C80" <= char <= "\u0CFF")
+        tamil_chars = sum(1 for char in text if "\u0B80" <= char <= "\u0BFF")
+        telugu_chars = sum(1 for char in text if "\u0C00" <= char <= "\u0C7F")
 
         if devanagari_chars > len(text) * 0.3:
             return "hi"
         if kannada_chars > len(text) * 0.3:
             return "kn"
+        if tamil_chars > len(text) * 0.3:
+            return "ta"
+        if telugu_chars > len(text) * 0.3:
+            return "te"
         return "en"
 
 

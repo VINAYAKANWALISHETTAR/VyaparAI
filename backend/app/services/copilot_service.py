@@ -1,3 +1,7 @@
+import re
+from datetime import datetime, timezone
+from decimal import Decimal
+
 from app.ai_tools.analytics_tools import get_business_summary
 from app.ai_tools.customer_tools import get_customer_balance, get_payment_history
 from app.ai_tools.financial_tools import (
@@ -12,31 +16,154 @@ from app.ai_tools.financial_tools import (
     get_upcoming_liabilities,
 )
 from app.ai_tools.invoice_tools import get_invoice
+from app.database.mongodb import db
+from app.models.transaction import transaction_document
 from app.services.financial_service import FinancialService
 
 financial_service = FinancialService()
 
 
+def parse_transaction_voice(message: str) -> dict | None:
+    text = message.strip()
+    text_lower = text.lower()
+
+    # Match Income patterns:
+    # 1. "Ramesh paid 5000", "Sharma paid me 12000"
+    m = re.search(r'([A-Za-z]+)\s+(?:paid|transferred|gave)(?:\s+me)?\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if m:
+        party = m.group(1).strip()
+        amt_str = m.group(2).replace(',', '')
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "income",
+                    "amount": amt,
+                    "category": "Customer Payment",
+                    "party_name": party.capitalize(),
+                    "description": f"Payment from {party.capitalize()}",
+                }
+        except ValueError:
+            pass
+
+    # 2. "Received 5000 from Ramesh", "Received payment of 3000 from Anil"
+    m = re.search(r'received\s+(?:payment\s+of\s+)?(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s+from\s+([A-Za-z]+)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        party = m.group(2).strip()
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "income",
+                    "amount": amt,
+                    "category": "Sale",
+                    "party_name": party.capitalize(),
+                    "description": f"Received from {party.capitalize()}",
+                }
+        except ValueError:
+            pass
+
+    # 3. "Add sale 4500", "Record sale of 6000", "Made a sale of 1500"
+    m = re.search(r'(?:add|record|made)(?:\s+a)?\s+sale(?:\s+of)?\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "income",
+                    "amount": amt,
+                    "category": "Sale",
+                    "description": "General Sale",
+                }
+        except ValueError:
+            pass
+
+    # Match Expense patterns:
+    # 1. "Spent 500 on chai and snacks", "Spent 1200 on diesel"
+    m = re.search(r'spent\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s+(?:on|for)\s+(.+)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        cat = m.group(2).strip().capitalize()
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "expense",
+                    "amount": amt,
+                    "category": cat,
+                    "description": f"Expense for {cat}",
+                }
+        except ValueError:
+            pass
+
+    # 2. "Paid 1500 for electricity", "Paid 800 for transport"
+    m = re.search(r'paid\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s+(?:for|to|on)\s+(.+)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        cat = m.group(2).strip().capitalize()
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "expense",
+                    "amount": amt,
+                    "category": cat,
+                    "description": f"Payment for {cat}",
+                }
+        except ValueError:
+            pass
+
+    # 3. "Add expense of 800", "Record expense 450"
+    m = re.search(r'(?:add|record)\s+(?:an?\s+)?expense(?:\s+of)?\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "expense",
+                    "amount": amt,
+                    "category": "General Expense",
+                    "description": "General Expense",
+                }
+        except ValueError:
+            pass
+
+    return None
+
+
 def classify_intent(message: str) -> tuple[str, dict | None]:
     text = message.strip().lower()
 
-    if "profit" in text and "today" in text:
+    # Check for greetings
+    greetings = ["hello", "hi", "hey", "good morning", "good evening", "namaste", "who are you", "what can you do", "help"]
+    if any(text == g or text.startswith(g + " ") or text.startswith(g + ",") or text.startswith(g + "!") for g in greetings):
+        return "greeting", {}
+
+    # Check for voice transaction recording
+    txn_parsed = parse_transaction_voice(message)
+    if txn_parsed:
+        return "record_transaction", txn_parsed
+
+    if "profit" in text and ("today" in text or "now" in text or "current" in text or len(text.split()) <= 4):
         return "get_today_profit", {}
-    if "income" in text and "today" in text:
+    if ("income" in text or "revenue" in text or "sales" in text) and ("today" in text or len(text.split()) <= 4):
         return "get_today_income", {}
-    if "expense" in text and "today" in text:
+    if "expense" in text and ("today" in text or len(text.split()) <= 4):
         return "get_today_expenses", {}
-    if "cash position" in text or "current cash" in text:
+    if "cash position" in text or "current cash" in text or "balance" in text:
         return "get_cash_position", {}
-    if "cash flow" in text or "forecast" in text:
+    if "cash flow" in text or "forecast" in text or "projection" in text:
         return "get_cash_flow_forecast", {}
-    if "receivable" in text and "overdue" in text:
+    if ("receivable" in text or "overdue" in text) and "overdue" in text:
         return "get_overdue_receivables", {}
-    if "receivable" in text or "who owes" in text:
+    if "receivable" in text or "who owes" in text or "pending payment" in text or "customers owe" in text:
         return "get_receivables", {}
-    if "liability" in text and "upcoming" in text:
+    if ("liability" in text or "payables" in text or "what do i owe" in text or "supplier due" in text) and "upcoming" in text:
         return "get_upcoming_liabilities", {}
-    if "liability" in text or "what do i owe" in text:
+    if "liability" in text or "payables" in text or "what do i owe" in text or "supplier due" in text:
         return "get_liabilities", {}
     if "invoice" in text:
         return "get_invoice", {}
@@ -44,7 +171,7 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
         return "get_customer_balance", {}
     if "payment history" in text or "received from" in text:
         return "get_payment_history", {}
-    if "summary" in text or "overview" in text or "business" in text:
+    if "summary" in text or "overview" in text or "business" in text or "doing" in text:
         return "get_business_summary", {}
 
     return "unknown", {}
@@ -52,6 +179,44 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
 
 def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[dict]]:
     action_buttons = []
+
+    if intent == "greeting":
+        return (
+            "Hello! I am your VyaparAI bot. How can I assist your business today? "
+            "You can ask about your profit, revenue, expenses, who owes you money, "
+            "or tell me to record a transaction like 'Ramesh paid 5000' or 'Add expense 500 for tea'.",
+            [
+                {"label": "What is my profit today?", "query": "What is my profit today?"},
+                {"label": "Who owes me money?", "query": "Who owes me money?"},
+                {"label": "How is my business doing?", "query": "How is my business doing?"},
+            ],
+        )
+
+    if intent == "record_transaction":
+        txn = data.get("transaction", {})
+        amt = txn.get("amount", 0.0)
+        ttype = txn.get("type", "income")
+        desc = txn.get("description", "")
+        today_income = data.get("today_income", amt if ttype == "income" else 0.0)
+        today_expense = data.get("today_expenses", amt if ttype == "expense" else 0.0)
+
+        action_buttons = [
+            {"label": "View Details", "route": "/app/transactions"},
+            {"label": "Show Reports", "route": "/app/reports"},
+        ]
+
+        if ttype == "income":
+            return (
+                f"I have recorded a sale/income of ₹{amt:,.0f} ({desc}) into your records! ✓\n"
+                f"Your today's revenue is now ₹{today_income:,.0f}.",
+                action_buttons,
+            )
+        else:
+            return (
+                f"I have recorded an expense of ₹{amt:,.0f} ({desc}) into your records! ✓\n"
+                f"Your today's total expenses are now ₹{today_expense:,.0f}.",
+                action_buttons,
+            )
 
     if intent == "get_today_profit":
         prof = data.get("profit", 0.0)
@@ -64,7 +229,7 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
     if intent == "get_today_income":
         inc = data.get("total_income", 0.0)
         action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
-        return f"Your income today is ₹{inc:,.0f}.", action_buttons
+        return f"Your revenue/income today is ₹{inc:,.0f}.", action_buttons
 
     if intent == "get_today_expenses":
         exp = data.get("total_expenses", 0.0)
@@ -74,13 +239,13 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
     if intent == "get_cash_position":
         cash = data.get("recorded_cash_position", 0.0)
         action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
-        return f"Your recorded cash position is ₹{cash:,.0f}.", action_buttons
+        return f"Your recorded net cash position is ₹{cash:,.0f}.", action_buttons
 
     if intent == "get_cash_flow_forecast":
         bal = data.get("projected_balance", 0.0)
-        risk = data.get("risk_indicator", "medium")
+        risk = data.get("risk_indicator", "low")
         action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
-        return f"Your projected cash balance is ₹{bal:,.0f} with a {risk} liquidity risk.", action_buttons
+        return f"Your projected 30-day cash balance is ₹{bal:,.0f} with a {risk} liquidity risk.", action_buttons
 
     if intent == "get_receivables":
         invoices = data.get("invoices", [])
@@ -120,11 +285,11 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
         return f"You have ₹{total:,.0f} in upcoming liabilities.", action_buttons
 
     if intent == "get_business_summary":
-        inc = data.get("today_income", 18500.0)
-        exp = data.get("today_expenses", 6200.0)
-        prof = data.get("today_profit", 12300.0)
-        rec = data.get("receivables", {}).get("total_receivables", 24000.0)
-        rec_count = len(data.get("receivables", {}).get("invoices", [])) or 3
+        inc = data.get("today_income", 0.0)
+        exp = data.get("today_expenses", 0.0)
+        prof = data.get("today_profit", inc - exp)
+        rec = data.get("receivables", {}).get("total_receivables", 0.0)
+        rec_count = len(data.get("receivables", {}).get("invoices", []))
         action_buttons = [
             {"label": "View Details", "route": "/app/transactions"},
             {"label": "Show Reports", "route": "/app/reports"},
@@ -132,16 +297,17 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
             {"label": "Check Cash Flow", "route": "/app/cash-flow"},
         ]
         return (
-            f"Today you made ₹{inc:,.0f}, spent ₹{exp:,.0f} and your profit is ₹{prof:,.0f}. "
-            f"You also have {rec_count} pending payment{'s' if rec_count != 1 else ''} and ₹{rec:,.0f} to receive.",
+            f"Here is your business overview: Today's revenue is ₹{inc:,.0f}, expenses are ₹{exp:,.0f}, "
+            f"and net profit is ₹{prof:,.0f}. "
+            f"You have {rec_count} pending receivable{'s' if rec_count != 1 else ''} totaling ₹{rec:,.0f}.",
             action_buttons,
         )
 
     return (
-        "I can help you with today's income, expenses, profit, cash flow forecasts, receivables, liabilities, and business summaries. Try asking 'Who owes me money?' or 'What is my profit today?'",
+        "Hello! I am your VyaparAI bot. I can help analyze your income, expenses, profit, cash flow forecasts, receivables, liabilities, or record transactions directly by voice. Try asking 'What is my profit today?' or say 'Ramesh paid 5000'.",
         [
-            {"label": "Who owes me money?", "query": "Who owes me money?"},
             {"label": "What is my profit today?", "query": "What is my profit today?"},
+            {"label": "Who owes me money?", "query": "Who owes me money?"},
             {"label": "How is my business doing?", "query": "How is my business doing?"},
         ],
     )
@@ -150,6 +316,8 @@ def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[di
 class CopilotService:
     def __init__(self):
         self._intent_handlers = {
+            "greeting": self._handle_greeting,
+            "record_transaction": self._handle_record_transaction,
             "get_today_profit": self._handle_today_profit,
             "get_today_income": self._handle_today_income,
             "get_today_expenses": self._handle_today_expenses,
@@ -171,7 +339,7 @@ class CopilotService:
 
         if handler:
             try:
-                data = handler(user_id, business_id, **params)
+                data = handler(user_id, business_id, **(params or {}))
                 answer, buttons = generate_answer(intent, data, message)
                 return {"answer": answer, "intent": intent, "data": data, "action_buttons": buttons}
             except Exception as exc:
@@ -188,6 +356,60 @@ class CopilotService:
             "intent": "unknown",
             "data": None,
             "action_buttons": buttons,
+        }
+
+    def _handle_greeting(self, user_id: str, business_id: str | None, **kwargs):
+        return {}
+
+    def _handle_record_transaction(self, user_id: str, business_id: str | None, **kwargs):
+        # Resolve active business_id
+        if not business_id:
+            businesses = list(db.businesses.find({"owner_id": user_id}))
+            if businesses:
+                business_id = str(businesses[0]["_id"])
+            else:
+                # Create a default business for the user if none exists
+                res = db.businesses.insert_one({
+                    "owner_id": user_id,
+                    "name": "My Business",
+                    "currency": "INR",
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc),
+                })
+                business_id = str(res.inserted_id)
+
+        ttype = kwargs.get("type", "income")
+        amount = float(kwargs.get("amount", 0.0))
+        category = kwargs.get("category", "Sale" if ttype == "income" else "General Expense")
+        desc = kwargs.get("description")
+        now = datetime.now(timezone.utc)
+
+        # Create and insert transaction document
+        doc = transaction_document(
+            business_id=business_id,
+            type=ttype,
+            amount=amount,
+            category=category,
+            description=desc,
+            date=now,
+            source="voice",
+            user_id=user_id,
+        )
+        db.transactions.insert_one(doc)
+
+        # Compute updated today's summary
+        inc_res = get_today_income(business_id, user_id)
+        exp_res = get_today_expenses(business_id, user_id)
+
+        return {
+            "transaction": {
+                "type": ttype,
+                "amount": amount,
+                "category": category,
+                "description": desc,
+            },
+            "today_income": inc_res.get("total_income", amount if ttype == "income" else 0.0),
+            "today_expenses": exp_res.get("total_expenses", amount if ttype == "expense" else 0.0),
         }
 
     def _handle_today_profit(self, user_id: str, business_id: str | None, **kwargs):

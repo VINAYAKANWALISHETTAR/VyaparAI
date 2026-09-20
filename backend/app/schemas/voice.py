@@ -11,3 +11,4 @@ class VoiceQueryResponse(BaseModel):
     answer: str
     intent: str | None = None
     language: str | None = None
+    action_buttons: list[dict] = []

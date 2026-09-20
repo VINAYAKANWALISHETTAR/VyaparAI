@@ -20,10 +20,11 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
   bool? _isLiked;
 
   final List<String> _suggestedPhrases = [
+    'Ramesh paid 5000',
+    'Spent 450 on transport',
     'What is my profit today?',
-    'Show pending payments',
-    'How is my business doing?',
-    'Remind me to pay supplier tomorrow',
+    'Who owes me money?',
+    'Show cash flow forecast',
   ];
 
   @override
@@ -116,7 +117,76 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
   ) {
     return Column(
       children: [
-        const SizedBox(height: 16),
+        // Bot Greeting Banner
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFEFF6FF), Color(0xFFF5F3FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFDBEAFE)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hello! I am your VyaparAI Bot',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    Text(
+                      'Speak to record transactions or ask financial insights',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  voiceState.isSpeaking
+                      ? Icons.volume_up_rounded
+                      : Icons.volume_mute_rounded,
+                  color: AppColors.primary,
+                ),
+                tooltip: 'Listen to Bot Greeting',
+                onPressed: () {
+                  if (voiceState.isSpeaking) {
+                    ref.read(voiceProvider.notifier).stopSpeaking();
+                  } else {
+                    ref.read(voiceProvider.notifier).speakGreeting();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(
           isListening
               ? 'Listening...'
@@ -126,7 +196,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
                       ? 'Try Again'
                       : 'Tap mic to speak',
           style: const TextStyle(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
           ),

@@ -5,6 +5,8 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vypara_ai/core/constants/api_endpoints.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
 import 'package:vypara_ai/core/providers/language_provider.dart';
+import 'package:vypara_ai/features/home/providers/home_provider.dart';
+import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
 enum VoiceStatus {
   idle,
@@ -80,6 +82,15 @@ class VoiceProvider extends Notifier<VoiceState> {
     _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
     _tts.setSpeechRate(0.5).catchError((_) {});
     _tts.setPitch(1.0).catchError((_) {});
+  }
+
+  Future<void> speakGreeting() async {
+    const greeting = "Hello! I am your VyaparAI bot. How can I help your business today?";
+    final lang = ref.read(languageProvider);
+    _initTts();
+    await _tts.stop();
+    await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
+    await _tts.speak(greeting);
   }
 
   Future<void> speakCurrentResponse() async {
@@ -180,6 +191,7 @@ class VoiceProvider extends Notifier<VoiceState> {
       final answer = data['answer']?.toString() ??
           data['response']?.toString() ??
           'No response from VyparaAI.';
+      final intent = data['intent']?.toString();
 
       final List<Map<String, String>> actions = [];
       if (data['action_buttons'] is List) {
@@ -207,6 +219,12 @@ class VoiceProvider extends Notifier<VoiceState> {
         actionButtons: actions,
         error: null,
       );
+
+      // If a transaction was created by voice, refresh transactions and home providers
+      if (intent == 'record_transaction') {
+        ref.read(transactionsProvider.notifier).loadTransactions();
+        ref.read(homeProvider.notifier).loadDashboard();
+      }
 
       // Auto speak aloud the assistant response in the selected language
       speakCurrentResponse();
