@@ -10,3 +10,4 @@ class CopilotChatResponse(BaseModel):
     answer: str
     intent: str | None = None
     data: dict | None = None
+    action_buttons: list[dict] = []

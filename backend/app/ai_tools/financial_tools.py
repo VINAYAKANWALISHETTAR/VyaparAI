@@ -36,4 +36,5 @@ def get_upcoming_liabilities(user_id: str) -> dict:
 
 
 def get_cash_flow_forecast(user_id: str, days: int = 7) -> dict:
-    return financial_service.get_cash_flow(user_id, days=days)
+    from app.services.cashflow_service import get_cash_flow
+    return get_cash_flow(user_id, days=days)

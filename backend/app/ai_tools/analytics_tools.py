@@ -1,6 +1,7 @@
 from app.services.financial_service import FinancialService
 from app.services.anomaly_service import get_anomalies
 from app.services.insight_service import get_insights
+from app.services.cashflow_service import get_cash_flow
 
 financial_service = FinancialService()
 
@@ -12,7 +13,7 @@ def get_business_summary(user_id: str, business_id: str | None = None) -> dict:
     cash_position = financial_service.get_cash_position(user_id)
     receivables = financial_service.get_receivables(business_id, user_id)
     liabilities = financial_service.get_liabilities(user_id, business_id=business_id, upcoming_only=True)
-    cash_flow = financial_service.get_cash_flow(user_id)
+    cash_flow = get_cash_flow(user_id)
 
     return {
         "today_income": income["total_income"],

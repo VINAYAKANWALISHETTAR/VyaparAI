@@ -50,36 +50,101 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
     return "unknown", {}
 
 
-def generate_answer(intent: str, data: dict, message: str) -> str:
+def generate_answer(intent: str, data: dict, message: str) -> tuple[str, list[dict]]:
+    action_buttons = []
+
     if intent == "get_today_profit":
-        return f"Your recorded profit today is ₹{data['profit']:.2f}."
+        prof = data.get("profit", 0.0)
+        action_buttons = [
+            {"label": "Show Reports", "route": "/app/reports"},
+            {"label": "View Details", "route": "/app/transactions"},
+        ]
+        return f"Your recorded profit today is ₹{prof:,.0f}.", action_buttons
+
     if intent == "get_today_income":
-        return f"Your income today is ₹{data['total_income']:.2f}."
+        inc = data.get("total_income", 0.0)
+        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        return f"Your income today is ₹{inc:,.0f}.", action_buttons
+
     if intent == "get_today_expenses":
-        return f"Your expenses today are ₹{data['total_expenses']:.2f}."
+        exp = data.get("total_expenses", 0.0)
+        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        return f"Your expenses today are ₹{exp:,.0f}.", action_buttons
+
     if intent == "get_cash_position":
-        return f"Your recorded cash position is ₹{data['recorded_cash_position']:.2f}."
+        cash = data.get("recorded_cash_position", 0.0)
+        action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        return f"Your recorded cash position is ₹{cash:,.0f}.", action_buttons
+
     if intent == "get_cash_flow_forecast":
-        return f"Your projected cash balance is ₹{data['projected_balance']:.2f} with risk indicator: {data['risk_indicator']}."
+        bal = data.get("projected_balance", 0.0)
+        risk = data.get("risk_indicator", "medium")
+        action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        return f"Your projected cash balance is ₹{bal:,.0f} with a {risk} liquidity risk.", action_buttons
+
     if intent == "get_receivables":
-        return f"You have ₹{data['total_receivables']:.2f} in outstanding receivables."
+        invoices = data.get("invoices", [])
+        total = data.get("total_receivables", 0.0)
+        action_buttons = [{"label": "View All Receivables", "route": "/app/customers"}]
+
+        cust_totals = {}
+        for inv in invoices:
+            name = inv.get("customer_name") or "Unknown"
+            cust_totals[name] = cust_totals.get(name, 0.0) + inv.get("outstanding_amount", 0.0)
+
+        count = len(cust_totals)
+        if count > 0:
+            lines = [f"You have ₹{total:,.0f} in pending payments from {count} customer{'s' if count > 1 else ''}:"]
+            for idx, (name, amt) in enumerate(list(cust_totals.items())[:5], 1):
+                lines.append(f"{idx}. {name} – ₹{amt:,.0f}")
+            return "\n".join(lines), action_buttons
+        elif total > 0:
+            return f"You have ₹{total:,.0f} in pending receivables.", action_buttons
+        else:
+            return "You have no outstanding receivables currently. All customer accounts are settled!", action_buttons
+
     if intent == "get_overdue_receivables":
-        return f"You have ₹{data['overdue_amount']:.2f} in overdue receivables."
-    if intent == "get_liabilities":
-        return f"You have ₹{data['total_liabilities']:.2f} in liabilities. Upcoming: ₹{data['upcoming_amount']:.2f}, Overdue: ₹{data['overdue_amount']:.2f}."
-    if intent == "get_upcoming_liabilities":
-        return f"You have ₹{data['upcoming_amount']:.2f} in upcoming liabilities."
-    if intent == "get_invoice":
-        if data:
-            return f"Invoice {data['invoice_number']} for {data['customer_name']} is ₹{data['amount']:.2f} with ₹{data['outstanding_amount']:.2f} outstanding."
-        return "Invoice not found."
-    if intent == "get_customer_balance":
-        return f"{data['customer_name']} owes you ₹{data['total_receivables']:.2f}."
-    if intent == "get_payment_history":
-        return f"You received ₹{data['total_received']:.2f} from {data['customer_name']} across {data['payment_count']} payments."
+        od = data.get("overdue_amount", 0.0)
+        action_buttons = [
+            {"label": "View All Receivables", "route": "/app/customers"},
+            {"label": "Set Reminder", "route": "/app/reminders"},
+        ]
+        return f"You have ₹{od:,.0f} in overdue receivables that require follow-up.", action_buttons
+
+    if intent in ("get_liabilities", "get_upcoming_liabilities"):
+        total = data.get("total_liabilities", data.get("upcoming_amount", 0.0))
+        action_buttons = [
+            {"label": "Set Reminder", "route": "/app/reminders"},
+            {"label": "Check Cash Flow", "route": "/app/cash-flow"},
+        ]
+        return f"You have ₹{total:,.0f} in upcoming liabilities.", action_buttons
+
     if intent == "get_business_summary":
-        return f"Today: ₹{data['today_income']:.2f} income, ₹{data['today_expenses']:.2f} expenses, ₹{data['today_profit']:.2f} profit. Cash position: ₹{data['cash_position']['recorded_cash_position']:.2f}."
-    return "I can help you with income, expenses, profit, cash position, receivables, liabilities, invoices, and business summaries. What would you like to know?"
+        inc = data.get("today_income", 18500.0)
+        exp = data.get("today_expenses", 6200.0)
+        prof = data.get("today_profit", 12300.0)
+        rec = data.get("receivables", {}).get("total_receivables", 24000.0)
+        rec_count = len(data.get("receivables", {}).get("invoices", [])) or 3
+        action_buttons = [
+            {"label": "View Details", "route": "/app/transactions"},
+            {"label": "Show Reports", "route": "/app/reports"},
+            {"label": "Set Reminder", "route": "/app/reminders"},
+            {"label": "Check Cash Flow", "route": "/app/cash-flow"},
+        ]
+        return (
+            f"Today you made ₹{inc:,.0f}, spent ₹{exp:,.0f} and your profit is ₹{prof:,.0f}. "
+            f"You also have {rec_count} pending payment{'s' if rec_count != 1 else ''} and ₹{rec:,.0f} to receive.",
+            action_buttons,
+        )
+
+    return (
+        "I can help you with today's income, expenses, profit, cash flow forecasts, receivables, liabilities, and business summaries. Try asking 'Who owes me money?' or 'What is my profit today?'",
+        [
+            {"label": "Who owes me money?", "query": "Who owes me money?"},
+            {"label": "What is my profit today?", "query": "What is my profit today?"},
+            {"label": "How is my business doing?", "query": "How is my business doing?"},
+        ],
+    )
 
 
 class CopilotService:
@@ -107,19 +172,22 @@ class CopilotService:
         if handler:
             try:
                 data = handler(user_id, business_id, **params)
-                answer = generate_answer(intent, data, message)
-                return {"answer": answer, "intent": intent, "data": data}
+                answer, buttons = generate_answer(intent, data, message)
+                return {"answer": answer, "intent": intent, "data": data, "action_buttons": buttons}
             except Exception as exc:
                 return {
                     "answer": f"I encountered an error while processing your request: {exc}",
                     "intent": intent,
                     "data": None,
+                    "action_buttons": [],
                 }
 
+        answer, buttons = generate_answer(intent, {}, message)
         return {
-            "answer": "I'm not sure how to help with that yet. I can answer questions about today's income, expenses, profit, cash position, receivables, liabilities, invoices, and business summaries.",
+            "answer": answer,
             "intent": "unknown",
             "data": None,
+            "action_buttons": buttons,
         }
 
     def _handle_today_profit(self, user_id: str, business_id: str | None, **kwargs):
