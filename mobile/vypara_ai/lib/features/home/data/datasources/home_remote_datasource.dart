@@ -36,14 +36,18 @@ class HomeRemoteDataSource {
       // Expenses response
       if (responses[1].data is Map) {
         final data = responses[1].data as Map<String, dynamic>;
-        expenses = (data['total_expense'] as num?)?.toDouble() ?? 0.0;
+        expenses = (data['total_expenses'] as num?)?.toDouble() ??
+            (data['total_expense'] as num?)?.toDouble() ??
+            0.0;
         expenseChange = (data['change_percentage'] as num?)?.toDouble();
       }
 
       // Profit response
       if (responses[2].data is Map) {
         final data = responses[2].data as Map<String, dynamic>;
-        profit = (data['net_profit'] as num?)?.toDouble() ?? (income - expenses);
+        profit = (data['profit'] as num?)?.toDouble() ??
+            (data['net_profit'] as num?)?.toDouble() ??
+            (income - expenses);
       } else {
         profit = income - expenses;
       }

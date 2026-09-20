@@ -13,13 +13,11 @@ def transaction_document(
     user_id: str | None = None,
 ):
     if date is not None:
-        if hasattr(date, "date") and not hasattr(date, "hour"):
-            date = datetime.combine(
-                date,
-                datetime.min.time(),
-            ).replace(tzinfo=timezone.utc)
-        elif hasattr(date, "isoformat") and not hasattr(date, "tzinfo"):
-            date = date.replace(tzinfo=timezone.utc)
+        if isinstance(date, datetime):
+            if date.tzinfo is None:
+                date = date.replace(tzinfo=timezone.utc)
+        elif hasattr(date, "year") and hasattr(date, "month") and hasattr(date, "day"):
+            date = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
     return {
         "business_id": business_id,

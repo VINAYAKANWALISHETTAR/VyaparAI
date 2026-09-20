@@ -35,11 +35,29 @@ class TransactionsRemoteDataSource {
     }
   }
 
+  Future<String?> getDefaultBusinessId() async {
+    try {
+      final res = await apiClient.dio.get(ApiEndpoints.businesses);
+      if (res.data is List && (res.data as List).isNotEmpty) {
+        return (res.data as List).first['id']?.toString();
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<TransactionModel?> createTransaction(Map<String, dynamic> data) async {
     try {
+      final payload = Map<String, dynamic>.from(data);
+      if (!payload.containsKey('business_id') || payload['business_id'] == null) {
+        final bizId = await getDefaultBusinessId();
+        if (bizId != null) {
+          payload['business_id'] = bizId;
+        }
+      }
+
       final response = await apiClient.dio.post(
         ApiEndpoints.transactions,
-        data: data,
+        data: payload,
       );
       if (response.data is Map) {
         return TransactionModel.fromJson(response.data as Map<String, dynamic>);

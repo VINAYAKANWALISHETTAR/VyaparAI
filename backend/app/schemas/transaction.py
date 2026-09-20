@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+import datetime as dt
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
@@ -14,7 +14,7 @@ class TransactionCreate(BaseModel):
     amount: float = Field(gt=0)
     category: str = Field(min_length=1)
     description: str | None = None
-    date: date
+    date: dt.date = Field(default_factory=dt.date.today)
     source: str = "manual"
     reference_id: str | None = None
     user_id: str | None = None
@@ -44,7 +44,7 @@ class TransactionUpdate(BaseModel):
     amount: float | None = Field(default=None, gt=0)
     category: str | None = Field(default=None, min_length=1)
     description: str | None = None
-    date: Optional[date] = None
+    date: Optional[dt.date] = None
     source: str | None = None
     reference_id: str | None = None
     user_id: str | None = None

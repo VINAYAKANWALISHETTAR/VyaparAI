@@ -4,7 +4,6 @@ import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
-import 'package:vypara_ai/features/transactions/data/models/transaction_model.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
 class TransactionsScreenPlaceholder extends ConsumerStatefulWidget {
@@ -18,55 +17,6 @@ class TransactionsScreenPlaceholder extends ConsumerStatefulWidget {
 class _TransactionsScreenPlaceholderState
     extends ConsumerState<TransactionsScreenPlaceholder> {
   final _searchController = TextEditingController();
-
-  // Sample transactions shown if the backend is empty for an initial user
-  final List<TransactionModel> _fallbackSampleData = [
-    TransactionModel(
-      id: 'sample-1',
-      businessId: 'demo',
-      type: 'income',
-      amount: 8000,
-      category: 'Payment Received',
-      description: 'From Ramesh',
-      date: DateTime.now(),
-    ),
-    TransactionModel(
-      id: 'sample-2',
-      businessId: 'demo',
-      type: 'expense',
-      amount: 2500,
-      category: 'Purchase',
-      description: 'ABC Traders',
-      date: DateTime.now().subtract(const Duration(minutes: 75)),
-    ),
-    TransactionModel(
-      id: 'sample-3',
-      businessId: 'demo',
-      type: 'income',
-      amount: 12000,
-      category: 'Sales Invoice',
-      description: 'INV-00124',
-      date: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    TransactionModel(
-      id: 'sample-4',
-      businessId: 'demo',
-      type: 'expense',
-      amount: 5000,
-      category: 'UPI Payment',
-      description: 'To Supplier',
-      date: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    TransactionModel(
-      id: 'sample-5',
-      businessId: 'demo',
-      type: 'income',
-      amount: 1800,
-      category: 'Cash Sale',
-      description: 'Walk-in Customer',
-      date: DateTime.now().subtract(const Duration(days: 3)),
-    ),
-  ];
 
   @override
   void dispose() {
@@ -292,12 +242,7 @@ class _TransactionsScreenPlaceholderState
     final txState = ref.watch(transactionsProvider);
     final filters = ['All', 'Income', 'Expense', 'Pending'];
 
-    final rawList = txState.filteredTransactions;
-    final displayList = rawList.isNotEmpty
-        ? rawList
-        : (txState.transactions.isEmpty && txState.searchQuery.isEmpty
-            ? _fallbackSampleData
-            : <TransactionModel>[]);
+    final displayList = txState.filteredTransactions;
 
     return Scaffold(
       backgroundColor: AppColors.background,
