@@ -189,12 +189,11 @@ class _TransactionsScreenPlaceholderState
                   ),
                   const SizedBox(height: 12),
 
-                  // Description / Client
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
                       labelText: 'Description / Contact (Optional)',
-                      hintText: 'e.g. Ramesh Traders',
+                      hintText: 'Enter party name or description',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
@@ -321,117 +320,177 @@ class _TransactionsScreenPlaceholderState
               color: AppColors.primary,
               onRefresh: () =>
                   ref.read(transactionsProvider.notifier).loadTransactions(),
-              child: displayList.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textTertiary),
-                          SizedBox(height: 12),
-                          Text(
-                            'No transactions found',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+              child: txState.isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    )
+                  : txState.error != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.wifi_off_outlined, size: 48, color: AppColors.textTertiary),
+                                const SizedBox(height: 12),
+                                Text(
+                                  txState.error!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () => ref.read(transactionsProvider.notifier).loadTransactions(),
+                                  icon: const Icon(Icons.refresh, size: 18),
+                                  label: const Text('Retry'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    shape: const StadiumBorder(),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      itemCount: displayList.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final item = displayList[index];
-                        final isIncome = item.type == 'income';
-
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppRadius.lg),
-                            boxShadow: AppShadows.subtle,
-                          ),
-                          child: Row(
-                            children: [
-                              // Type / Category Icon
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: isIncome
-                                      ? const Color(0xFFE8F8F0)
-                                      : const Color(0xFFEFF4FF),
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                ),
-                                child: Icon(
-                                  isIncome
-                                      ? Icons.arrow_downward_rounded
-                                      : Icons.arrow_upward_rounded,
-                                  color: isIncome
-                                      ? const Color(0xFF0F764F)
-                                      : AppColors.primary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-
-                              // Category and Description
-                              Expanded(
+                        )
+                      : displayList.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      item.category,
-                                      style: const TextStyle(
-                                        fontSize: 15,
+                                    const Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textTertiary),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'No transactions yet',
+                                      style: TextStyle(
+                                        fontSize: 17,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.textPrimary,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      item.description ?? 'General',
-                                      style: const TextStyle(
-                                        fontSize: 12,
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'Add your first transaction to get started tracking income and expenses.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
                                         color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton.icon(
+                                      onPressed: _openAddTransactionSheet,
+                                      icon: const Icon(Icons.add, size: 18),
+                                      label: const Text('Add Transaction'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        shape: const StadiumBorder(),
+                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              itemCount: displayList.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final item = displayList[index];
+                                final isIncome = item.type == 'income';
 
-                              // Amount and Date
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    _formatAmount(item.amount),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: isIncome
-                                          ? const Color(0xFF0F764F)
-                                          : AppColors.textPrimary,
-                                    ),
+                                return Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                                    boxShadow: AppShadows.subtle,
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _formatDate(item.date),
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textTertiary,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      // Type / Category Icon
+                                      Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color: isIncome
+                                              ? const Color(0xFFE8F8F0)
+                                              : const Color(0xFFEFF4FF),
+                                          borderRadius: BorderRadius.circular(AppRadius.md),
+                                        ),
+                                        child: Icon(
+                                          isIncome
+                                              ? Icons.arrow_downward_rounded
+                                              : Icons.arrow_upward_rounded,
+                                          color: isIncome
+                                              ? const Color(0xFF0F764F)
+                                              : AppColors.primary,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+
+                                      // Category and Description
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.category,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              item.description ?? 'General',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Amount and Date
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            _formatAmount(item.amount),
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              color: isIncome
+                                                  ? const Color(0xFF0F764F)
+                                                  : AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _formatDate(item.date),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textTertiary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                );
+                              },
+                            ),
             ),
           ),
 
