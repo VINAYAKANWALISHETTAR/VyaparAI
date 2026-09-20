@@ -49,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
             labelText: 'Password',
             hintText: 'Enter your password',
             obscureText: true,
-            validator: Validators.password,
+            validator: (v) => Validators.notEmpty(v, fieldName: 'Password'),
           ),
           const SizedBox(height: 24),
           AppButton(text: 'Sign in', isLoading: widget.isLoading, onPressed: _submit),

@@ -46,7 +46,7 @@ class _RegisterFormState extends State<RegisterForm> {
             controller: _nameController,
             labelText: 'Full name',
             hintText: 'Enter your name',
-            validator: Validators.notEmpty,
+            validator: (v) => Validators.notEmpty(v, fieldName: 'Full name'),
           ),
           const SizedBox(height: 12),
           AppTextField(
@@ -60,7 +60,7 @@ class _RegisterFormState extends State<RegisterForm> {
           AppTextField(
             controller: _passwordController,
             labelText: 'Password',
-            hintText: 'At least 6 characters',
+            hintText: 'At least 8 chars (1 uppercase, 1 number)',
             obscureText: true,
             validator: Validators.password,
           ),

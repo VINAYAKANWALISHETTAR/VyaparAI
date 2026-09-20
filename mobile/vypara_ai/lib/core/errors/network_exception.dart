@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:vypara_ai/core/errors/app_exception.dart';
 
-class NetworkException implements Exception {
-  final String message;
+class NetworkException extends AppException {
   final int? statusCode;
   final dynamic data;
 
   const NetworkException({
-    required this.message,
+    required String message,
     this.statusCode,
     this.data,
-  });
+  }) : super(message);
 
   factory NetworkException.fromDioError(DioException error) {
     switch (error.type) {
@@ -30,9 +30,10 @@ class NetworkException implements Exception {
       case DioExceptionType.cancel:
         return const NetworkException(message: 'Request was cancelled.');
       case DioExceptionType.connectionError:
-        return const NetworkException(message: 'No internet connection.');
+        return const NetworkException(
+            message: 'Unable to connect to backend server. Ensure backend is running at http://localhost:8000');
       default:
-        return NetworkException(message: error.message ?? 'An unexpected error occurred.');
+        return NetworkException(message: error.message ?? 'An unexpected network error occurred.');
     }
   }
 }
