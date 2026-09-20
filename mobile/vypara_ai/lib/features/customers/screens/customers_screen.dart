@@ -18,6 +18,8 @@ class CustomersScreenPlaceholder extends ConsumerStatefulWidget {
 class _CustomersScreenPlaceholderState
     extends ConsumerState<CustomersScreenPlaceholder> {
   final _searchController = TextEditingController();
+  String _subFilter = 'All'; // 'All', 'Due', 'Paid', 'Active'
+  final List<String> _filterOptions = const ['All', 'Due', 'Paid', 'Active'];
 
   @override
   void initState() {
@@ -337,6 +339,13 @@ class _CustomersScreenPlaceholderState
     final isCustomer = state.activeTab == 'Customers';
     final parties = state.currentList;
 
+    final filteredParties = parties.where((p) {
+      if (_subFilter == 'Due') return p.outstandingAmount > 0;
+      if (_subFilter == 'Paid') return p.outstandingAmount <= 0;
+      if (_subFilter == 'Active') return p.count > 0;
+      return true;
+    }).toList();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
@@ -443,9 +452,44 @@ class _CustomersScreenPlaceholderState
               ),
             ),
 
+            // Sub-filter horizontal chips (All, Due, Paid, Active)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _filterOptions.map((f) {
+                    final isSel = _subFilter == f;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ChoiceChip(
+                        label: Text(
+                          f,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                            color: isSel ? Colors.white : AppColors.textPrimary,
+                          ),
+                        ),
+                        selected: isSel,
+                        selectedColor: AppColors.primary,
+                        backgroundColor: Colors.white,
+                        shape: const StadiumBorder(),
+                        side: BorderSide(
+                          color: isSel ? AppColors.primary : const Color(0xFFE2E8F0),
+                        ),
+                        onSelected: (_) => setState(() => _subFilter = f),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+
             // Party List
             Expanded(
-              child: parties.isEmpty
+              child: filteredParties.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -476,10 +520,10 @@ class _CustomersScreenPlaceholderState
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      itemCount: parties.length,
+                      itemCount: filteredParties.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
-                        final party = parties[index];
+                        final party = filteredParties[index];
                         final hasDue = party.outstandingAmount > 0;
                         final initial = party.name.isNotEmpty ? party.name[0].toUpperCase() : 'P';
 

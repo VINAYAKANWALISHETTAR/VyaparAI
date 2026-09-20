@@ -630,7 +630,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
 
   final List<String> _quickSuggestions = [
     'Pay Supplier',
-    'Follow up with Ramesh',
+    'Follow up Payment',
     'Rent Payment',
     'Electricity Bill',
     'GST Filing',
@@ -706,7 +706,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
                         setState(() {
                           _titleController.text = s;
                           if (s.contains('Supplier')) _reminderType = 'supplier';
-                          if (s.contains('Ramesh') || s.contains('Follow')) _reminderType = 'customer';
+                          if (s.contains('Payment') || s.contains('Follow')) _reminderType = 'customer';
                           if (s.contains('Rent')) _reminderType = 'rent';
                           if (s.contains('Electricity') || s.contains('GST')) _reminderType = 'utility';
                         });
@@ -734,7 +734,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
               controller: _partyController,
               decoration: InputDecoration(
                 labelText: 'Party / Reference Name',
-                hintText: 'e.g. ABC Traders or Ramesh Textiles',
+                hintText: 'e.g. Acme Stores or Apex Supplies',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
