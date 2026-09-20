@@ -164,6 +164,36 @@ def confirm_invoice(
 
     result = db.invoices.insert_one(new_invoice)
 
+    # Sync with transactions collection so dashboard & transaction history update immediately
+    tx_doc = transaction_document(
+        business_id=payload.business_id,
+        type="income",
+        amount=payload.amount,
+        category="Sales / Invoice",
+        description=f"Invoice #{payload.invoice_number} - {payload.customer_name}" if payload.invoice_number else (payload.description or f"Sale to {payload.customer_name}"),
+        date=datetime.now(timezone.utc).date(),
+        source="ocr_invoice",
+        reference_id=payload.invoice_number,
+        user_id=str(current_user["_id"]),
+    )
+    db.transactions.insert_one(tx_doc)
+
+    # Upsert customer in parties collection
+    if payload.customer_name:
+        db.parties.update_one(
+            {"business_id": payload.business_id, "name": payload.customer_name, "type": "customer"},
+            {
+                "$setOnInsert": {
+                    "business_id": payload.business_id,
+                    "name": payload.customer_name,
+                    "type": "customer",
+                    "created_at": datetime.now(timezone.utc),
+                },
+                "$inc": {"total_sales": payload.amount, "balance": payload.amount},
+            },
+            upsert=True,
+        )
+
     created_invoice = db.invoices.find_one({
         "_id": result.inserted_id
     })

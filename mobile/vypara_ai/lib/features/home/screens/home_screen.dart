@@ -583,16 +583,16 @@ class HomeScreenPlaceholder extends ConsumerWidget {
                             label: 'Scan with\nCamera',
                             iconColor: const Color(0xFF0284C7),
                             bgColor: const Color(0xFFF0F9FF),
-                            onTap: () => context.push('/app/upload'),
+                            onTap: () => context.push('/app/scan'),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 18),
 
-                    // ─── 4. AI Opportunity Banner (Matches Screen 1) ───────────
+                    // ─── 4. AI Opportunity Banner (Matches Screen 1 & 14) ──────
                     InkWell(
-                      onTap: () => context.push('/app/voice'),
+                      onTap: () => context.push('/app/insights'),
                       borderRadius: BorderRadius.circular(18),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

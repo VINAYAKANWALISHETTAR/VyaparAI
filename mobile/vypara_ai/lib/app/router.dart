@@ -16,6 +16,10 @@ import 'package:vypara_ai/features/reports/screens/reports_screen.dart';
 import 'package:vypara_ai/features/settings/screens/settings_screen.dart';
 import 'package:vypara_ai/features/suppliers/screens/suppliers_screen.dart';
 import 'package:vypara_ai/features/transactions/screens/transactions_screen.dart';
+import 'package:vypara_ai/features/customers/screens/person_detail_screen.dart';
+import 'package:vypara_ai/features/insights/screens/insights_screen.dart';
+import 'package:vypara_ai/features/messages/screens/messages_screen.dart';
+import 'package:vypara_ai/features/uploads/screens/scan_screen.dart';
 import 'package:vypara_ai/features/uploads/screens/upload_screen.dart';
 import 'package:vypara_ai/features/voice/screens/voice_screen.dart';
 
@@ -121,6 +125,25 @@ final router = GoRouter(
     GoRoute(
       path: '/app/voice',
       builder: (context, state) => const VoiceScreenPlaceholder(),
+    ),
+    GoRoute(
+      path: '/app/scan',
+      builder: (context, state) => const ScanScreen(),
+    ),
+    GoRoute(
+      path: '/app/messages',
+      builder: (context, state) => const MessagesScreen(),
+    ),
+    GoRoute(
+      path: '/app/insights',
+      builder: (context, state) => const InsightsScreen(),
+    ),
+    GoRoute(
+      path: '/app/parties/:name',
+      builder: (context, state) {
+        final name = state.pathParameters['name'] ?? 'Party';
+        return PersonDetailScreen(name: name);
+      },
     ),
   ],
 );
