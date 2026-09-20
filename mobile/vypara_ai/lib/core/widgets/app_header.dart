@@ -1,20 +1,123 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
 import 'package:vypara_ai/core/widgets/notification_button.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
-  const AppHeader({super.key, this.title});
+  const AppHeader({super.key, this.title, this.subtitle, this.showActions = true});
 
   final String? title;
+  final String? subtitle;
+  final bool showActions;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(68);
 
   @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+    final isHome = location == '/app/home' || location == '/';
+
+    Widget titleWidget;
+    if (isHome) {
+      titleWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Row(
+            children: [
+              Text(
+                'Good Morning',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 2),
+          Text(
+            'Ramesh 👋',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      );
+    } else {
+      String displayTitle = title ?? 'VyparaAI';
+      if (title == null) {
+        if (location.startsWith('/app/reports')) {
+          displayTitle = 'Reports';
+        } else if (location.startsWith('/app/ai')) {
+          displayTitle = 'AI Copilot';
+        } else if (location.startsWith('/app/records')) {
+          displayTitle = 'Transactions';
+        } else if (location.startsWith('/app/settings')) {
+          displayTitle = 'Settings';
+        } else if (location.startsWith('/app/cash-flow')) {
+          displayTitle = 'Cash Flow';
+        } else if (location.startsWith('/app/reminders')) {
+          displayTitle = 'Reminders';
+        } else if (location.startsWith('/app/customers')) {
+          displayTitle = 'Customers';
+        } else if (location.startsWith('/app/suppliers')) {
+          displayTitle = 'Suppliers';
+        } else if (location.startsWith('/app/upload')) {
+          displayTitle = 'Upload to VyparaAI';
+        }
+      }
+
+      titleWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            displayTitle,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          if (subtitle != null)
+            Text(
+              subtitle!,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+        ],
+      );
+    }
+
+    final canPop = Navigator.canPop(context);
+
     return AppBar(
-      title: title == null ? const Text('VyaparaAI') : Text(title!),
-      actions: const <Widget>[LanguageSelector(), NotificationButton()],
+      backgroundColor: AppColors.background,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      leading: canPop
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+              onPressed: () => context.pop(),
+            )
+          : null,
+      title: titleWidget,
+      actions: showActions
+          ? [
+              const LanguageSelector(),
+              const SizedBox(width: 4),
+              const NotificationButton(),
+              const SizedBox(width: 8),
+            ]
+          : null,
     );
   }
 }
