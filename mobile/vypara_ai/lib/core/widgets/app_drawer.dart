@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).uri.path;
+    final auth = ref.watch(authProvider);
+    final userName = auth.user?.name ?? '';
+    final userEmail = auth.user?.email ?? '';
 
     return Drawer(
       backgroundColor: Colors.white,
@@ -19,9 +24,10 @@ class AppDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            // Header matching Screen 15
+            // ── App Branding + User Info ────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Row(
                 children: [
                   Container(
@@ -52,8 +58,8 @@ class AppDrawer extends StatelessWidget {
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'VyaparAI',
                         style: TextStyle(
                           fontSize: 20,
@@ -61,8 +67,8 @@ class AppDrawer extends StatelessWidget {
                           color: Color(0xFF1E293B),
                         ),
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Your Business Partner',
                         style: TextStyle(
                           fontSize: 12,
@@ -75,11 +81,79 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ── User profile card ───────────────────────────────────────────
+            if (userName.isNotEmpty || userEmail.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            userName.isNotEmpty
+                                ? userName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (userName.isNotEmpty)
+                              Text(
+                                userName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (userEmail.isNotEmpty)
+                              Text(
+                                userEmail,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 8),
             const Divider(color: Color(0xFFF1F5F9), thickness: 1),
             const SizedBox(height: 4),
 
-            // Drawer Items
+            // ── Navigation items ───────────────────────────────────────────
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -157,6 +231,37 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ── Logout ─────────────────────────────────────────────────────
+            const Divider(color: Color(0xFFF1F5F9), thickness: 1, height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: ListTile(
+                dense: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: const Icon(
+                  Icons.logout_rounded,
+                  size: 22,
+                  color: AppColors.error,
+                ),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.error,
+                  ),
+                ),
+                onTap: () async {
+                  Navigator.pop(context); // close drawer first
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) context.go('/login');
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -175,7 +280,9 @@ class AppDrawer extends StatelessWidget {
       child: ListTile(
         dense: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: isActive ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+        tileColor: isActive
+            ? AppColors.primary.withValues(alpha: 0.08)
+            : Colors.transparent,
         leading: Icon(
           icon,
           size: 22,

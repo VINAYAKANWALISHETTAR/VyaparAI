@@ -19,8 +19,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
-    final userName = (auth.user?.name.isNotEmpty == true) ? auth.user!.name : 'Ramesh Kumar';
-    final userEmail = auth.user?.email ?? 'merchant@vyapar.ai';
+    final userEmail = auth.user?.email ?? '';
+    final userName = (auth.user?.name.isNotEmpty == true && auth.user!.name != userEmail)
+        ? auth.user!.name
+        : (userEmail.isNotEmpty ? userEmail.split('@').first : 'User');
     const bizName = 'Business Owner';
 
     return Scaffold(
@@ -357,7 +359,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
           children: [
             _buildProfileRow('Business Name', 'My Vyapar Store'),
             _buildProfileRow('Owner', auth.user?.name ?? 'Business Owner'),
-            _buildProfileRow('Email', auth.user?.email ?? 'merchant@vyapar.ai'),
+            _buildProfileRow('Email', auth.user?.email ?? '—'),
             _buildProfileRow('Currency', 'INR (₹)'),
             _buildProfileRow('Status', 'Verified & Active'),
           ],
