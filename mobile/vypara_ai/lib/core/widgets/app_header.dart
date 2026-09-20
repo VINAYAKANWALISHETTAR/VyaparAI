@@ -4,7 +4,10 @@ import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
 import 'package:vypara_ai/core/widgets/notification_button.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
+
+class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key, this.title, this.subtitle, this.showActions = true});
 
   final String? title;
@@ -15,32 +18,32 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(68);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).uri.path;
     final isHome = location == '/app/home' || location == '/';
+    final auth = ref.watch(authProvider);
+    final displayName = (auth.user?.name.isNotEmpty == true)
+        ? auth.user!.name.split(' ').first
+        : 'Merchant';
 
     Widget titleWidget;
     if (isHome) {
       titleWidget = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Row(
-            children: [
-              Text(
-                'Good Morning',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2),
-          Text(
-            'Ramesh 👋',
+        children: [
+          const Text(
+            'Good Morning',
             style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$displayName 👋',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -108,7 +111,12 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
               onPressed: () => context.pop(),
             )
-          : null,
+          : Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu_rounded, size: 24, color: AppColors.textPrimary),
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
       title: titleWidget,
       actions: showActions
           ? [
