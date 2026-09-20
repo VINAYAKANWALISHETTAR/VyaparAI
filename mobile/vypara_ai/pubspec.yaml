@@ -47,6 +47,22 @@ dependencies:
 
   # Secure local storage
   flutter_secure_storage: ^9.2.0
+  file_picker: ^11.0.3
+
+  # Voice recognition
+  speech_to_text: ^7.0.0
+
+  # Permissions
+  permission_handler: ^11.3.1
+
+  # Image & Camera picking
+  image_picker: ^1.1.2
+
+  # Text-to-speech
+  flutter_tts: ^4.2.2
+
+  # MIME type detection
+  mime: ^2.0.0
 
 dev_dependencies:
   flutter_test:
