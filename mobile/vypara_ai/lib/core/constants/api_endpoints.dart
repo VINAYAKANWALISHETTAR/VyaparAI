@@ -3,6 +3,7 @@ class ApiEndpoints {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/users/';
+  static const String me = '/users/me';
 
   // Businesses
   static const String businesses = '/businesses/';
