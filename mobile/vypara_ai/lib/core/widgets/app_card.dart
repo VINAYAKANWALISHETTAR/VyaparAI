@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/app/theme/app_spacing.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -18,26 +21,26 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Card(
-      color: color ?? Theme.of(context).colorScheme.surface,
-      elevation: 1,
-      shadowColor: Colors.black.withAlpha(26),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    final borderRadius = BorderRadius.circular(AppRadius.lg);
+    final cardContent = Padding(
+      padding: padding ?? AppSpacing.card,
+      child: child,
+    );
+    final card = Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        boxShadow: AppShadows.card,
       ),
-      child: Padding(
-        padding: padding ?? const EdgeInsets.all(16),
-        child: child,
+      child: Material(
+        color: color ?? Theme.of(context).colorScheme.surface,
+        borderRadius: borderRadius,
+        clipBehavior: Clip.antiAlias,
+        child: onTap == null
+            ? cardContent
+            : InkWell(onTap: onTap, child: cardContent),
       ),
     );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: card,
-      );
-    }
 
     return card;
   }

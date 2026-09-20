@@ -8,5 +8,7 @@ void main() {
     await tester.pumpWidget(const App());
 
     expect(find.byType(MaterialApp), findsOneWidget);
+    expect(find.text('VyaparaAI'), findsOneWidget);
+    expect(find.text('Your AI Business Partner'), findsOneWidget);
   });
 }

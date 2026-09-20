@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/app/theme/app_spacing.dart';
 
 class AppSectionHeader extends StatelessWidget {
   final String title;
@@ -15,18 +17,18 @@ class AppSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           if (actionLabel != null && onActionTap != null)
             TextButton(
               onPressed: onActionTap,
-              child: Text(actionLabel!),
+              child: Text(actionLabel!, style: const TextStyle(color: AppColors.primary)),
             ),
         ],
       ),

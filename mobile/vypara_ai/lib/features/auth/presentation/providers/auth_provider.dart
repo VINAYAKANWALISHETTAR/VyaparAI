@@ -59,6 +59,19 @@ class AuthProvider extends Notifier<AuthState> {
     }
   }
 
+  Future<void> register(String name, String email, String password) async {
+    state = state.copyWith(status: AuthStatus.loading, error: null);
+    try {
+      final user = await repository.register(name, email, password);
+      await storage.setAccessToken(user.id);
+      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+    } on AppException catch (e) {
+      state = state.copyWith(status: AuthStatus.error, error: e.message);
+    } catch (_) {
+      state = state.copyWith(status: AuthStatus.error, error: 'Registration failed');
+    }
+  }
+
   Future<void> logout() async {
     await storage.clearAll();
     state = const AuthState(status: AuthStatus.unauthenticated);

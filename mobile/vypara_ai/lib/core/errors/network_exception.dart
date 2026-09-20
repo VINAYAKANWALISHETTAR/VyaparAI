@@ -5,7 +5,7 @@ class NetworkException implements Exception {
   final int? statusCode;
   final dynamic data;
 
-  NetworkException({
+  const NetworkException({
     required this.message,
     this.statusCode,
     this.data,
@@ -16,7 +16,7 @@ class NetworkException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return NetworkException(message: 'Connection timeout. Please try again.');
+        return const NetworkException(message: 'Connection timeout. Please try again.');
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final data = error.response?.data;
@@ -28,14 +28,11 @@ class NetworkException implements Exception {
         }
         return NetworkException(message: message, statusCode: statusCode, data: data);
       case DioExceptionType.cancel:
-        return NetworkException(message: 'Request was cancelled.');
+        return const NetworkException(message: 'Request was cancelled.');
       case DioExceptionType.connectionError:
-        return NetworkException(message: 'No internet connection.');
+        return const NetworkException(message: 'No internet connection.');
       default:
         return NetworkException(message: error.message ?? 'An unexpected error occurred.');
     }
   }
-
-  @override
-  String toString() => message;
 }
