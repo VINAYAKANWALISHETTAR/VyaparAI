@@ -69,9 +69,11 @@ def health():
 
 @app.get("/health/database")
 def database_health():
-    db.command("ping")
-
-    return {
-        "database": db.name,
-        "status": "connected"
-    }
+    from app.database.mongodb import get_db_diagnostics
+    diag = get_db_diagnostics()
+    try:
+        db.command("ping")
+        diag["ping"] = "pong"
+    except Exception as e:
+        diag["ping"] = f"failed: {e}"
+    return diag

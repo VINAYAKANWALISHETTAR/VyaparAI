@@ -78,12 +78,13 @@ def create_user(user: UserCreate):
 @router.get("/me")
 def get_current_user_profile(current_user=Depends(get_current_user)):
     user_id = str(current_user["_id"])
+    user_name = current_user.get("name") or "User"
     biz = db.businesses.find_one({"owner_id": user_id})
-    biz_name = biz.get("name", "VyaparAI Enterprise") if biz else "VyaparAI Enterprise"
+    biz_name = biz.get("name") if biz else f"{user_name}'s Business"
 
     return {
         "id": user_id,
-        "name": current_user.get("name", "vinayaka"),
+        "name": user_name,
         "email": current_user.get("email", ""),
         "business_name": biz_name,
         "phone": current_user.get("phone", ""),

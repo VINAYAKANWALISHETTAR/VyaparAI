@@ -96,7 +96,20 @@ class AuthProvider extends Notifier<AuthState> {
     try {
       final user = await repository.register(name, email, password);
       await storage.setAccessToken(user.id);
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+
+      final profile = await _fetchProfile();
+      final resolvedUser = profile != null
+          ? User(
+              id: user.id,
+              name: profile.name,
+              email: profile.email,
+            )
+          : user;
+
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: resolvedUser,
+      );
     } on AppException catch (e) {
       state = state.copyWith(status: AuthStatus.error, error: e.message);
     } catch (_) {
@@ -134,10 +147,6 @@ class AuthProvider extends Notifier<AuthState> {
   Future<void> checkSession() async {
     final token = await storage.getAccessToken();
     if (token != null && token.isNotEmpty) {
-      // Restore authenticated state first so the token interceptor can attach it
-      state = state.copyWith(status: AuthStatus.authenticated);
-
-      // Then try to hydrate the user profile
       final profile = await _fetchProfile();
       if (profile != null) {
         final user = User(
@@ -145,7 +154,13 @@ class AuthProvider extends Notifier<AuthState> {
           name: profile.name,
           email: profile.email,
         );
-        state = state.copyWith(user: user);
+        state = state.copyWith(
+          status: AuthStatus.authenticated,
+          user: user,
+        );
+      } else {
+        await storage.clearAll();
+        state = const AuthState(status: AuthStatus.unauthenticated);
       }
     } else {
       state = const AuthState(status: AuthStatus.unauthenticated);

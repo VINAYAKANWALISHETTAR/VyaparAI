@@ -18,8 +18,12 @@ class AuthRepositoryImpl implements AuthRepository {
     final response = await remoteDataSource.login(request);
     return User(
       id: response.accessToken,
-      name: email.trim().toLowerCase(),
-      email: email.trim().toLowerCase(),
+      name: (response.user != null && response.user!.name.isNotEmpty)
+          ? response.user!.name
+          : email.trim().toLowerCase(),
+      email: (response.user != null && response.user!.email.isNotEmpty)
+          ? response.user!.email
+          : email.trim().toLowerCase(),
     );
   }
 
@@ -35,8 +39,12 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     return User(
       id: response.accessToken,
-      name: name.trim(),
-      email: normalizedEmail,
+      name: (response.user != null && response.user!.name.isNotEmpty)
+          ? response.user!.name
+          : name.trim(),
+      email: (response.user != null && response.user!.email.isNotEmpty)
+          ? response.user!.email
+          : normalizedEmail,
     );
   }
 

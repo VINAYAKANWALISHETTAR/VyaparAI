@@ -291,10 +291,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
     final auth = ref.watch(authProvider);
     final summary = homeState.summary;
 
-    // Real User Name from Auth or default to 'vinayaka'
+    // Real User Name from Auth or default to 'User'
     final userName = (auth.user?.name.isNotEmpty == true)
         ? auth.user!.name.split(' ').first
-        : 'vinayaka';
+        : 'User';
 
     // Real Metrics from backend
     final double incomeVal = summary?.todayIncome ?? 0.0;

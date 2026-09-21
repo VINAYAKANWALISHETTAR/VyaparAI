@@ -16,9 +16,13 @@ DATABASE_NAME = os.getenv("DATABASE_NAME", "vyaparai")
 if not MONGODB_URL:
     raise RuntimeError("MONGODB_URL is not configured")
 
+db_connection_status = "uninitialized"
+db_connection_type = "mongodb"
+db_connection_error = None
+
 mongo_kwargs = {
-    "serverSelectionTimeoutMS": 5000,
-    "connectTimeoutMS": 5000,
+    "serverSelectionTimeoutMS": 30000,
+    "connectTimeoutMS": 30000,
     "tlsAllowInvalidCertificates": True,
 }
 if ca_file:
@@ -28,26 +32,38 @@ try:
     client = MongoClient(MONGODB_URL, **mongo_kwargs)
     client.admin.command("ping")
     db = client[DATABASE_NAME]
+    db_connection_status = "connected"
+    db_connection_type = "mongodb_atlas"
     print(f"Successfully connected to MongoDB Atlas ({DATABASE_NAME})")
 except Exception as e:
+    db_connection_error = str(e)
     print(f"Notice: MongoDB Atlas direct connection notice: {e}. Trying resilient connection.")
     try:
         client = MongoClient(
             MONGODB_URL,
             tls=True,
             tlsAllowInvalidCertificates=True,
-            serverSelectionTimeoutMS=5000,
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
         )
         client.admin.command("ping")
         db = client[DATABASE_NAME]
+        db_connection_status = "connected"
+        db_connection_type = "mongodb_atlas_tls"
+        db_connection_error = None
         print(f"Successfully connected to MongoDB Atlas via TLS fallback ({DATABASE_NAME})")
     except Exception as e2:
-        print(f"Notice: Falling back to local mongomock ({e2})")
+        db_connection_error = f"Atlas connection failed: {e2}"
+        print(f"WARNING: Could not connect to MongoDB Atlas ({e2}). Checking mock DB fallback.")
         try:
             import mongomock
             client = mongomock.MongoClient()
             db = client[DATABASE_NAME]
+            db_connection_status = "fallback_mock"
+            db_connection_type = "mongomock"
+            print("CRITICAL NOTICE: Running on in-memory mongomock. Data will NOT persist across restarts! Please verify MongoDB Atlas IP Access List.")
         except Exception as e3:
+            db_connection_status = "failed"
             raise RuntimeError(f"Could not connect to MongoDB Atlas and mongomock is not available: {e2}, {e3}")
 
 
@@ -83,3 +99,14 @@ init_db_indexes(db)
 
 def get_database():
     return db
+
+
+def get_db_diagnostics():
+    is_mock = "mongomock" in db.client.__class__.__module__
+    return {
+        "database": db.name,
+        "status": db_connection_status,
+        "connection_type": db_connection_type,
+        "is_mock": is_mock,
+        "error": db_connection_error,
+    }

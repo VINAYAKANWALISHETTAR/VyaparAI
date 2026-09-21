@@ -38,10 +38,13 @@ async def voice_query(
             req_language = form.get("language")
             req_business_id = form.get("business_id") or req_business_id
             file = form.get("file")
-            if file and hasattr(file, "read"):
-                content = await file.read()
-                filename = getattr(file, "filename", "audio.webm")
-                query_text = _simulate_transcription(content, filename)
+            if file and hasattr(file, "read") and not query_text:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Audio file transcription requires on-device speech-to-text. Please provide the recognized text."
+                )
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"Failed to read form data: {exc}")
     else:
@@ -67,7 +70,7 @@ async def voice_query(
     if not query_text or not query_text.strip():
         raise HTTPException(
             status_code=400,
-            detail="Provide either text or an audio file",
+            detail="Provide query text from speech recognition",
         )
 
     # Auto-resolve default business if not explicitly provided
@@ -91,7 +94,3 @@ async def voice_query(
         raise HTTPException(status_code=500, detail=f"Voice processing failed: {exc}") from exc
 
     return VoiceQueryResponse(**result)
-
-
-def _simulate_transcription(content: bytes, filename: str) -> str:
-    return "What is my profit today?"

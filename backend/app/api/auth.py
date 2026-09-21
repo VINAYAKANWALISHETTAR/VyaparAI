@@ -85,7 +85,7 @@ def login(data: LoginRequest):
         "token_type": "bearer",
         "user": {
             "id": user_id,
-            "name": user.get("name", ""),
+            "name": user.get("name") or email.split("@")[0],
             "email": user.get("email", email),
         }
     }
