@@ -24,6 +24,7 @@ class OcrRemoteDataSource {
   Future<OcrResultModel> uploadInvoice({
     required Uint8List fileBytes,
     required String fileName,
+    String? language,
     void Function(int sent, int total)? onProgress,
     CancelToken? cancelToken,
   }) async {
@@ -51,6 +52,9 @@ class OcrRemoteDataSource {
     };
     if (businessId != null) {
       formFields['business_id'] = businessId;
+    }
+    if (language != null && language.isNotEmpty) {
+      formFields['language'] = language;
     }
 
     final formData = FormData.fromMap(formFields);

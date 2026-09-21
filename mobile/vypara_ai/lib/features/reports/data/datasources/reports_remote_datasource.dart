@@ -22,7 +22,7 @@ class ReportsRemoteDataSource {
     final bizId = await getDefaultBusinessId();
     final queryParams = bizId != null ? {'business_id': bizId} : <String, dynamic>{};
 
-    final apiPeriod = (period == 'all') ? 'month' : period;
+    final apiPeriod = period;
 
     double income = 0.0;
     double expenses = 0.0;

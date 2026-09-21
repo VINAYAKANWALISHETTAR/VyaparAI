@@ -8,6 +8,8 @@ import 'package:mime/mime.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 import 'package:vypara_ai/features/uploads/data/models/ocr_result_model.dart';
@@ -26,34 +28,40 @@ class _UploadScreenPlaceholderState
   final ImagePicker _imagePicker = ImagePicker();
 
   /// Source options shown in the grid.
-  final List<({String label, IconData icon, List<String> extensions})>
+  final List<({String key, String label, IconData icon, List<String> extensions})>
   _options = const [
     (
+      key: 'camera',
       label: 'Camera',
       icon: Icons.camera_alt_outlined,
       extensions: ['jpg', 'jpeg', 'png'],
     ),
     (
+      key: 'gallery',
       label: 'Gallery',
       icon: Icons.photo_library_outlined,
       extensions: ['jpg', 'jpeg', 'png', 'webp'],
     ),
     (
+      key: 'documents',
       label: 'Documents',
       icon: Icons.folder_open_outlined,
       extensions: ['jpg', 'jpeg', 'png'],
     ),
     (
+      key: 'screenshot',
       label: 'Screenshot',
       icon: Icons.phone_android_outlined,
       extensions: ['jpg', 'jpeg', 'png'],
     ),
     (
+      key: 'invoice',
       label: 'Invoice',
       icon: Icons.receipt_outlined,
       extensions: ['jpg', 'jpeg', 'png'],
     ),
     (
+      key: 'any_image',
       label: 'Any Image',
       icon: Icons.attach_file_outlined,
       extensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'],
@@ -65,9 +73,9 @@ class _UploadScreenPlaceholderState
   // ──────────────────────────────────────────────────────────────────────────
 
   Future<void> _handleOptionTap(String label, List<String> extensions) async {
-    if (label == 'Camera') {
+    if (label == 'Camera' || label == 'camera') {
       await _pickFromCamera();
-    } else if (label == 'Gallery' || label == 'Screenshot') {
+    } else if (label == 'Gallery' || label == 'Screenshot' || label == 'gallery' || label == 'screenshot') {
       await _pickFromGallery();
     } else {
       await _pickAndUpload(allowedExtensions: extensions);
@@ -159,9 +167,11 @@ class _UploadScreenPlaceholderState
     if (!mounted) return;
     _showProcessingDialog();
 
+    final lang = ref.read(languageProvider);
     await ref.read(uploadProvider.notifier).processUpload(
       bytes: bytes,
       fileName: name,
+      language: lang.langCode,
     );
 
     if (!mounted) return;
@@ -204,6 +214,7 @@ class _UploadScreenPlaceholderState
       builder:
           (ctx) => Consumer(
             builder: (context, ref, _) {
+              final tr = ref.watch(appTranslationsProvider);
               final uploadState = ref.watch(uploadProvider);
               final progress = uploadState.uploadProgress;
               final uploading = uploadState.isProcessing && progress < 1.0;
@@ -221,8 +232,8 @@ class _UploadScreenPlaceholderState
                     const SizedBox(height: 20),
                     Text(
                       uploading
-                          ? 'Uploading…'
-                          : 'Extracting with VyparaAI OCR…',
+                          ? tr('uploading')
+                          : tr('extracting_ocr'),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -255,9 +266,9 @@ class _UploadScreenPlaceholderState
                         ref.read(uploadProvider.notifier).cancelUpload();
                         Navigator.pop(ctx);
                       },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      child: Text(
+                        tr('cancel'),
+                        style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -273,6 +284,7 @@ class _UploadScreenPlaceholderState
   // ──────────────────────────────────────────────────────────────────────────
 
   void _showErrorSnackbar(String message, {bool allowRetry = true}) {
+    final tr = ref.read(appTranslationsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -287,7 +299,7 @@ class _UploadScreenPlaceholderState
         action:
             allowRetry
                 ? SnackBarAction(
-                  label: 'Retry',
+                  label: tr('retry'),
                   textColor: Colors.white,
                   onPressed: () => _pickAndUpload(),
                 )
@@ -301,6 +313,7 @@ class _UploadScreenPlaceholderState
   // ──────────────────────────────────────────────────────────────────────────
 
   void _showReviewBottomSheet(OcrResultModel result) {
+    final tr = ref.read(appTranslationsProvider);
     final vendorController = TextEditingController(
       text: result.customerName ?? result.businessName ?? '',
     );
@@ -332,7 +345,8 @@ class _UploadScreenPlaceholderState
         ),
       ),
       builder: (ctx) {
-        return Padding(
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -360,17 +374,17 @@ class _UploadScreenPlaceholderState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.auto_awesome,
                         color: AppColors.primary,
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        'Extracted Details',
-                        style: TextStyle(
+                        tr('review_extracted_details'),
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -392,8 +406,8 @@ class _UploadScreenPlaceholderState
                     ),
                     child: Text(
                       hasWarning
-                          ? 'Review Required'
-                          : '$confidencePct% Match',
+                          ? tr('review_required')
+                          : '$confidencePct% ${tr('match')}',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -446,7 +460,7 @@ class _UploadScreenPlaceholderState
               TextField(
                 controller: vendorController,
                 decoration: InputDecoration(
-                  labelText: 'Vendor / Customer *',
+                  labelText: '${tr('customer_vendor_name')} *',
                   hintText: 'Enter vendor name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -466,7 +480,7 @@ class _UploadScreenPlaceholderState
               TextField(
                 controller: invoiceNumController,
                 decoration: InputDecoration(
-                  labelText: 'Invoice / Receipt #',
+                  labelText: tr('invoice_number'),
                   hintText: 'Auto-extracted (optional)',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -489,7 +503,7 @@ class _UploadScreenPlaceholderState
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Total Amount (₹) *',
+                  labelText: '${tr('invoice_amount')} *',
                   hintText: 'Enter amount',
                   prefixText: '₹ ',
                   border: OutlineInputBorder(
@@ -564,9 +578,9 @@ class _UploadScreenPlaceholderState
 
                               if (vendor.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Please enter vendor/customer name',
+                                      tr('field_required', {'field': tr('customer_vendor_name')}),
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -575,9 +589,9 @@ class _UploadScreenPlaceholderState
                               }
                               if (amount <= 0) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Please enter a valid amount',
+                                      tr('valid_amount_error'),
                                     ),
                                     backgroundColor: AppColors.error,
                                   ),
@@ -606,9 +620,9 @@ class _UploadScreenPlaceholderState
                                     .loadDashboard();
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
-                                        'Document saved to records successfully! ✓',
+                                        tr('document_uploaded_success'),
                                       ),
                                       backgroundColor: AppColors.success,
                                     ),
@@ -641,9 +655,9 @@ class _UploadScreenPlaceholderState
                                 color: Colors.white,
                               ),
                             )
-                            : const Text(
-                              'Confirm & Save to Records',
-                              style: TextStyle(
+                            : Text(
+                              tr('confirm_and_save'),
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -664,6 +678,8 @@ class _UploadScreenPlaceholderState
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -680,9 +696,9 @@ class _UploadScreenPlaceholderState
               onPressed: () => context.pop(),
             )
             : null,
-        title: const Text(
-          'Upload to VyparaAI',
-          style: TextStyle(
+        title: Text(
+          tr('upload_invoice_doc'),
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -695,10 +711,9 @@ class _UploadScreenPlaceholderState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Upload bills, invoices, screenshots or photos — '
-                "I'll extract the details for you.",
-                style: TextStyle(
+              Text(
+                tr('upload_doc_sub'),
+                style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondary,
                   height: 1.4,
@@ -743,9 +758,9 @@ class _UploadScreenPlaceholderState
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Tap to upload',
-                        style: TextStyle(
+                      Text(
+                        tr('upload_invoice_doc'),
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -794,7 +809,7 @@ class _UploadScreenPlaceholderState
                   final opt = _options[index];
                   return InkWell(
                     onTap: () =>
-                        _handleOptionTap(opt.label, opt.extensions),
+                        _handleOptionTap(opt.key, opt.extensions),
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     child: Container(
                       decoration: BoxDecoration(
@@ -824,7 +839,7 @@ class _UploadScreenPlaceholderState
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            opt.label,
+                            tr(opt.key),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

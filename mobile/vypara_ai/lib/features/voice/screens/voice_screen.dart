@@ -852,21 +852,20 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
               color: AppColors.textTertiary,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Microphone Permission Required',
+            Text(
+              tr('mic_permission_required'),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'To use voice input, please allow microphone access in your '
-              'device settings, then try again.',
+            Text(
+              tr('mic_permission_desc'),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -891,7 +890,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => context.pop(),
-              child: const Text('Go Back'),
+              child: Text(tr('go_back')),
             ),
           ],
         ),

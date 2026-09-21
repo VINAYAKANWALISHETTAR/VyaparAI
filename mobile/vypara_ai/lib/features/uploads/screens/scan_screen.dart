@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 import 'package:vypara_ai/features/uploads/data/models/ocr_result_model.dart';
@@ -78,6 +79,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   }
 
   void _showProcessingDialog() {
+    final tr = ref.read(appTranslationsProvider);
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -85,17 +87,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         builder: (context, ref, _) {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            content: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
+            content: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.primary),
-                  SizedBox(height: 18),
+                  const CircularProgressIndicator(color: AppColors.primary),
+                  const SizedBox(height: 18),
                   Text(
-                    'Scanning & Extracting Invoice...',
+                    tr('scanning_extracting'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                   ),
                 ],
               ),
@@ -107,6 +109,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   }
 
   void _showReviewBottomSheet(OcrResultModel result) {
+    final tr = ref.read(appTranslationsProvider);
     final customerController = TextEditingController(
       text: result.customerName ?? result.businessName ?? '',
     );
@@ -127,7 +130,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return Padding(
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -152,13 +156,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Extracted Document',
-                        style: TextStyle(
+                        tr('extracted_document'),
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1E293B),
@@ -176,8 +180,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     ),
                     child: Text(
                       (result.ocrStatus == 'extracted' && result.confidence > 0.6)
-                          ? 'AI Confidence: ${(result.confidence * 100).toInt()}%'
-                          : 'Review Required',
+                          ? '${tr('ai_confidence')}: ${(result.confidence * 100).toInt()}%'
+                          : tr('review_required'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -208,8 +212,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               TextField(
                 controller: customerController,
                 decoration: InputDecoration(
-                  labelText: 'Customer / Vendor Name *',
-                  hintText: 'Enter customer or vendor name',
+                  labelText: '${tr('customer_vendor_name')} *',
+                  hintText: tr('customer_vendor_name'),
                   prefixIcon: const Icon(Icons.person_outline),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -221,8 +225,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 controller: amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Total Amount (₹) *',
-                  hintText: 'Enter total amount',
+                  labelText: '${tr('invoice_amount')} *',
+                  hintText: tr('enter_amount'),
                   prefixIcon: const Icon(Icons.currency_rupee),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -233,7 +237,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               TextField(
                 controller: invoiceNumController,
                 decoration: InputDecoration(
-                  labelText: 'Invoice Number (optional)',
+                  labelText: tr('invoice_num_optional'),
                   prefixIcon: const Icon(Icons.tag),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -249,8 +253,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
                   if (cust.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter Customer / Vendor name'),
+                      SnackBar(
+                        content: Text(tr('enter_customer_vendor_name')),
                         backgroundColor: AppColors.error,
                       ),
                     );
@@ -258,8 +262,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   }
                   if (amt <= 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter a valid amount greater than zero'),
+                      SnackBar(
+                        content: Text(tr('enter_valid_amount')),
                         backgroundColor: AppColors.error,
                       ),
                     );
@@ -280,20 +284,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       ref.read(transactionsProvider.notifier).loadTransactions();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Document recorded: ₹${amt.toStringAsFixed(0)} ✓'),
+                          content: Text(tr('document_recorded_success', {'amount': amt.toStringAsFixed(0)})),
                           backgroundColor: AppColors.success,
                         ),
                       );
                       context.pop();
                     } else {
-                      _showSnackbar('Failed to confirm invoice.');
+                      _showSnackbar(tr('failed_confirm_invoice'));
                     }
                   }
                 },
                 icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-                label: const Text(
-                  'Confirm & Record Sale',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                label: Text(
+                  tr('confirm_record_sale'),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -316,6 +320,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
+
+    final modes = [
+      (key: 'Photo', label: tr('mode_photo')),
+      (key: 'Document', label: tr('mode_document')),
+      (key: 'Auto Capture', label: tr('mode_auto_capture')),
+    ];
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -326,9 +337,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Scan Document',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        title: Text(
+          tr('scan_document'),
+          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -380,7 +391,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Position the document within the frame',
+                                tr('position_doc_frame'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 12,
@@ -431,11 +442,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Row(
-                children: ['Photo', 'Document', 'Auto Capture'].map((mode) {
-                  final isSelected = _selectedMode == mode;
+                children: modes.map((m) {
+                  final isSelected = _selectedMode == m.key;
                   return Expanded(
                     child: InkWell(
-                      onTap: () => setState(() => _selectedMode = mode),
+                      onTap: () => setState(() => _selectedMode = m.key),
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -445,7 +456,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            mode,
+                            m.label,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -472,7 +483,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   IconButton(
                     icon: const Icon(Icons.photo_library_outlined, color: Colors.white, size: 28),
                     onPressed: _pickFromGallery,
-                    tooltip: 'Pick from Gallery',
+                    tooltip: tr('gallery'),
                   ),
 
                   // Shutter Capture Button
@@ -503,7 +514,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   IconButton(
                     icon: const Icon(Icons.flip_camera_ios_outlined, color: Colors.white, size: 28),
                     onPressed: _captureFromCamera,
-                    tooltip: 'Switch Camera',
+                    tooltip: tr('camera'),
                   ),
                 ],
               ),

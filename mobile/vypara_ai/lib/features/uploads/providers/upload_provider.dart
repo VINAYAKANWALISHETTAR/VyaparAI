@@ -56,6 +56,7 @@ class UploadProvider extends Notifier<UploadState> {
     Uint8List? bytes,
     Uint8List? legacyBytes,
     String? fileName,
+    String? language,
   }) async {
     final fileBytes =
         bytes ?? (legacyBytes != null ? Uint8List.fromList(legacyBytes) : null);
@@ -75,6 +76,7 @@ class UploadProvider extends Notifier<UploadState> {
       final result = await dataSource.uploadInvoice(
         fileBytes: fileBytes,
         fileName: fileName,
+        language: language,
         cancelToken: _cancelToken,
         onProgress: (sent, total) {
           if (total > 0) {
