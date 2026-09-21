@@ -382,15 +382,12 @@ class _LoginFormState extends State<LoginForm> {
                         children: [
                           _buildGoogleIcon(),
                           const SizedBox(width: 8),
-                          const Flexible(
-                            child: Text(
-                              'Continue with Google',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Color(0xFF1E293B),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          const Text(
+                            'Google',
+                            style: TextStyle(
+                              color: Color(0xFF1E293B),
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -421,18 +418,15 @@ class _LoginFormState extends State<LoginForm> {
                           Icon(
                             Icons.apple,
                             color: Colors.black,
-                            size: 20,
+                            size: 21,
                           ),
                           SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Continue with Apple',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Color(0xFF1E293B),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Text(
+                            'Apple',
+                            style: TextStyle(
+                              color: Color(0xFF1E293B),
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -475,9 +469,9 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   Widget _buildGoogleIcon() {
-    return SizedBox(
-      width: 18,
-      height: 18,
+    return const SizedBox(
+      width: 19,
+      height: 19,
       child: CustomPaint(
         painter: _GoogleGIconPainter(),
       ),
@@ -486,49 +480,81 @@ class _LoginFormState extends State<LoginForm> {
 }
 
 class _GoogleGIconPainter extends CustomPainter {
+  const _GoogleGIconPainter();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
+    canvas.save();
+    // Scale 24x24 standard Google G viewBox to widget size
+    final scale = size.width / 24.0;
+    canvas.scale(scale, scale);
 
     final bluePaint = Paint()
       ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2;
-
-    final redPaint = Paint()
-      ..color = const Color(0xFFEA4335)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2;
-
-    final yellowPaint = Paint()
-      ..color = const Color(0xFFFBBC05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2;
-
+      ..style = PaintingStyle.fill;
     final greenPaint = Paint()
       ..color = const Color(0xFF34A853)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2;
+      ..style = PaintingStyle.fill;
+    final yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.fill;
+    final redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.fill;
 
-    final rect = Rect.fromCircle(center: center, radius: radius - 2);
+    // Blue (horizontal crossbar and right arc)
+    final bluePath = Path()
+      ..moveTo(23.75, 12.27)
+      ..cubicTo(23.75, 11.48, 23.68, 10.73, 23.55, 10.01)
+      ..lineTo(12.0, 10.01)
+      ..lineTo(12.0, 14.83)
+      ..lineTo(18.59, 14.83)
+      ..cubicTo(18.31, 16.34, 17.46, 17.62, 16.18, 18.47)
+      ..lineTo(16.18, 21.52)
+      ..lineTo(20.07, 21.52)
+      ..cubicTo(22.35, 19.42, 23.75, 16.29, 23.75, 12.27)
+      ..close();
+    canvas.drawPath(bluePath, bluePaint);
 
-    canvas.drawArc(rect, -2.4, 1.6, false, redPaint);
-    canvas.drawArc(rect, -0.8, 1.6, false, yellowPaint);
-    canvas.drawArc(rect, 0.8, 1.5, false, greenPaint);
-    canvas.drawArc(rect, 2.3, 1.2, false, bluePaint);
+    // Green (bottom arc)
+    final greenPath = Path()
+      ..moveTo(12.0, 24.0)
+      ..cubicTo(15.24, 24.0, 17.96, 22.93, 19.94, 21.1)
+      ..lineTo(16.05, 18.05)
+      ..cubicTo(14.97, 18.77, 13.6, 19.2, 12.0, 19.2)
+      ..cubicTo(8.88, 19.2, 6.23, 17.1, 5.28, 14.27)
+      ..lineTo(1.26, 14.27)
+      ..lineTo(1.26, 17.38)
+      ..cubicTo(3.26, 21.36, 7.33, 24.0, 12.0, 24.0)
+      ..close();
+    canvas.drawPath(greenPath, greenPaint);
 
-    final linePaint = Paint()
-      ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..strokeCap = StrokeCap.round;
+    // Yellow (left lower arc)
+    final yellowPath = Path()
+      ..moveTo(5.28, 14.27)
+      ..cubicTo(5.03, 13.55, 4.9, 12.79, 4.9, 12.0)
+      ..cubicTo(4.9, 11.21, 5.03, 10.45, 5.28, 9.73)
+      ..lineTo(5.28, 6.62)
+      ..lineTo(1.26, 6.62)
+      ..cubicTo(0.45, 8.24, 0.0, 10.06, 0.0, 12.0)
+      ..cubicTo(0.0, 13.94, 0.45, 15.76, 1.26, 17.38)
+      ..lineTo(5.28, 14.27)
+      ..close();
+    canvas.drawPath(yellowPath, yellowPaint);
 
-    canvas.drawLine(
-      Offset(center.dx, center.dy),
-      Offset(center.dx + radius - 2, center.dy),
-      linePaint,
-    );
+    // Red (top arc)
+    final redPath = Path()
+      ..moveTo(12.0, 4.8)
+      ..cubicTo(13.76, 4.8, 15.34, 5.4, 16.58, 6.59)
+      ..lineTo(20.02, 3.15)
+      ..cubicTo(17.95, 1.22, 15.23, 0.0, 12.0, 0.0)
+      ..cubicTo(7.33, 0.0, 3.26, 2.64, 1.26, 6.62)
+      ..lineTo(5.28, 9.73)
+      ..cubicTo(6.23, 6.9, 8.88, 4.8, 12.0, 4.8)
+      ..close();
+    canvas.drawPath(redPath, redPaint);
+
+    canvas.restore();
   }
 
   @override
