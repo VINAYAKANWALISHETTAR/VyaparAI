@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/utils/validators.dart';
 
-class RegisterForm extends StatefulWidget {
+class RegisterForm extends ConsumerStatefulWidget {
   const RegisterForm({
     super.key,
     required this.onSubmit,
@@ -12,10 +14,10 @@ class RegisterForm extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<RegisterForm> createState() => _RegisterFormState();
+  ConsumerState<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _RegisterFormState extends State<RegisterForm> {
+class _RegisterFormState extends ConsumerState<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -41,6 +43,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     return Form(
       key: _formKey,
       child: Column(
@@ -56,7 +59,7 @@ class _RegisterFormState extends State<RegisterForm> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              labelText: 'Full name',
+              labelText: tr('full_name'),
               labelStyle: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 13,
@@ -89,7 +92,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
-            validator: (v) => Validators.notEmpty(v, fieldName: 'Full name'),
+            validator: (v) => Validators.notEmpty(v, fieldName: tr('full_name'), tr: tr),
           ),
           const SizedBox(height: 16),
 
@@ -104,7 +107,7 @@ class _RegisterFormState extends State<RegisterForm> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: tr('email'),
               labelStyle: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 13,
@@ -137,7 +140,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
-            validator: Validators.email,
+            validator: (v) => Validators.email(v, tr: tr),
           ),
           const SizedBox(height: 16),
 
@@ -153,7 +156,7 @@ class _RegisterFormState extends State<RegisterForm> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              labelText: 'Password',
+              labelText: tr('password'),
               labelStyle: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 13,
@@ -200,7 +203,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
-            validator: (v) => Validators.notEmpty(v, fieldName: 'Password'),
+            validator: (v) => Validators.notEmpty(v, fieldName: tr('password'), tr: tr),
           ),
           const SizedBox(height: 24),
 
@@ -229,10 +232,10 @@ class _RegisterFormState extends State<RegisterForm> {
                 borderRadius: BorderRadius.circular(25),
                 child: Center(
                   child: widget.isLoading
-                      ? const Row(
+                      ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -240,10 +243,10 @@ class _RegisterFormState extends State<RegisterForm> {
                                 strokeWidth: 2.2,
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
-                              'Creating account...',
-                              style: TextStyle(
+                              tr('creating_account'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -251,19 +254,19 @@ class _RegisterFormState extends State<RegisterForm> {
                             ),
                           ],
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Create account',
-                              style: TextStyle(
+                              tr('create_account'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(
+                            const SizedBox(width: 8),
+                            const Icon(
                               Icons.arrow_forward_rounded,
                               color: Colors.white,
                               size: 18,

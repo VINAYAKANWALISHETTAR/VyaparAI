@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 import 'package:vypara_ai/features/auth/presentation/widgets/register_form.dart';
 
@@ -12,6 +13,7 @@ class RegisterScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    final tr = ref.watch(appTranslationsProvider);
 
     ref.listen<AuthState>(authProvider, (_, next) {
       if (next.status == AuthStatus.authenticated) {
@@ -69,10 +71,10 @@ class RegisterScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Heading
-                  const Center(
+                  Center(
                     child: Text(
-                      'Create your account',
-                      style: TextStyle(
+                      tr('create_account_title'),
+                      style: const TextStyle(
                         color: Color(0xFF0F172A),
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -81,10 +83,10 @@ class RegisterScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Start seeing your business clearly with AI.',
-                      style: TextStyle(
+                      tr('create_account_subtitle'),
+                      style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 13.5,
                       ),
@@ -117,7 +119,7 @@ class RegisterScreen extends ConsumerWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              auth.error ?? 'Registration failed',
+                              auth.error ?? tr('registration_failed'),
                               style: const TextStyle(
                                 color: Color(0xFFDC2626),
                                 fontSize: 13,
@@ -166,18 +168,18 @@ class RegisterScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(
+                      Text(
+                        tr('already_have_account'),
+                        style: const TextStyle(
                           color: Color(0xFF64748B),
                           fontSize: 14,
                         ),
                       ),
                       GestureDetector(
                         onTap: () => context.go('/login'),
-                        child: const Text(
-                          'Sign in',
-                          style: TextStyle(
+                        child: Text(
+                          tr('sign_in'),
+                          style: const TextStyle(
                             color: Color(0xFF2563EB),
                             fontWeight: FontWeight.w700,
                             fontSize: 14,

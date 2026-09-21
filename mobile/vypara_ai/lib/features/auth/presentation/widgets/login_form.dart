@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/utils/validators.dart';
 
-class LoginForm extends StatefulWidget {
+class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({
     super.key,
     required this.onSubmit,
@@ -13,10 +15,10 @@ class LoginForm extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  ConsumerState<LoginForm> createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -63,6 +65,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     return Form(
       key: _formKey,
       child: Column(
@@ -79,7 +82,7 @@ class _LoginFormState extends State<LoginForm> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: tr('email'),
               labelStyle: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 13,
@@ -121,7 +124,7 @@ class _LoginFormState extends State<LoginForm> {
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
-            validator: Validators.email,
+            validator: (v) => Validators.email(v, tr: tr),
           ),
           const SizedBox(height: 16),
 
@@ -137,7 +140,7 @@ class _LoginFormState extends State<LoginForm> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              labelText: 'Password',
+              labelText: tr('password'),
               labelStyle: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 13,
@@ -193,7 +196,7 @@ class _LoginFormState extends State<LoginForm> {
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
-            validator: (v) => Validators.notEmpty(v, fieldName: 'Password'),
+            validator: (v) => Validators.notEmpty(v, fieldName: tr('password'), tr: tr),
           ),
           const SizedBox(height: 14),
 
@@ -235,9 +238,9 @@ class _LoginFormState extends State<LoginForm> {
                             : null,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Remember me',
-                        style: TextStyle(
+                      Text(
+                        tr('remember_me'),
+                        style: const TextStyle(
                           color: Color(0xFF475569),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -250,9 +253,9 @@ class _LoginFormState extends State<LoginForm> {
               const Spacer(),
               GestureDetector(
                 onTap: () => context.push('/forgot-password'),
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
+                child: Text(
+                  tr('forgot_password'),
+                  style: const TextStyle(
                     color: Color(0xFF2563EB),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -288,10 +291,10 @@ class _LoginFormState extends State<LoginForm> {
                 borderRadius: BorderRadius.circular(25),
                 child: Center(
                   child: widget.isLoading
-                      ? const Row(
+                      ? Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -299,10 +302,10 @@ class _LoginFormState extends State<LoginForm> {
                                 strokeWidth: 2.2,
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Text(
-                              'Signing in...',
-                              style: TextStyle(
+                              tr('signing_in'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -310,19 +313,19 @@ class _LoginFormState extends State<LoginForm> {
                             ),
                           ],
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Sign in',
-                              style: TextStyle(
+                              tr('sign_in'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(
+                            const SizedBox(width: 8),
+                            const Icon(
                               Icons.arrow_forward_rounded,
                               color: Colors.white,
                               size: 18,
@@ -344,9 +347,9 @@ class _LoginFormState extends State<LoginForm> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'OR CONTINUE WITH',
-                  style: TextStyle(
-                    color: const Color(0xFF94A3B8),
+                  tr('or_continue_with'),
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.8,
@@ -443,18 +446,18 @@ class _LoginFormState extends State<LoginForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "Don't have an account? ",
-                style: TextStyle(
+              Text(
+                tr('dont_have_account'),
+                style: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 14,
                 ),
               ),
               GestureDetector(
                 onTap: () => context.push('/register'),
-                child: const Text(
-                  'Sign up',
-                  style: TextStyle(
+                child: Text(
+                  tr('sign_up'),
+                  style: const TextStyle(
                     color: Color(0xFF2563EB),
                     fontWeight: FontWeight.w700,
                     fontSize: 14,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 import 'package:vypara_ai/features/auth/presentation/widgets/login_form.dart';
 
@@ -12,6 +13,7 @@ class LoginScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    final tr = ref.watch(appTranslationsProvider);
 
     ref.listen<AuthState>(authProvider, (_, next) {
       if (next.status == AuthStatus.authenticated) {
@@ -59,10 +61,10 @@ class LoginScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Heading: Welcome back
-                  const Center(
+                  Center(
                     child: Text(
-                      'Welcome back',
-                      style: TextStyle(
+                      tr('welcome_back'),
+                      style: const TextStyle(
                         color: Color(0xFF0F172A),
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -71,10 +73,10 @@ class LoginScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Sign in to manage your business with clarity.',
-                      style: TextStyle(
+                      tr('sign_in_subtitle'),
+                      style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 13.5,
                       ),
@@ -107,7 +109,7 @@ class LoginScreen extends ConsumerWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              auth.error ?? 'Invalid email or password',
+                              auth.error ?? tr('invalid_credentials'),
                               style: const TextStyle(
                                 color: Color(0xFFDC2626),
                                 fontSize: 13,
