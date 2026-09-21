@@ -18,12 +18,13 @@ class AppShell extends StatelessWidget {
 
     final scaffold = Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true,
+      extendBody: false,
       appBar: const AppHeader(),
       drawer: const AppDrawer(),
       body: SafeArea(top: false, child: child),
       bottomNavigationBar: AppBottomNav(location: location),
     );
+
 
     return AuthGate(
       child: kIsWeb

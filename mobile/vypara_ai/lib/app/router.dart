@@ -83,64 +83,65 @@ final router = GoRouter(
           path: '/app/settings',
           builder: (context, state) => const SettingsScreenPlaceholder(),
         ),
-      ],
-    ),
-    GoRoute(
-      path: '/app/invoices',
-      builder: (context, state) => const InvoicesScreenPlaceholder(),
-      routes: [
         GoRoute(
-          path: ':id',
+          path: '/app/invoices',
           builder: (context, state) => const InvoicesScreenPlaceholder(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) => const InvoicesScreenPlaceholder(),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/app/customers',
+          builder: (context, state) => const CustomersScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/suppliers',
+          builder: (context, state) => const SuppliersScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/cash-flow',
+          builder: (context, state) => const CashFlowScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/reminders',
+          builder: (context, state) => const RemindersScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/notifications',
+          builder: (context, state) => const NotificationsScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/upload',
+          builder: (context, state) => const UploadScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/voice',
+          builder: (context, state) => const VoiceScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/scan',
+          builder: (context, state) => const ScanScreen(),
+        ),
+        GoRoute(
+          path: '/app/messages',
+          builder: (context, state) => const MessagesScreen(),
+        ),
+        GoRoute(
+          path: '/app/insights',
+          builder: (context, state) => const InsightsScreen(),
+        ),
+        GoRoute(
+          path: '/app/parties/:name',
+          builder: (context, state) {
+            final name = state.pathParameters['name'] ?? 'Party';
+            return PersonDetailScreen(name: name);
+          },
         ),
       ],
     ),
-    GoRoute(
-      path: '/app/customers',
-      builder: (context, state) => const CustomersScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/suppliers',
-      builder: (context, state) => const SuppliersScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/cash-flow',
-      builder: (context, state) => const CashFlowScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/reminders',
-      builder: (context, state) => const RemindersScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/notifications',
-      builder: (context, state) => const NotificationsScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/upload',
-      builder: (context, state) => const UploadScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/voice',
-      builder: (context, state) => const VoiceScreenPlaceholder(),
-    ),
-    GoRoute(
-      path: '/app/scan',
-      builder: (context, state) => const ScanScreen(),
-    ),
-    GoRoute(
-      path: '/app/messages',
-      builder: (context, state) => const MessagesScreen(),
-    ),
-    GoRoute(
-      path: '/app/insights',
-      builder: (context, state) => const InsightsScreen(),
-    ),
-    GoRoute(
-      path: '/app/parties/:name',
-      builder: (context, state) {
-        final name = state.pathParameters['name'] ?? 'Party';
-        return PersonDetailScreen(name: name);
-      },
-    ),
   ],
 );
+

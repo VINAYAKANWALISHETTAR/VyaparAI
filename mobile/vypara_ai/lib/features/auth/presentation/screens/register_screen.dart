@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
-import 'package:vypara_ai/features/auth/presentation/widgets/auth_header.dart';
 import 'package:vypara_ai/features/auth/presentation/widgets/register_form.dart';
-
 
 class RegisterScreen extends ConsumerWidget {
   const RegisterScreen({super.key});
@@ -22,7 +20,7 @@ class RegisterScreen extends ConsumerWidget {
     });
 
     final screen = Scaffold(
-      backgroundColor: const Color(0xFFF6F9FE),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -38,22 +36,117 @@ class RegisterScreen extends ConsumerWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthHeader(
-                    title: 'Create your account',
-                    subtitle: 'Start seeing your business clearly with AI.',
+                  // Official VyaparAI Logo
+                  Center(
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x222563EB),
+                            blurRadius: 18,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/VyaparAI_logo.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 14),
+
+                  // Brand Wordmark (Vyapar in dark navy, AI in gradient)
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        const Text(
+                          'Vyapar',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.7,
+                          ),
+                        ),
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Text(
+                            'AI',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.7,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Tagline
+                  const Center(
+                    child: Text(
+                      'Your Business Partner',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Heading
+                  const Center(
+                    child: Text(
+                      'Create your account',
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Center(
+                    child: Text(
+                      'Start seeing your business clearly with AI.',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Error message banner
                   if (auth.status == AuthStatus.error)
                     Container(
-                      margin: const EdgeInsets.only(bottom: 20),
+                      margin: const EdgeInsets.only(bottom: 18),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -87,20 +180,20 @@ class RegisterScreen extends ConsumerWidget {
                       ),
                     ),
 
-                  // Register Form inside elevated card
+                  // Register Form inside clean card
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: const Color(0xFFE2E8F0).withValues(alpha: 0.9),
+                        color: const Color(0xFFE2E8F0),
                         width: 1.2,
                       ),
                       boxShadow: const [
                         BoxShadow(
-                          color: Color(0x0C0F172A),
-                          blurRadius: 24,
-                          offset: Offset(0, 10),
+                          color: Color(0x080F172A),
+                          blurRadius: 20,
+                          offset: Offset(0, 8),
                         ),
                       ],
                     ),
@@ -118,7 +211,7 @@ class RegisterScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 22),
 
                   // Login redirect
                   Row(
@@ -144,6 +237,7 @@ class RegisterScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -154,10 +248,10 @@ class RegisterScreen extends ConsumerWidget {
 
     if (kIsWeb) {
       return Container(
-        color: const Color(0xFFEEF2FF),
+        color: const Color(0xFFF8FAFC),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
+            constraints: const BoxConstraints(maxWidth: 460),
             child: screen,
           ),
         ),

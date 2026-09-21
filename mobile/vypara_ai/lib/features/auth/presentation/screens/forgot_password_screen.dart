@@ -6,9 +6,7 @@ import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/core/utils/validators.dart';
 import 'package:vypara_ai/core/widgets/app_button.dart';
-import 'package:vypara_ai/core/widgets/app_text_field.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
-import 'package:vypara_ai/features/auth/presentation/widgets/auth_header.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -67,7 +65,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to generate reset request. Please check your network.';
+        _errorMessage =
+            'Failed to generate reset request. Please check your network.';
       });
     }
   }
@@ -104,7 +103,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final screen = Scaffold(
-      backgroundColor: const Color(0xFFF6F9FE),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -120,23 +119,120 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthHeader(
-                    title: 'Reset password',
-                    subtitle:
-                        'Enter your registered email address to recover your account.',
+                  // Official VyaparAI Logo
+                  Center(
+                    child: Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x222563EB),
+                            blurRadius: 18,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/VyaparAI_logo.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 14),
+
+                  // Brand Wordmark (Vyapar in dark navy, AI in gradient)
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        const Text(
+                          'Vyapar',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.7,
+                          ),
+                        ),
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Text(
+                            'AI',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.7,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Tagline
+                  const Center(
+                    child: Text(
+                      'Your Business Partner',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Heading
+                  Center(
+                    child: Text(
+                      _isResetMode ? 'Create new password' : 'Reset password',
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      _isResetMode
+                          ? 'Enter the security token and your new password.'
+                          : 'Enter your registered email address to recover your account.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Error message banner
                   if (_errorMessage != null)
                     Container(
-                      margin: const EdgeInsets.only(bottom: 20),
+                      margin: const EdgeInsets.only(bottom: 18),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -173,7 +269,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   // Success message banner
                   if (_successMessage != null && !_isCompleted)
                     Container(
-                      margin: const EdgeInsets.only(bottom: 20),
+                      margin: const EdgeInsets.only(bottom: 18),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -217,7 +313,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0A0F172A),
+                            color: Color(0x080F172A),
                             blurRadius: 20,
                             offset: Offset(0, 8),
                           ),
@@ -271,10 +367,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1.2,
+                        ),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0A0F172A),
+                            color: Color(0x080F172A),
                             blurRadius: 20,
                             offset: Offset(0, 8),
                           ),
@@ -285,27 +384,146 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            AppTextField(
+                            TextFormField(
                               controller: _tokenController,
-                              labelText: 'Reset Token',
-                              hintText: 'Security token',
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Reset Token',
+                                labelStyle: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                hintText: 'Security token',
+                                prefixIcon: const Icon(
+                                  Icons.vpn_key_outlined,
+                                  color: Color(0xFF64748B),
+                                  size: 20,
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF2563EB),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
                               validator: (v) => Validators.notEmpty(v,
                                   fieldName: 'Reset Token'),
                             ),
-                            const SizedBox(height: 14),
-                            AppTextField(
+                            const SizedBox(height: 16),
+                            TextFormField(
                               controller: _newPasswordController,
-                              labelText: 'New Password',
-                              hintText: 'Enter at least 6 characters',
                               obscureText: true,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'New Password',
+                                labelStyle: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                hintText: 'At least 6 characters',
+                                prefixIcon: const Icon(
+                                  Icons.lock_outline_rounded,
+                                  color: Color(0xFF64748B),
+                                  size: 20,
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF2563EB),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
                               validator: (v) => Validators.notEmpty(v,
                                   fieldName: 'New Password'),
                             ),
                             const SizedBox(height: 24),
-                            AppButton(
-                              text: 'Confirm New Password',
-                              isLoading: _isLoading,
-                              onPressed: _submitReset,
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF0080FF), Color(0xFF7C3AED)],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x332563EB),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _isLoading ? null : _submitReset,
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Center(
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Confirm New Password',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -318,10 +536,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1.2,
+                        ),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x0A0F172A),
+                            color: Color(0x080F172A),
                             blurRadius: 20,
                             offset: Offset(0, 8),
                           ),
@@ -332,25 +553,104 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            AppTextField(
+                            TextFormField(
                               controller: _emailController,
-                              labelText: 'Registered Email',
-                              hintText: 'walishettar123@gmail.com',
                               keyboardType: TextInputType.emailAddress,
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Registered Email',
+                                labelStyle: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                hintText: 'walishettar123@gmail.com',
+                                prefixIcon: const Icon(
+                                  Icons.mail_outline_rounded,
+                                  color: Color(0xFF64748B),
+                                  size: 20,
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide:
+                                      const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF2563EB),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
                               validator: Validators.email,
                             ),
                             const SizedBox(height: 24),
-                            AppButton(
-                              text: 'Send Reset Instructions',
-                              isLoading: _isLoading,
-                              onPressed: _submitEmail,
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF0080FF), Color(0xFF7C3AED)],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x332563EB),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _isLoading ? null : _submitEmail,
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Center(
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Send Reset Instructions',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 22),
                   Center(
                     child: TextButton(
                       onPressed: () => context.go('/login'),
@@ -364,6 +664,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -374,10 +675,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     if (kIsWeb) {
       return Container(
-        color: const Color(0xFFEEF2FF),
+        color: const Color(0xFFF8FAFC),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
+            constraints: const BoxConstraints(maxWidth: 460),
             child: screen,
           ),
         ),
