@@ -16,4 +16,15 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
   Future<TransactionModel?> createTransaction(Map<String, dynamic> data) {
     return remoteDataSource.createTransaction(data);
   }
+
+  @override
+  Future<TransactionModel?> updateTransaction(String id, Map<String, dynamic> data) {
+    return remoteDataSource.updateTransaction(id, data);
+  }
+
+  @override
+  Future<bool> deleteTransaction(String id) {
+    return remoteDataSource.deleteTransaction(id);
+  }
 }
+

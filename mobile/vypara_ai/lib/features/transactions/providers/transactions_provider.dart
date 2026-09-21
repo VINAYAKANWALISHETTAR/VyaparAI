@@ -105,6 +105,34 @@ class TransactionsProvider extends Notifier<TransactionsState> {
     await loadTransactions();
     return result != null;
   }
+
+  Future<bool> updateTransaction({
+    required String id,
+    required String type,
+    required double amount,
+    required String category,
+    String? description,
+  }) async {
+    state = state.copyWith(isLoading: true);
+    final payload = <String, dynamic>{
+      'type': type.toLowerCase(),
+      'amount': amount,
+      'category': category,
+    };
+    if (description != null) {
+      payload['description'] = description;
+    }
+    final result = await repository.updateTransaction(id, payload);
+    await loadTransactions();
+    return result != null;
+  }
+
+  Future<bool> deleteTransaction(String id) async {
+    state = state.copyWith(isLoading: true);
+    final success = await repository.deleteTransaction(id);
+    await loadTransactions();
+    return success;
+  }
 }
 
 final transactionsProvider =

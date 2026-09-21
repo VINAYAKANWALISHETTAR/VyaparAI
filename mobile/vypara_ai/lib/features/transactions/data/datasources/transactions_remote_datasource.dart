@@ -68,4 +68,31 @@ class TransactionsRemoteDataSource {
       return null;
     }
   }
+
+  Future<TransactionModel?> updateTransaction(String id, Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.dio.put(
+        '${ApiEndpoints.transactions}$id',
+        data: data,
+      );
+      if (response.data is Map) {
+        return TransactionModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> deleteTransaction(String id) async {
+    try {
+      final response = await apiClient.dio.delete(
+        '${ApiEndpoints.transactions}$id',
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
 }
+

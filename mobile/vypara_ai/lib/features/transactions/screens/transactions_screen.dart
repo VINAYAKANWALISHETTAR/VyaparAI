@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/data/models/transaction_model.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
@@ -80,8 +81,9 @@ class _TransactionsScreenPlaceholderState
   }
 
   void _openAddTransactionModal() {
+    final tr = ref.read(appTranslationsProvider);
     final amountController = TextEditingController();
-    final categoryController = TextEditingController(text: 'Sale');
+    final categoryController = TextEditingController(text: tr('sale'));
     final descController = TextEditingController();
     String selectedType = 'Income';
 
@@ -102,28 +104,32 @@ class _TransactionsScreenPlaceholderState
                 top: 20,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedType == 'Income' ? 'Add Sale / Income' : 'Add Expense',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedType == 'Income' ? tr('add_sale_income') : tr('add_expense_title'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
                   // Toggle Income / Expense
                   Row(
@@ -133,7 +139,7 @@ class _TransactionsScreenPlaceholderState
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Income';
-                              categoryController.text = 'Sale';
+                              categoryController.text = tr('sale');
                             });
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -147,7 +153,7 @@ class _TransactionsScreenPlaceholderState
                             ),
                             child: Center(
                               child: Text(
-                                'Income',
+                                tr('income'),
                                 style: TextStyle(
                                   color: selectedType == 'Income'
                                       ? Colors.white
@@ -165,7 +171,7 @@ class _TransactionsScreenPlaceholderState
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Expense';
-                              categoryController.text = 'General Expense';
+                              categoryController.text = tr('general_expense');
                             });
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -179,7 +185,7 @@ class _TransactionsScreenPlaceholderState
                             ),
                             child: Center(
                               child: Text(
-                                'Expense',
+                                tr('expense'),
                                 style: TextStyle(
                                   color: selectedType == 'Expense'
                                       ? Colors.white
@@ -200,7 +206,7 @@ class _TransactionsScreenPlaceholderState
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Amount (₹)',
+                      labelText: tr('amount_label'),
                       prefixIcon: const Icon(Icons.currency_rupee, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -216,7 +222,7 @@ class _TransactionsScreenPlaceholderState
                   TextField(
                     controller: categoryController,
                     decoration: InputDecoration(
-                      labelText: 'Category',
+                      labelText: tr('category_label'),
                       prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -232,7 +238,7 @@ class _TransactionsScreenPlaceholderState
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
-                      labelText: 'Description / Note',
+                      labelText: tr('desc_label'),
                       prefixIcon: const Icon(Icons.description_outlined, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -249,12 +255,12 @@ class _TransactionsScreenPlaceholderState
                       final amount = double.tryParse(amountController.text.trim()) ?? 0;
                       if (amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid amount')),
+                          SnackBar(content: Text(tr('valid_amount_error'))),
                         );
                         return;
                       }
                       final cat = categoryController.text.trim().isEmpty
-                          ? (selectedType == 'Income' ? 'Sale' : 'General Expense')
+                          ? (selectedType == 'Income' ? tr('sale') : tr('general_expense'))
                           : categoryController.text.trim();
                       final desc = descController.text.trim().isEmpty ? null : descController.text.trim();
 
@@ -269,17 +275,18 @@ class _TransactionsScreenPlaceholderState
                       if (context.mounted) {
                         if (success) {
                           ref.read(homeProvider.notifier).loadDashboard();
+                          final typeLabel = selectedType == 'Income' ? tr('income') : tr('expense');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('$selectedType of ₹${amount.toStringAsFixed(0)} saved! ✓'),
+                              content: Text('$typeLabel: ₹${amount.toStringAsFixed(0)} - ${tr('changes_saved_success')}'),
                               backgroundColor: const Color(0xFF10B981),
                             ),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to save transaction'),
-                              backgroundColor: Color(0xFFEF4444),
+                            SnackBar(
+                              content: Text(tr('something_went_wrong')),
+                              backgroundColor: const Color(0xFFEF4444),
                             ),
                           );
                         }
@@ -293,10 +300,11 @@ class _TransactionsScreenPlaceholderState
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Save Record', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                    child: Text(tr('save_record'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
+            ),
             );
           },
         );
@@ -305,6 +313,7 @@ class _TransactionsScreenPlaceholderState
   }
 
   void _showTransactionDetails(TransactionModel tx) {
+    final tr = ref.read(appTranslationsProvider);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
@@ -350,11 +359,11 @@ class _TransactionsScreenPlaceholderState
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isIncome ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                      color: isIncome ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E8),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      isIncome ? 'Income' : 'Expense',
+                      isIncome ? tr('income') : tr('expense'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -374,33 +383,65 @@ class _TransactionsScreenPlaceholderState
                 ),
                 child: Column(
                   children: [
-                    _detailRow('Amount', '${isIncome ? '+' : '-'}₹${tx.amount.toStringAsFixed(2)}',
+                    _detailRow(tr('amount_label'), '${isIncome ? '+' : '-'}₹${tx.amount.toStringAsFixed(2)}',
                         valueColor: isIncome ? const Color(0xFF16A34A) : const Color(0xFFEF4444)),
                     const Divider(height: 18),
-                    _detailRow('Category', tx.category),
+                    _detailRow(tr('category_label'), tx.category),
                     const Divider(height: 18),
-                    _detailRow('Date & Time', _formatDate(tx.date)),
+                    _detailRow(tr('date_and_time'), _formatDate(tx.date)),
                     if (tx.source != null && tx.source!.isNotEmpty) ...[
                       const Divider(height: 18),
-                      _detailRow('Source Channel', tx.source!.toUpperCase()),
+                      _detailRow(tr('source_channel'), tx.source!.toUpperCase()),
                     ],
                     if (tx.referenceId != null && tx.referenceId!.isNotEmpty) ...[
                       const Divider(height: 18),
-                      _detailRow('Reference ID', tx.referenceId!),
+                      _detailRow(tr('reference_id'), tx.referenceId!),
                     ],
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _confirmDeleteTransaction(tx);
+                      },
+                      icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 18),
+                      label: Text(tr('delete'), style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w700)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFFECDD3)),
+                        backgroundColor: const Color(0xFFFFF1F2),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _openEditTransactionModal(tx);
+                      },
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: Text(tr('edit'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: const Text('Close', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                child: Text(tr('close'), style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -408,6 +449,274 @@ class _TransactionsScreenPlaceholderState
       },
     );
   }
+
+  void _confirmDeleteTransaction(TransactionModel tx) {
+    final tr = ref.read(appTranslationsProvider);
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(tr('delete')),
+        content: Text(tr('delete_confirmation')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(tr('cancel'), style: const TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              final success = await ref.read(transactionsProvider.notifier).deleteTransaction(tx.id);
+              if (mounted) {
+                if (success) {
+                  ref.read(homeProvider.notifier).loadDashboard();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(tr('transaction_deleted')),
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(tr('something_went_wrong')),
+                      backgroundColor: const Color(0xFFEF4444),
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(tr('delete')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openEditTransactionModal(TransactionModel tx) {
+    final tr = ref.read(appTranslationsProvider);
+    final amountController = TextEditingController(text: tx.amount.toStringAsFixed(2));
+    final categoryController = TextEditingController(text: tx.category);
+    final descController = TextEditingController(text: tx.description ?? '');
+    String selectedType = tx.type.toLowerCase() == 'income' ? 'Income' : 'Expense';
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tr('edit_transaction'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            setModalState(() {
+                              selectedType = 'Income';
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: selectedType == 'Income'
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                tr('income'),
+                                style: TextStyle(
+                                  color: selectedType == 'Income'
+                                      ? Colors.white
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            setModalState(() {
+                              selectedType = 'Expense';
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: selectedType == 'Expense'
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                tr('expense'),
+                                style: TextStyle(
+                                  color: selectedType == 'Expense'
+                                      ? Colors.white
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: tr('amount_label'),
+                      prefixIcon: const Icon(Icons.currency_rupee, color: Color(0xFF2563EB)),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: categoryController,
+                    decoration: InputDecoration(
+                      labelText: tr('category_label'),
+                      prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF2563EB)),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descController,
+                    decoration: InputDecoration(
+                      labelText: tr('desc_label'),
+                      prefixIcon: const Icon(Icons.description_outlined, color: Color(0xFF2563EB)),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final amount = double.tryParse(amountController.text.trim()) ?? 0;
+                      if (amount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(tr('valid_amount_error'))),
+                        );
+                        return;
+                      }
+                      final cat = categoryController.text.trim().isEmpty
+                          ? (selectedType == 'Income' ? tr('sale') : tr('general_expense'))
+                          : categoryController.text.trim();
+                      final desc = descController.text.trim().isEmpty ? null : descController.text.trim();
+
+                      Navigator.pop(ctx);
+                      final success = await ref.read(transactionsProvider.notifier).updateTransaction(
+                            id: tx.id,
+                            type: selectedType,
+                            amount: amount,
+                            category: cat,
+                            description: desc,
+                          );
+
+                      if (context.mounted) {
+                        if (success) {
+                          ref.read(homeProvider.notifier).loadDashboard();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(tr('transaction_updated')),
+                              backgroundColor: const Color(0xFF10B981),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(tr('something_went_wrong')),
+                              backgroundColor: const Color(0xFFEF4444),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(tr('save_record'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   Widget _detailRow(String label, String value, {Color? valueColor}) {
     return Row(
@@ -478,6 +787,7 @@ class _TransactionsScreenPlaceholderState
   @override
   Widget build(BuildContext context) {
     final txState = ref.watch(transactionsProvider);
+    final tr = ref.watch(appTranslationsProvider);
     final allTxs = txState.transactions;
     final filtered = allTxs.where(_matchesFilter).toList();
 
@@ -510,7 +820,8 @@ class _TransactionsScreenPlaceholderState
         RefreshIndicator(
           color: const Color(0xFF2563EB),
           onRefresh: () => ref.read(transactionsProvider.notifier).loadTransactions(),
-          child: SingleChildScrollView(
+          child: RepaintBoundary(
+            child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
             child: Column(
@@ -521,31 +832,37 @@ class _TransactionsScreenPlaceholderState
                 // ── 1. HEADER TITLE & INSIGHTS PILL ─────────────────────────
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Transactions',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            letterSpacing: -0.6,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tr('transactions'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -0.6,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Manage all your business records in one place',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w400,
+                          const SizedBox(height: 4),
+                          Text(
+                            tr('manage_business_records'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     // Insights Pill
                     InkWell(
                       onTap: () => context.go('/app/reports'),
@@ -557,21 +874,21 @@ class _TransactionsScreenPlaceholderState
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: const Color(0xFFDBEAFE)),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFF2563EB)),
-                            SizedBox(width: 4),
+                            const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 4),
                             Text(
-                              'Insights',
-                              style: TextStyle(
+                              tr('insights'),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF2563EB),
                               ),
                             ),
-                            SizedBox(width: 2),
-                            Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF2563EB)),
                           ],
                         ),
                       ),
@@ -607,7 +924,7 @@ class _TransactionsScreenPlaceholderState
                             });
                           },
                           decoration: InputDecoration(
-                            hintText: 'Search records, documents, chats...',
+                            hintText: tr('search_transactions_hint'),
                             hintStyle: const TextStyle(
                               fontSize: 13,
                               color: Color(0xFF94A3B8),
@@ -674,24 +991,24 @@ class _TransactionsScreenPlaceholderState
                   child: Row(
                     children: [
                       _buildFilterPill(
-                        label: 'All',
+                        label: tr('filter_all'),
                         filter: TransactionFilter.all,
                       ),
                       const SizedBox(width: 8),
                       _buildFilterPill(
-                        label: 'Documents',
+                        label: tr('filter_documents'),
                         icon: Icons.description_outlined,
                         filter: TransactionFilter.documents,
                       ),
                       const SizedBox(width: 8),
                       _buildFilterPill(
-                        label: 'Chats',
+                        label: tr('filter_chats'),
                         icon: Icons.chat_bubble_outline_rounded,
                         filter: TransactionFilter.chats,
                       ),
                       const SizedBox(width: 8),
                       _buildFilterPill(
-                        label: 'Transactions',
+                        label: tr('filter_transactions'),
                         icon: Icons.credit_card_rounded,
                         filter: TransactionFilter.transactions,
                       ),
@@ -703,49 +1020,50 @@ class _TransactionsScreenPlaceholderState
 
                 // ── 4. GROUP: TODAY ─────────────────────────────────────────
                 if (todayTxs.isNotEmpty) ...[
-                  _buildGroupHeader('TODAY', '${todayTxs.length} items'),
+                  _buildGroupHeader(tr('group_today'), tr('items_count', {'count': todayTxs.length})),
                   const SizedBox(height: 10),
                   ...todayTxs.map((tx) => Padding(
                         padding: const EdgeInsets.only(bottom: 10.0),
-                        child: _buildTransactionCardFromModel(tx),
+                        child: _buildTransactionCardFromModel(tx, tr),
                       )),
                   const SizedBox(height: 14),
                 ],
 
                 // ── 5. GROUP: YESTERDAY ─────────────────────────────────────
                 if (yesterdayTxs.isNotEmpty) ...[
-                  _buildGroupHeader('YESTERDAY', '${yesterdayTxs.length} items'),
+                  _buildGroupHeader(tr('group_yesterday'), tr('items_count', {'count': yesterdayTxs.length})),
                   const SizedBox(height: 10),
                   ...yesterdayTxs.map((tx) => Padding(
                         padding: const EdgeInsets.only(bottom: 10.0),
-                        child: _buildTransactionCardFromModel(tx),
+                        child: _buildTransactionCardFromModel(tx, tr),
                       )),
                   const SizedBox(height: 14),
                 ],
 
                 // ── 6. GROUP: EARLIER / OLDER ────────────────────────────────
                 if (olderTxs.isNotEmpty) ...[
-                  _buildGroupHeader('EARLIER', '${olderTxs.length} items'),
+                  _buildGroupHeader(tr('group_earlier'), tr('items_count', {'count': olderTxs.length})),
                   const SizedBox(height: 10),
                   ...olderTxs.map((tx) => Padding(
                         padding: const EdgeInsets.only(bottom: 10.0),
-                        child: _buildTransactionCardFromModel(tx),
+                        child: _buildTransactionCardFromModel(tx, tr),
                       )),
                   const SizedBox(height: 14),
                 ],
 
                 // ── EMPTY STATE IF NO TRANSACTIONS ──────────────────────────
                 if (filtered.isEmpty) ...[
-                  _buildEmptyState(),
+                  _buildEmptyState(tr),
                   const SizedBox(height: 20),
                 ],
 
                 // ── 7. BOTTOM PROMOTIONAL BANNER ────────────────────────────
-                _buildPromoCard(context),
+                _buildPromoCard(context, tr),
 
                 // Safe scroll buffer for the floating bottom navigation bar
                 const SizedBox(height: 110),
               ],
+            ),
             ),
           ),
         ),
@@ -835,7 +1153,7 @@ class _TransactionsScreenPlaceholderState
     );
   }
 
-  Widget _buildTransactionCardFromModel(TransactionModel tx) {
+  Widget _buildTransactionCardFromModel(TransactionModel tx, String Function(String, [Map<String, dynamic>?]) tr) {
     final isIncome = tx.type.toLowerCase() == 'income';
     final src = tx.source?.toLowerCase() ?? '';
     final cat = tx.category.toLowerCase();
@@ -853,32 +1171,32 @@ class _TransactionsScreenPlaceholderState
       icon = Icons.document_scanner_rounded;
       iconBg = const Color(0xFFEFF6FF);
       iconColor = const Color(0xFF2563EB);
-      subtitle = 'Scanned OCR • ${_formatTime(tx.date)}';
-      statusLabel = 'Processed';
+      subtitle = '${tr('channel_ocr')} • ${_formatTime(tx.date)}';
+      statusLabel = tr('status_processed');
       statusColor = const Color(0xFF16A34A);
       statusBg = const Color(0xFFDCFCE7);
     } else if (src == 'receipt' || cat.contains('receipt') || desc.contains('receipt')) {
       icon = Icons.receipt_long_rounded;
       iconBg = const Color(0xFFFFF7ED);
       iconColor = const Color(0xFFEA580C);
-      subtitle = 'Uploaded Doc • ${_formatTime(tx.date)}';
-      statusLabel = 'Verified';
+      subtitle = '${tr('channel_doc')} • ${_formatTime(tx.date)}';
+      statusLabel = tr('status_verified');
       statusColor = const Color(0xFF2563EB);
       statusBg = const Color(0xFFEFF6FF);
     } else if (src == 'voice' || cat.contains('voice') || desc.contains('voice')) {
       icon = Icons.mic_rounded;
       iconBg = const Color(0xFFF5F3FF);
       iconColor = const Color(0xFF7C3AED);
-      subtitle = 'Voice Assistant • ${_formatTime(tx.date)}';
-      statusLabel = 'Recorded';
+      subtitle = '${tr('channel_voice')} • ${_formatTime(tx.date)}';
+      statusLabel = tr('status_recorded');
       statusColor = const Color(0xFF7C3AED);
       statusBg = const Color(0xFFF3E8FF);
     } else if (src == 'chat' || src == 'whatsapp' || desc.contains('whatsapp') || desc.contains('chat')) {
       icon = Icons.chat_bubble_rounded;
       iconBg = const Color(0xFFECFDF5);
       iconColor = const Color(0xFF10B981);
-      subtitle = 'Message Auto-Detect • ${_formatTime(tx.date)}';
-      statusLabel = 'Confirmed';
+      subtitle = '${tr('channel_chat')} • ${_formatTime(tx.date)}';
+      statusLabel = tr('status_confirmed');
       statusColor = const Color(0xFF16A34A);
       statusBg = const Color(0xFFDCFCE7);
     } else if (isIncome) {
@@ -886,7 +1204,7 @@ class _TransactionsScreenPlaceholderState
       iconBg = const Color(0xFFECFDF5);
       iconColor = const Color(0xFF10B981);
       subtitle = '${tx.category} • ${_formatTime(tx.date)}';
-      statusLabel = 'Received';
+      statusLabel = tr('status_received');
       statusColor = const Color(0xFF10B981);
       statusBg = const Color(0xFFDCFCE7);
     } else {
@@ -894,7 +1212,7 @@ class _TransactionsScreenPlaceholderState
       iconBg = const Color(0xFFFFF1F2);
       iconColor = const Color(0xFFEF4444);
       subtitle = '${tx.category} • ${_formatTime(tx.date)}';
-      statusLabel = 'Paid';
+      statusLabel = tr('status_paid');
       statusColor = const Color(0xFFEF4444);
       statusBg = const Color(0xFFFEE2E2);
     }
@@ -966,12 +1284,15 @@ class _TransactionsScreenPlaceholderState
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  _formatCurrency(tx.amount),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _formatCurrency(tx.amount),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1018,7 +1339,7 @@ class _TransactionsScreenPlaceholderState
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String Function(String, [Map<String, dynamic>?]) tr) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
@@ -1043,19 +1364,19 @@ class _TransactionsScreenPlaceholderState
             ),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'No records found',
-            style: TextStyle(
+          Text(
+            tr('no_recent_transactions'),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Record sales, upload invoices, or speak to AI Assistant to populate your business ledger.',
+          Text(
+            tr('record_sale_sub'),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: Color(0xFF64748B),
             ),
@@ -1064,7 +1385,7 @@ class _TransactionsScreenPlaceholderState
           ElevatedButton.icon(
             onPressed: _openAddTransactionModal,
             icon: const Icon(Icons.add, size: 16),
-            label: const Text('Add Record'),
+            label: Text(tr('add_sale')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               foregroundColor: Colors.white,
@@ -1077,7 +1398,7 @@ class _TransactionsScreenPlaceholderState
     );
   }
 
-  Widget _buildPromoCard(BuildContext context) {
+  Widget _buildPromoCard(BuildContext context, String Function(String, [Map<String, dynamic>?]) tr) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -1119,20 +1440,20 @@ class _TransactionsScreenPlaceholderState
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  'All your business records\nin one place',
-                  style: TextStyle(
+                  tr('manage_business_records'),
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0F172A),
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'Search, filter and manage documents, chats and transactions easily.',
-                  style: TextStyle(
+                  tr('search_transactions_hint'),
+                  style: const TextStyle(
                     fontSize: 10.5,
                     color: Color(0xFF64748B),
                     height: 1.2,
@@ -1158,19 +1479,19 @@ class _TransactionsScreenPlaceholderState
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Learn More',
-                    style: TextStyle(
+                    tr('upload_btn'),
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(
+                  const SizedBox(width: 4),
+                  const Icon(
                     Icons.arrow_forward_rounded,
                     size: 14,
                     color: Colors.white,
