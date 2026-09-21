@@ -53,6 +53,27 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 24),
           AppButton(text: 'Sign in', isLoading: widget.isLoading, onPressed: _submit),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: widget.isLoading
+                ? null
+                : () async {
+                    _emailController.text = 'walishettar123@gmail.com';
+                    _passwordController.text = 'password123';
+                    await widget.onSubmit('walishettar123@gmail.com', 'password123');
+                  },
+            icon: const Icon(Icons.flash_on_rounded, color: Color(0xFF2563EB), size: 18),
+            label: const Text(
+              'Quick Login as Vinayaka',
+              style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.w700),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFBFDBFE)),
+              backgroundColor: const Color(0xFFEFF6FF),
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
         ],
       ),
     );

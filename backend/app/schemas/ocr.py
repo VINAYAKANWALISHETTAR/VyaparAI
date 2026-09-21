@@ -27,11 +27,11 @@ class OCRResponse(BaseModel):
 
 
 class OCRConfirmRequest(BaseModel):
-    business_id: str
+    business_id: str | None = None
     customer_name: str = Field(min_length=1, max_length=200)
     invoice_number: str | None = None
     amount: float = Field(gt=0)
-    due_date: date
+    due_date: date | None = None
     description: str | None = None
     source: str = "ocr"
     reference_id: str | None = None

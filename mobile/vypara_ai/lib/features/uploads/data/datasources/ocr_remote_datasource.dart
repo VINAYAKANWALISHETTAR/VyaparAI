@@ -88,7 +88,8 @@ class OcrRemoteDataSource {
     if (description != null && description.isNotEmpty) {
       body['description'] = description;
     }
-    if (dueDate != null) body['due_date'] = dueDate.toIso8601String();
+    final effectiveDue = dueDate ?? DateTime.now();
+    body['due_date'] = '${effectiveDue.year.toString().padLeft(4, '0')}-${effectiveDue.month.toString().padLeft(2, '0')}-${effectiveDue.day.toString().padLeft(2, '0')}';
 
     await apiClient.dio.post(
       ApiEndpoints.ocrInvoiceConfirm,

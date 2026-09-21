@@ -31,9 +31,13 @@ app.add_middleware(
 )
 
 
+from app.database.seed import seed_default_data
+
+
 @app.on_event("startup")
 def startup_event():
     create_indexes()
+    seed_default_data()
 
 
 app.include_router(businesses_router)

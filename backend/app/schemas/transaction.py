@@ -9,7 +9,7 @@ ALLOWED_SOURCES = {"manual", "upi", "bank", "invoice", "voice", "ocr", "agent"}
 
 
 class TransactionCreate(BaseModel):
-    business_id: str
+    business_id: str | None = None
     type: str
     amount: float = Field(gt=0)
     category: str = Field(min_length=1)

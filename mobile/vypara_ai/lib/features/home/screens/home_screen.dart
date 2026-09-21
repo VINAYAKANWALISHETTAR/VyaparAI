@@ -581,15 +581,18 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   ...recentTransactions.map(
                     (tx) => Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
+                      child: InkWell(
+                        onTap: () => context.go('/app/transactions'),
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
                             Container(
                               width: 40,
                               height: 40,
@@ -651,7 +654,8 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                         ),
                       ),
                     ),
-                  )
+                  ),
+                )
                 else
                   _buildRecentActivityEmptyState(context),
 
@@ -1111,7 +1115,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             iconBg: const Color(0xFFF0F9FF),
             iconColor: const Color(0xFF0284C7),
             title: 'Scan with\nCamera',
-            onTap: () => context.push('/app/upload'),
+            onTap: () => context.push('/app/scan'),
           ),
         ],
       ),

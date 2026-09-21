@@ -206,7 +206,22 @@ def create_transaction(
     transaction: TransactionCreate,
     current_user=Depends(get_current_user),
 ):
-    verify_business_ownership(transaction.business_id, current_user)
+    user_id = str(current_user["_id"])
+    if not transaction.business_id:
+        from app.models.business import business_document
+        businesses = list(db.businesses.find({"owner_id": user_id}))
+        if not businesses:
+            default_biz = business_document(
+                name="Vyapar Business",
+                business_type="Retail",
+                owner_id=user_id,
+            )
+            res = db.businesses.insert_one(default_biz)
+            transaction.business_id = str(res.inserted_id)
+        else:
+            transaction.business_id = str(businesses[0]["_id"])
+    else:
+        verify_business_ownership(transaction.business_id, current_user)
 
     new_transaction = transaction_document(
         business_id=transaction.business_id,

@@ -12,12 +12,20 @@ def transaction_document(
     reference_id: str | None = None,
     user_id: str | None = None,
 ):
-    if date is not None:
-        if isinstance(date, datetime):
+    if date is None:
+        date = datetime.now(timezone.utc)
+    elif isinstance(date, str):
+        try:
+            date = datetime.fromisoformat(date.replace("Z", "+00:00"))
             if date.tzinfo is None:
                 date = date.replace(tzinfo=timezone.utc)
-        elif hasattr(date, "year") and hasattr(date, "month") and hasattr(date, "day"):
-            date = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        except Exception:
+            date = datetime.now(timezone.utc)
+    elif isinstance(date, datetime):
+        if date.tzinfo is None:
+            date = date.replace(tzinfo=timezone.utc)
+    elif hasattr(date, "year") and hasattr(date, "month") and hasattr(date, "day"):
+        date = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
     return {
         "business_id": business_id,

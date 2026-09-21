@@ -142,14 +142,32 @@ def confirm_invoice(
     payload: OCRConfirmRequest,
     current_user=Depends(get_current_user),
 ):
-    verify_business_ownership(payload.business_id, current_user)
+    user_id = str(current_user["_id"])
+    business_id = payload.business_id
+    if not business_id:
+        businesses = list(db.businesses.find({"owner_id": user_id}))
+        if not businesses:
+            from app.models.business import business_document
+            default_biz = business_document(
+                name="Vyapar Business",
+                business_type="Retail",
+                owner_id=user_id,
+            )
+            res = db.businesses.insert_one(default_biz)
+            business_id = str(res.inserted_id)
+        else:
+            business_id = str(businesses[0]["_id"])
+    else:
+        verify_business_ownership(business_id, current_user)
+
+    effective_due_date = payload.due_date or datetime.now(timezone.utc).date()
 
     invoice_create = InvoiceCreate(
-        business_id=payload.business_id,
+        business_id=business_id,
         customer_name=payload.customer_name,
         invoice_number=payload.invoice_number,
         amount=payload.amount,
-        due_date=payload.due_date,
+        due_date=effective_due_date,
         description=payload.description,
     )
 
@@ -166,7 +184,7 @@ def confirm_invoice(
 
     # Sync with transactions collection so dashboard & transaction history update immediately
     tx_doc = transaction_document(
-        business_id=payload.business_id,
+        business_id=business_id,
         type="income",
         amount=payload.amount,
         category="Sales / Invoice",

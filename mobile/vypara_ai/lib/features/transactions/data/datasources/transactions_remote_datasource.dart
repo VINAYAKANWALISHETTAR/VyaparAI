@@ -39,7 +39,8 @@ class TransactionsRemoteDataSource {
     try {
       final res = await apiClient.dio.get(ApiEndpoints.businesses);
       if (res.data is List && (res.data as List).isNotEmpty) {
-        return (res.data as List).first['id']?.toString();
+        final first = (res.data as List).first;
+        return first['id']?.toString() ?? first['_id']?.toString();
       }
     } catch (_) {}
     return null;

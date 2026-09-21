@@ -48,15 +48,13 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     final incCount = report?.incomeBreakdown.fold<int>(0, (sum, item) => sum + item.count) ?? 0;
     final expCount = report?.expenseBreakdown.fold<int>(0, (sum, item) => sum + item.count) ?? 0;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: () => ref.read(reportsProvider.notifier).loadReport(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () => ref.read(reportsProvider.notifier).loadReport(),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 110),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Period Filter Pill Tabs - Screen 8
@@ -409,8 +407,7 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPeriodTab(String title, String key, String activeKey) {

@@ -26,30 +26,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
         : (userEmail.isNotEmpty ? userEmail.split('@').first : 'User');
     const bizName = 'Business Owner';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Color(0xFF1E293B)),
-                onPressed: () => context.pop(),
-              )
-            : null,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 110),
+      child: Column(
           children: [
             // User Profile Card matching Screen 14
             AppCard(
@@ -196,8 +176,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildSettingItem({
