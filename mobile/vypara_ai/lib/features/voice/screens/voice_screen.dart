@@ -53,39 +53,6 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Color(0xFF1E293B)),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          tr('voice_assistant'),
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        actions: [
-          if (hasResponse || hasError)
-            TextButton(
-              onPressed: () {
-                setState(() => _isLiked = null);
-                ref.read(voiceProvider.notifier).reset();
-              },
-              child: Text(
-                tr('new_query'),
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
       body: SafeArea(
         child: hasResponse
             ? _buildResponseMode(voiceState, tr)
@@ -119,8 +86,11 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
       tr('phrase_5'),
     ];
 
-    return Column(
-      children: [
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
+      child: Column(
+        children: [
         // Bot Greeting Banner
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -309,7 +279,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           ),
         ],
 
-        const Spacer(),
+        const SizedBox(height: 18),
 
         // Pulsing microphone button
         GestureDetector(
@@ -386,7 +356,7 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
           ),
         ),
 
-        const Spacer(),
+        const SizedBox(height: 18),
 
         // Text input alternative
         Padding(
@@ -527,7 +497,8 @@ class _VoiceScreenState extends ConsumerState<VoiceScreenPlaceholder>
         ),
         const SizedBox(height: 24),
       ],
-    );
+    ),
+  );
   }
 
   // ─── Response Mode (AI Answer Card - Screen 4) ────────────────────────────

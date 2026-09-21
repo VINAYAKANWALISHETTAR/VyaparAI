@@ -94,6 +94,13 @@ class VoiceProvider extends Notifier<VoiceState> {
     });
     _tts.setCompletionHandler(() {
       state = state.copyWith(isSpeaking: false);
+      if (state.isWakeWordListening && state.status != VoiceStatus.listening) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (state.isWakeWordListening && state.status != VoiceStatus.processing) {
+            startListening();
+          }
+        });
+      }
     });
     _tts.setErrorHandler((_) {
       state = state.copyWith(isSpeaking: false);
@@ -108,11 +115,11 @@ class VoiceProvider extends Notifier<VoiceState> {
     final lang = ref.read(languageProvider);
     String greeting;
     if (lang.code.toUpperCase() == 'KN') {
-      greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ಇಂದು ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?";
+      greeting = "ನಮಸ್ಕಾರ! ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?";
     } else if (lang.code.toUpperCase() == 'HI') {
-      greeting = "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। आज मैं आपके व्यवसाय में कैसे मदद कर सकता हूँ?";
+      greeting = "नमस्ते! आज मैं आपकी कैसे मदद कर सकता हूँ?";
     } else {
-      greeting = "Hello! I am your VyaparAI bot. How can I help your business today?";
+      greeting = "Hello! How can I help your business today?";
     }
     _initTts();
     await _tts.stop();
@@ -143,7 +150,7 @@ class VoiceProvider extends Notifier<VoiceState> {
   }
 
   Future<void> toggleWakeWordMode(bool enable) async {
-    state = state.copyWith(isWakeWordListening: enable);
+    state = state.copyWith(isWakeWordListening: enable, error: null);
     if (enable) {
       await startListening();
     } else {
@@ -159,9 +166,25 @@ class VoiceProvider extends Notifier<VoiceState> {
       _speechAvailable = await _speech.initialize(
         onStatus: _onStatus,
         onError: (e) {
+          final errorMsg = e.errorMsg.toLowerCase();
+          final isTransient = errorMsg.contains('timeout') ||
+              errorMsg.contains('no_match') ||
+              errorMsg.contains('busy') ||
+              errorMsg.contains('client');
+
+          if (state.isWakeWordListening && isTransient) {
+            // Non-fatal silence/timeout in wake-word standby mode: auto-restart loop
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (state.isWakeWordListening && state.status != VoiceStatus.processing) {
+                startListening();
+              }
+            });
+            return;
+          }
+
           state = state.copyWith(
             status: VoiceStatus.error,
-            error: 'Microphone error: ${e.errorMsg}',
+            error: 'Microphone: ${e.errorMsg}',
           );
         },
       );
@@ -202,8 +225,8 @@ class VoiceProvider extends Notifier<VoiceState> {
         }
       },
       listenOptions: SpeechListenOptions(
-        listenFor: const Duration(seconds: 20),
-        pauseFor: const Duration(seconds: 3),
+        listenFor: const Duration(seconds: 25),
+        pauseFor: const Duration(seconds: 4),
         localeId: lang.speechLocale,
       ),
     );
@@ -214,13 +237,15 @@ class VoiceProvider extends Notifier<VoiceState> {
       final transcript = state.transcript;
       if (transcript.isNotEmpty && state.status == VoiceStatus.listening) {
         _processQuery(transcript);
+      } else if (state.isWakeWordListening) {
+        // Continuous wake-word loop: seamlessly restart listening in standby
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (state.isWakeWordListening && state.status != VoiceStatus.processing) {
+            startListening();
+          }
+        });
       } else if (state.status == VoiceStatus.listening) {
-        if (state.isWakeWordListening) {
-          // Restart listening for continuous wake-word standby
-          startListening();
-        } else {
-          state = state.copyWith(status: VoiceStatus.idle);
-        }
+        state = state.copyWith(status: VoiceStatus.idle);
       }
     }
   }

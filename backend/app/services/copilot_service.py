@@ -247,6 +247,15 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
     if any(k in text for k in summary_keywords):
         return "get_business_summary", {}
 
+    # 13. Recent transactions / history
+    recent_keywords = [
+        "recent", "latest", "last transaction", "last payment", "transactions today",
+        "show transactions", "history", "records", "ಇತ್ತೀಚಿನ", "ಕೊನೆಯ", "ದಾಖಲೆಗಳು",
+        "हाल के", "अंतिम लेनदेन", "इतिहास", "रिकॉर्ड"
+    ]
+    if any(k in text for k in recent_keywords):
+        return "get_recent_transactions", {}
+
     return "unknown", {}
 
 
@@ -257,8 +266,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     if intent == "greeting":
         if lang == "kn":
             return (
-                "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ಇಂದು ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ? "
-                "ನಿಮ್ಮ ಲಾಭ, ಆದಾಯ, ವೆಚ್ಚಗಳು, ಬಾಕಿ ಇರುವ ಹಣದ ಬಗ್ಗೆ ಕೇಳಬಹುದು ಅಥವಾ 'ರಮೇಶ್ 5000 ಪಾವತಿಸಿದ್ದಾರೆ' ಎಂದು ವಹಿವಾಟು ದಾಖಲಿಸಲು ಹೇಳಬಹುದು.",
+                "ನಮಸ್ಕಾರ! ಇಂದು ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
                 [
                     {"label": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?", "query": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?"},
                     {"label": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?", "query": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?"},
@@ -267,8 +275,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
             )
         elif lang == "hi":
             return (
-                "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। आज मैं आपके व्यवसाय में कैसे मदद कर सकता हूँ? "
-                "आप अपने लाभ, राजस्व, खर्च या बकाया राशि के बारे में पूछ सकते हैं, या 'रमेश ने 5000 दिए' कहकर लेनदेन रिकॉर्ड कर सकते हैं।",
+                "नमस्ते! आज मैं आपके व्यवसाय में कैसे मदद कर सकता हूँ?",
                 [
                     {"label": "आज मेरा लाभ कितना है?", "query": "आज मेरा लाभ कितना है?"},
                     {"label": "मुझ पर किसका बकाया है?", "query": "मुझ पर किसका बकाया है?"},
@@ -276,9 +283,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
                 ],
             )
         return (
-            "Hello! I am your VyaparAI bot. How can I assist your business today? "
-            "You can ask about your profit, revenue, expenses, who owes you money, "
-            "or tell me to record a transaction like 'Ramesh paid 5000' or 'Add expense 500 for tea'.",
+            "Hello! How can I help your business today?",
             [
                 {"label": "What is my profit today?", "query": "What is my profit today?"},
                 {"label": "Who owes me money?", "query": "Who owes me money?"},
@@ -302,40 +307,34 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
         if lang == "kn":
             if ttype == "income":
                 return (
-                    f"ನಾನು ನಿಮ್ಮ ದಾಖಲೆಗಳಲ್ಲಿ ₹{amt:,.0f} ({desc}) ಮಾರಾಟ/ಆದಾಯವನ್ನು ದಾಖಲಿಸಿದ್ದೇನೆ! ✓\n"
-                    f"ನಿಮ್ಮ ಇಂದಿನ ಒಟ್ಟು ಆದಾಯ ಈಗ ₹{today_income:,.0f} ಆಗಿದೆ.",
+                    f"₹{amt:,.0f} ಆದಾಯ ದಾಖಲಿಸಲಾಗಿದೆ. ಇಂದಿನ ಒಟ್ಟು ಮಾರಾಟ ₹{today_income:,.0f}.",
                     action_buttons,
                 )
             else:
                 return (
-                    f"ನಾನು ನಿಮ್ಮ ದಾಖಲೆಗಳಲ್ಲಿ ₹{amt:,.0f} ({desc}) ವೆಚ್ಚವನ್ನು ದಾಖಲಿಸಿದ್ದೇನೆ! ✓\n"
-                    f"ನಿಮ್ಮ ಇಂದಿನ ಒಟ್ಟು ವೆಚ್ಚ ಈಗ ₹{today_expense:,.0f} ಆಗಿದೆ.",
+                    f"₹{amt:,.0f} ವೆಚ್ಚ ದಾಖಲಿಸಲಾಗಿದೆ. ಇಂದಿನ ಒಟ್ಟು ವೆಚ್ಚ ₹{today_expense:,.0f}.",
                     action_buttons,
                 )
         elif lang == "hi":
             if ttype == "income":
                 return (
-                    f"मैंने आपके रिकॉर्ड में ₹{amt:,.0f} ({desc}) की बिक्री/आय दर्ज कर ली है! ✓\n"
-                    f"आज का आपका कुल राजस्व अब ₹{today_income:,.0f} है।",
+                    f"₹{amt:,.0f} की आय दर्ज की गई। आज का कुल राजस्व ₹{today_income:,.0f} है।",
                     action_buttons,
                 )
             else:
                 return (
-                    f"मैंने आपके रिकॉर्ड में ₹{amt:,.0f} ({desc}) का खर्च दर्ज कर लिया है! ✓\n"
-                    f"आज का आपका कुल खर्च अब ₹{today_expense:,.0f} है।",
+                    f"₹{amt:,.0f} का खर्च दर्ज किया गया। आज का कुल खर्च ₹{today_expense:,.0f} है।",
                     action_buttons,
                 )
 
         if ttype == "income":
             return (
-                f"I have recorded a sale/income of ₹{amt:,.0f} ({desc}) into your records! ✓\n"
-                f"Your today's revenue is now ₹{today_income:,.0f}.",
+                f"Recorded sale of ₹{amt:,.0f} ({desc}). Today's total sales are ₹{today_income:,.0f}.",
                 action_buttons,
             )
         else:
             return (
-                f"I have recorded an expense of ₹{amt:,.0f} ({desc}) into your records! ✓\n"
-                f"Your today's total expenses are now ₹{today_expense:,.0f}.",
+                f"Recorded expense of ₹{amt:,.0f} ({desc}). Today's total expenses are ₹{today_expense:,.0f}.",
                 action_buttons,
             )
 
@@ -482,33 +481,54 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
             action_buttons,
         )
 
-    if lang == "kn":
-        return (
-            "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವ್ಯಾಪಾರ್ AI ಬಾಟ್. ನಿಮ್ಮ ಆದಾಯ, ವೆಚ್ಚ, ಲಾಭ ಮತ್ತು ನಗದು ಹರಿವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಅಥವಾ ಧ್ವನಿ ಮೂಲಕ ವಹಿವಾಟು ದಾಖಲಿಸಲು ನಾನು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. 'ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?' ಎಂದು ಕೇಳಿ ನೋಡಿ.",
-            [
-                {"label": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?", "query": "ಇಂದು ನನ್ನ ಲಾಭ ಎಷ್ಟು?"},
-                {"label": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?", "query": "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?"},
-                {"label": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ", "query": "ವ್ಯಾಪಾರ ಅವಲೋಕನ ತೋರಿಸಿ"},
-            ],
-        )
-    elif lang == "hi":
-        return (
-            "नमस्ते! मैं आपका व्यापार AI बॉट हूँ। मैं आपकी आय, व्यय, लाभ और नकदी प्रवाह का विश्लेषण करने या आवाज द्वारा लेनदेन दर्ज करने में मदद कर सकता हूँ।",
-            [
-                {"label": "आज मेरा लाभ कितना है?", "query": "आज मेरा लाभ कितना है?"},
-                {"label": "मुझ पर किसका बकाया है?", "query": "मुझ पर किसका बकाया है?"},
-                {"label": "व्यवसाय सारांश दिखाएं", "query": "व्यवसाय सारांश दिखाएं"},
-            ],
-        )
+    if intent == "get_recent_transactions":
+        txns = data.get("transactions", [])
+        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        if txns:
+            t = txns[0]
+            amt = t.get("amount", 0.0)
+            desc = t.get("description", "Transaction")
+            if lang == "kn":
+                return f"ನಿಮ್ಮ ಇತ್ತೀಚಿನ ವಹಿವಾಟು {desc} ಗಾಗಿ ₹{amt:,.0f}.", action_buttons
+            elif lang == "hi":
+                return f"आपका अंतिम लेनदेन {desc} के लिए ₹{amt:,.0f} था।", action_buttons
+            return f"Your latest transaction was ₹{amt:,.0f} for {desc}.", action_buttons
+        else:
+            if lang == "kn":
+                return "ಯಾವುದೇ ವಹಿವಾಟು ದಾಖಲಾಗಿಲ್ಲ. ಮೊದಲ ಮಾರಾಟ ದಾಖಲಿಸಲು 'Add sale 500' ಎಂದು ಹೇಳಿ.", action_buttons
+            elif lang == "hi":
+                return "कोई लेनदेन नहीं मिला। पहली बिक्री दर्ज करने के लिए 'Add sale 500' कहें।", action_buttons
+            return "No transactions found. Say 'Add sale 500' to record one.", action_buttons
 
-    return (
-        "Hello! I am your VyaparAI bot. I can help analyze your income, expenses, profit, cash flow forecasts, receivables, liabilities, or record transactions directly by voice. Try asking 'What is my profit today?' or say 'Ramesh paid 5000'.",
-        [
-            {"label": "What is my profit today?", "query": "What is my profit today?"},
-            {"label": "Who owes me money?", "query": "Who owes me money?"},
-            {"label": "How is my business doing?", "query": "How is my business doing?"},
-        ],
-    )
+    # Dynamic Real-time Snapshot for general & fallback queries (Live Database Data)
+    inc = float(data.get("today_income", 0.0))
+    exp = float(data.get("today_expenses", 0.0))
+    prof = float(data.get("today_profit", inc - exp))
+    last_txn = data.get("last_transaction")
+    action_buttons = [
+        {"label": "View Details", "route": "/app/transactions"},
+        {"label": "Show Reports", "route": "/app/reports"},
+    ]
+    if inc > 0 or exp > 0:
+        if lang == "kn":
+            return f"ಇಂದು: ಮಾರಾಟ ₹{inc:,.0f}, ವೆಚ್ಚ ₹{exp:,.0f}, ನಿವ್ವಳ ಲಾಭ ₹{prof:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आज: बिक्री ₹{inc:,.0f}, खर्च ₹{exp:,.0f}, शुद्ध लाभ ₹{prof:,.0f}।", action_buttons
+        return f"Today: Sales ₹{inc:,.0f}, Expenses ₹{exp:,.0f}, Net Profit ₹{prof:,.0f}.", action_buttons
+    elif last_txn:
+        amt = float(last_txn.get("amount", 0.0))
+        desc = last_txn.get("description", "Transaction")
+        if lang == "kn":
+            return f"ಇಂದು ಇನ್ನೂ ಹೊಸ ಮಾರಾಟವಿಲ್ಲ. ಕೊನೆಯ ದಾಖಲೆ {desc} ಗಾಗಿ ₹{amt:,.0f}.", action_buttons
+        elif lang == "hi":
+            return f"आज कोई नया लेनदेन नहीं है। अंतिम लेनदेन {desc} के लिए ₹{amt:,.0f} था।", action_buttons
+        return f"No sales recorded today yet. Your last record was ₹{amt:,.0f} for {desc}.", action_buttons
+    else:
+        if lang == "kn":
+            return "ಯಾವುದೇ ವಹಿವಾಟು ದಾಖಲಾಗಿಲ್ಲ. ಮೊದಲ ಮಾರಾಟ ದಾಖಲಿಸಲು 'Add sale 500' ಎಂದು ಹೇಳಿ.", action_buttons
+        elif lang == "hi":
+            return "कोई लेनदेन दर्ज नहीं है। पहली बिक्री दर्ज करने के लिए 'Add sale 500' कहें।", action_buttons
+        return "No transactions recorded yet. Say 'Add sale 500' to record your first sale.", action_buttons
 
 
 class CopilotService:
@@ -529,11 +549,17 @@ class CopilotService:
             "get_customer_balance": self._handle_customer_balance,
             "get_payment_history": self._handle_payment_history,
             "get_business_summary": self._handle_business_summary,
+            "get_recent_transactions": self._handle_recent_transactions,
+            "realtime_snapshot": self._handle_realtime_snapshot,
         }
 
     def chat(self, user_id: str, message: str, business_id: str | None = None, language: str = "en") -> dict:
         intent, params = classify_intent(message)
-        handler = self._intent_handlers.get(intent)
+        if intent == "unknown":
+            intent = "realtime_snapshot"
+            handler = self._handle_realtime_snapshot
+        else:
+            handler = self._intent_handlers.get(intent)
 
         if handler:
             try:
@@ -541,18 +567,24 @@ class CopilotService:
                 answer, buttons = generate_answer(intent, data, message, language=language)
                 return {"answer": answer, "intent": intent, "data": data, "action_buttons": buttons}
             except Exception as exc:
-                return {
-                    "answer": f"I encountered an error while processing your request: {exc}",
-                    "intent": intent,
-                    "data": None,
-                    "action_buttons": [],
-                }
+                try:
+                    data = self._handle_realtime_snapshot(user_id, business_id)
+                    answer, buttons = generate_answer("realtime_snapshot", data, message, language=language)
+                    return {"answer": answer, "intent": "realtime_snapshot", "data": data, "action_buttons": buttons}
+                except Exception:
+                    return {
+                        "answer": "Could not access records right now. Please try again.",
+                        "intent": "error",
+                        "data": None,
+                        "action_buttons": [],
+                    }
 
-        answer, buttons = generate_answer(intent, {}, message, language=language)
+        data = self._handle_realtime_snapshot(user_id, business_id)
+        answer, buttons = generate_answer("realtime_snapshot", data, message, language=language)
         return {
             "answer": answer,
-            "intent": "unknown",
-            "data": None,
+            "intent": "realtime_snapshot",
+            "data": data,
             "action_buttons": buttons,
         }
 
@@ -652,6 +684,48 @@ class CopilotService:
 
     def _handle_business_summary(self, user_id: str, business_id: str | None, **kwargs):
         return get_business_summary(user_id, business_id)
+
+    def _handle_recent_transactions(self, user_id: str, business_id: str | None, **kwargs):
+        filter_query = {"user_id": user_id}
+        if business_id:
+            filter_query = {"$or": [{"business_id": business_id}, {"user_id": user_id}]}
+        txns = list(db.transactions.find(filter_query).sort("date", -1).limit(3))
+        results = []
+        for t in txns:
+            results.append({
+                "amount": float(t.get("amount", 0.0)),
+                "type": t.get("type", "income"),
+                "description": t.get("description") or t.get("category") or "Transaction",
+                "party_name": t.get("party_name"),
+            })
+        return {"transactions": results}
+
+    def _handle_realtime_snapshot(self, user_id: str, business_id: str | None, **kwargs):
+        inc_res = get_today_income(business_id, user_id)
+        exp_res = get_today_expenses(business_id, user_id)
+        prof_res = get_today_profit(business_id, user_id)
+        inc = float(inc_res.get("total_income", 0.0))
+        exp = float(exp_res.get("total_expenses", 0.0))
+        prof = float(prof_res.get("profit", inc - exp))
+
+        filter_query = {"user_id": user_id}
+        if business_id:
+            filter_query = {"$or": [{"business_id": business_id}, {"user_id": user_id}]}
+        txns = list(db.transactions.find(filter_query).sort("date", -1).limit(1))
+        last_txn = None
+        if txns:
+            t = txns[0]
+            last_txn = {
+                "amount": float(t.get("amount", 0.0)),
+                "type": t.get("type", "income"),
+                "description": t.get("description") or t.get("category") or "Transaction",
+            }
+        return {
+            "today_income": inc,
+            "today_expenses": exp,
+            "today_profit": prof,
+            "last_transaction": last_txn,
+        }
 
 
 copilot_service = CopilotService()

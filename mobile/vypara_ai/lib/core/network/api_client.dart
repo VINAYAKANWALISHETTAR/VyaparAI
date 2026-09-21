@@ -4,15 +4,18 @@ import 'package:vypara_ai/core/network/auth_interceptor.dart';
 import 'package:vypara_ai/core/storage/storage_service.dart';
 
 class ApiClient {
+  static final ApiClient _instance = ApiClient._internal();
+  factory ApiClient() => _instance;
+
   late final Dio dio;
 
-  ApiClient() {
+  ApiClient._internal() {
     final storage = StorageService();
     dio = Dio(BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
-      sendTimeout: const Duration(seconds: 60),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Accept': 'application/json',

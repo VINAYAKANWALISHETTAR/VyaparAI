@@ -51,5 +51,35 @@ except Exception as e:
             raise RuntimeError(f"Could not connect to MongoDB Atlas and mongomock is not available: {e2}, {e3}")
 
 
+def init_db_indexes(database):
+    try:
+        # Transactions: critical for home dashboard, reports, voice queries
+        database.transactions.create_index([("business_id", 1), ("date", -1)], background=True)
+        database.transactions.create_index([("user_id", 1), ("date", -1)], background=True)
+        database.transactions.create_index([("business_id", 1), ("type", 1), ("date", -1)], background=True)
+        database.transactions.create_index([("date", -1)], background=True)
+        
+        # Businesses
+        database.businesses.create_index([("owner_id", 1)], background=True)
+        
+        # Invoices & Receivables
+        database.invoices.create_index([("business_id", 1), ("status", 1)], background=True)
+        database.invoices.create_index([("user_id", 1)], background=True)
+        database.invoices.create_index([("customer_name", 1)], background=True)
+        
+        # Reminders & Notifications
+        database.reminders.create_index([("user_id", 1), ("due_date", 1)], background=True)
+        database.notifications.create_index([("user_id", 1), ("created_at", -1)], background=True)
+        
+        # Users
+        database.users.create_index([("email", 1)], unique=True, background=True)
+    except Exception as e:
+        print(f"Notice: Index setup handled: {e}")
+
+
+# Initialize indexes on established database
+init_db_indexes(db)
+
+
 def get_database():
     return db

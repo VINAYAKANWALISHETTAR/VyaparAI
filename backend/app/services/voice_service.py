@@ -102,21 +102,15 @@ class VoiceService:
 
         briefing = reminder_service.get_morning_briefing(user_id, business_id)
 
-        if not briefing.get("notifications"):
-            answer = (
-                f"Good morning! I am your VyaparAI bot. You have no overdue alerts for today. "
-                f"Your revenue today is ₹{briefing.get('today_income', 0):,.0f} and expenses are ₹{briefing.get('today_expenses', 0):,.0f}."
-            )
+        inc = float(briefing.get('today_income', 0.0))
+        exp = float(briefing.get('today_expenses', 0.0))
+        prof = inc - exp
+        if language == "kn":
+            answer = f"ಇಂದಿನ ಮಾರಾಟ ₹{inc:,.0f}, ವೆಚ್ಚ ₹{exp:,.0f}, ನಿವ್ವಳ ಲಾಭ ₹{prof:,.0f}."
+        elif language == "hi":
+            answer = f"आज की बिक्री ₹{inc:,.0f}, खर्च ₹{exp:,.0f}, शुद्ध लाभ ₹{prof:,.0f} है।"
         else:
-            notification_summary = "\n".join([
-                f"- {n.get('title')}: {n.get('message')}"
-                for n in briefing["notifications"]
-            ])
-            answer = (
-                f"Good morning! I am your VyaparAI bot. Here is your briefing for today:\n\n{notification_summary}\n\n"
-                f"Today's revenue: ₹{briefing.get('today_income', 0):,.0f}\n"
-                f"Today's expenses: ₹{briefing.get('today_expenses', 0):,.0f}"
-            )
+            answer = f"Today: Sales ₹{inc:,.0f}, Expenses ₹{exp:,.0f}, Net Profit ₹{prof:,.0f}."
 
         return {
             "transcription": text,

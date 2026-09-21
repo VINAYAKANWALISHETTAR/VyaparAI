@@ -165,6 +165,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         displayTitle = tr('suppliers');
       } else if (location.startsWith('/app/upload')) {
         displayTitle = tr('upload');
+      } else if (location.startsWith('/app/voice')) {
+        displayTitle = tr('voice_assistant');
       }
     }
 
