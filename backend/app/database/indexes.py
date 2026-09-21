@@ -43,6 +43,21 @@ def create_indexes():
     )
 
     db.transactions.create_index(
+        "user_id"
+    )
+
+    db.transactions.create_index(
+        [
+            ("user_id", 1),
+            ("date", -1),
+        ]
+    )
+
+    db.transactions.create_index(
+        "reference_id"
+    )
+
+    db.transactions.create_index(
         [
             ("business_id", 1),
             ("type", 1)

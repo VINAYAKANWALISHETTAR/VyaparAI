@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 ALLOWED_INVOICE_SOURCES = {"manual", "upi", "bank", "invoice", "voice", "ocr", "agent"}
@@ -46,13 +46,26 @@ class OCRResponse(BaseModel):
 
 class OCRConfirmRequest(BaseModel):
     business_id: Optional[str] = None
-    customer_name: str = Field(min_length=1, max_length=200)
+    customer_name: Optional[str] = None
+    party_name: Optional[str] = None
     invoice_number: Optional[str] = None
     amount: float = Field(gt=0)
     due_date: Optional[date] = None
     description: Optional[str] = None
     source: str = "ocr"
     reference_id: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_party_name(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("customer_name") and data.get("party_name"):
+                data["customer_name"] = data["party_name"]
+            elif not data.get("party_name") and data.get("customer_name"):
+                data["party_name"] = data["customer_name"]
+            if not data.get("customer_name"):
+                data["customer_name"] = "Customer"
+        return data
 
 
 class PaymentExtraction(BaseModel):

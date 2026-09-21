@@ -11,6 +11,7 @@ def transaction_document(
     source: str = "manual",
     reference_id: str | None = None,
     user_id: str | None = None,
+    currency: str = "INR",
 ):
     if date is None:
         date = datetime.now(timezone.utc)
@@ -27,16 +28,18 @@ def transaction_document(
     elif hasattr(date, "year") and hasattr(date, "month") and hasattr(date, "day"):
         date = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
+    now = datetime.now(timezone.utc)
     return {
         "business_id": business_id,
         "user_id": user_id,
-        "type": type,
-        "amount": amount,
-        "category": category,
-        "description": description,
+        "type": type.strip().lower(),
+        "amount": round(float(amount), 2),
+        "category": category.strip(),
+        "description": description.strip() if description else None,
         "date": date,
-        "source": source,
-        "reference_id": reference_id,
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc),
+        "currency": (currency or "INR").strip().upper(),
+        "source": source.strip().lower(),
+        "reference_id": reference_id.strip() if reference_id else None,
+        "created_at": now,
+        "updated_at": now,
     }

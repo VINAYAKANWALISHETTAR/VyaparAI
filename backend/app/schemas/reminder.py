@@ -8,6 +8,7 @@ class ReminderCreate(BaseModel):
     amount: float | None = None
     party_name: str | None = None
     reminder_type: str | None = None
+    recurrence: str | None = None
 
 
 class ReminderUpdate(BaseModel):
@@ -18,6 +19,7 @@ class ReminderUpdate(BaseModel):
     amount: float | None = None
     party_name: str | None = None
     reminder_type: str | None = None
+    recurrence: str | None = None
 
 
 class ReminderResponse(BaseModel):
@@ -29,6 +31,7 @@ class ReminderResponse(BaseModel):
     amount: float | None = None
     party_name: str | None = None
     reminder_type: str | None = None
+    recurrence: str | None = None
     created_at: str | None = None
 
 

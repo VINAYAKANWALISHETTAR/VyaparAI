@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 
-ALLOWED_SOURCES = {"manual", "upi", "bank", "invoice", "voice", "ocr", "agent"}
+ALLOWED_SOURCES = {"manual", "upi", "bank", "invoice", "voice", "ocr", "agent", "ocr_invoice"}
 
 
 class TransactionCreate(BaseModel):
@@ -15,9 +16,18 @@ class TransactionCreate(BaseModel):
     category: str = Field(min_length=1)
     description: str | None = None
     date: dt.date = Field(default_factory=dt.date.today)
+    currency: str = "INR"
     source: str = "manual"
     reference_id: str | None = None
+    idempotency_key: str | None = None
     user_id: str | None = None
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, value: float) -> float:
+        if math.isnan(value) or math.isinf(value) or value <= 0:
+            raise ValueError("amount must be a finite positive number")
+        return round(float(value), 2)
 
     @field_validator("type")
     @classmethod
@@ -26,6 +36,22 @@ class TransactionCreate(BaseModel):
         if value not in {"income", "expense"}:
             raise ValueError("type must be 'income' or 'expense'")
         return value
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("category cannot be empty")
+        return value
+
+    @field_validator("currency")
+    @classmethod
+    def validate_currency(cls, value: str) -> str:
+        val = value.strip().upper()
+        if not val or len(val) > 5:
+            return "INR"
+        return val
 
     @field_validator("source")
     @classmethod
@@ -45,9 +71,19 @@ class TransactionUpdate(BaseModel):
     category: str | None = Field(default=None, min_length=1)
     description: str | None = None
     date: Optional[dt.date] = None
+    currency: str | None = None
     source: str | None = None
     reference_id: str | None = None
     user_id: str | None = None
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if math.isnan(value) or math.isinf(value) or value <= 0:
+            raise ValueError("amount must be a finite positive number")
+        return round(float(value), 2)
 
     @field_validator("type")
     @classmethod
@@ -58,6 +94,16 @@ class TransactionUpdate(BaseModel):
         if value not in {"income", "expense"}:
             raise ValueError("type must be 'income' or 'expense'")
         return value
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        val = value.strip()
+        if not val:
+            raise ValueError("category cannot be empty")
+        return val
 
     @field_validator("source")
     @classmethod
@@ -82,6 +128,7 @@ class TransactionResponse(BaseModel):
     category: str
     description: str | None = None
     date: Optional[str] = None
+    currency: str = "INR"
     source: str | None = None
     reference_id: str | None = None
     created_at: str | None = None
