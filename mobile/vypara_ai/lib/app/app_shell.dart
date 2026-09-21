@@ -18,6 +18,7 @@ class AppShell extends StatelessWidget {
 
     final scaffold = Scaffold(
       backgroundColor: AppColors.background,
+      extendBody: true,
       appBar: const AppHeader(),
       drawer: const AppDrawer(),
       body: SafeArea(top: false, child: child),

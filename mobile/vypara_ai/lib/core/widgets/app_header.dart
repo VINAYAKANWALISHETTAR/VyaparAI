@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
+import 'package:vypara_ai/core/widgets/vyapar_ai_ribbon_logo.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
@@ -21,13 +22,6 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
-  String _getGreeting(String Function(String) tr) {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return tr('good_morning');
-    if (hour < 17) return tr('good_afternoon');
-    return tr('good_evening');
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tr = ref.watch(appTranslationsProvider);
@@ -38,86 +32,167 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ? auth.user!.name.split(' ').first
         : 'User';
 
-    Widget titleWidget;
-    if (isHome) {
-      titleWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _getGreeting(tr),
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            '$displayName \u{1F44B}',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      );
-    } else {
-      String displayTitle = title ?? 'VyaparAI';
-      if (title == null) {
-        if (location.startsWith('/app/reports')) {
-          displayTitle = tr('reports');
-        } else if (location.startsWith('/app/ai')) {
-          displayTitle = tr('ai_copilot');
-        } else if (location.startsWith('/app/records') ||
-            location.startsWith('/app/transactions')) {
-          displayTitle = tr('records');
-        } else if (location.startsWith('/app/settings')) {
-          displayTitle = tr('settings');
-        } else if (location.startsWith('/app/cash-flow')) {
-          displayTitle = tr('cash_flow');
-        } else if (location.startsWith('/app/reminders')) {
-          displayTitle = tr('reminders');
-        } else if (location.startsWith('/app/customers')) {
-          displayTitle = tr('customers');
-        } else if (location.startsWith('/app/suppliers')) {
-          displayTitle = tr('suppliers');
-        } else if (location.startsWith('/app/upload')) {
-          displayTitle = tr('upload');
-        }
-      }
+    final canPop = Navigator.canPop(context);
 
-      titleWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            displayTitle,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (subtitle != null)
-            Text(
-              subtitle!,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
+    if (isHome) {
+      return AppBar(
+        backgroundColor: const Color(0xFFF8FAFC),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: 64,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            // Hamburger squircle button
+            Builder(
+              builder: (ctx) => InkWell(
+                onTap: () => Scaffold.of(ctx).openDrawer(),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.menu_rounded,
+                      color: Color(0xFF1E293B),
+                      size: 20,
+                    ),
+                  ),
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-        ],
+            const SizedBox(width: 12),
+            // VyaparAI Ribbon Logo
+            const VyaparAiRibbonLogo(
+              size: 32,
+              fontSize: 18,
+            ),
+          ],
+        ),
+        actions: showActions
+            ? [
+                const LanguageSelector(),
+                const SizedBox(width: 10),
+                // Circular User Avatar with Online Dot
+                GestureDetector(
+                  onTap: () => context.push('/app/settings'),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'V',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: -1,
+                          bottom: -1,
+                          child: Container(
+                            width: 11,
+                            height: 11,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       );
     }
 
-    final canPop = Navigator.canPop(context);
+    // Secondary Screen Header
+    String displayTitle = title ?? 'VyaparAI';
+    if (title == null) {
+      if (location.startsWith('/app/reports')) {
+        displayTitle = tr('reports');
+      } else if (location.startsWith('/app/ai')) {
+        displayTitle = tr('ai_copilot');
+      } else if (location.startsWith('/app/records') ||
+          location.startsWith('/app/transactions')) {
+        displayTitle = tr('records');
+      } else if (location.startsWith('/app/settings')) {
+        displayTitle = tr('settings');
+      } else if (location.startsWith('/app/cash-flow')) {
+        displayTitle = tr('cash_flow');
+      } else if (location.startsWith('/app/reminders')) {
+        displayTitle = tr('reminders');
+      } else if (location.startsWith('/app/customers')) {
+        displayTitle = tr('customers');
+      } else if (location.startsWith('/app/suppliers')) {
+        displayTitle = tr('suppliers');
+      } else if (location.startsWith('/app/upload')) {
+        displayTitle = tr('upload');
+      }
+    }
+
+    final titleWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          displayTitle,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        if (subtitle != null)
+          Text(
+            subtitle!,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+    );
 
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF8FAFC),
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
@@ -125,7 +200,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       leading: canPop
           ? IconButton(
               icon: const Icon(
-                Icons.arrow_back_ios_new,
+                Icons.arrow_back_ios_new_rounded,
                 size: 20,
                 color: AppColors.textPrimary,
               ),
@@ -141,7 +216,6 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
-      // Wrap title in an Expanded-friendly widget to prevent overflow
       title: titleWidget,
       titleSpacing: 0,
       actions: showActions

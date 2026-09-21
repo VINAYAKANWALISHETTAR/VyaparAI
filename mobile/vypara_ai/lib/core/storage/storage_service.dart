@@ -5,11 +5,7 @@ class StorageService {
   static const String _refreshTokenKey = 'refresh_token';
   static const String _languageKey = 'selected_language';
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
-  );
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<String?> getAccessToken() async => _storage.read(key: _accessTokenKey);
   Future<void> setAccessToken(String token) async => _storage.write(key: _accessTokenKey, value: token);

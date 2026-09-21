@@ -11,6 +11,7 @@ class App extends StatelessWidget {
       title: 'VyparaAI',
       theme: AppTheme.light,
       routerConfig: router,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

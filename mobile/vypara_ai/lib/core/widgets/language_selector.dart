@@ -114,6 +114,8 @@ class LanguageSelector extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Icon(Icons.language_rounded, size: 15, color: Color(0xFF475467)),
+            const SizedBox(width: 5),
             Text(
               activeLang.code,
               style: const TextStyle(
@@ -123,7 +125,7 @@ class LanguageSelector extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF64748B)),
           ],
         ),
       ),

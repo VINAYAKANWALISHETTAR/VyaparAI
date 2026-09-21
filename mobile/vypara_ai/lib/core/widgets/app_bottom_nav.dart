@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vypara_ai/app/theme/app_colors.dart';
-import 'package:vypara_ai/core/localization/app_translations.dart';
 
 class AppBottomNav extends ConsumerWidget {
   const AppBottomNav({super.key, required this.location});
@@ -11,94 +9,120 @@ class AppBottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tr = ref.watch(appTranslationsProvider);
     final isHome = location == '/app/home' || location == '/';
-    final isRecords = location.startsWith('/app/records') || location.startsWith('/app/transactions');
+    final isTransactions = location.startsWith('/app/transactions') || location.startsWith('/app/records');
     final isReports = location.startsWith('/app/reports');
     final isSettings = location.startsWith('/app/settings');
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -6),
           ),
         ],
         border: const Border(
-          top: BorderSide(color: Color(0xFFF1F5F9), width: 1.0),
+          top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2),
         ),
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          height: 72,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
             children: [
-              _buildNavItem(
-                context: context,
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: tr('home'),
-                isSelected: isHome,
-                onTap: () => context.go('/app/home'),
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.receipt_long_outlined,
-                activeIcon: Icons.receipt_long_rounded,
-                label: tr('records'),
-                isSelected: isRecords,
-                onTap: () => context.go('/app/records'),
-              ),
-              // Prominent Center AI Assistant Floating Button
-              GestureDetector(
-                onTap: () => context.push('/app/voice'),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2155F5), Color(0xFF6C3EF0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+              // Navigation Items Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // Home
+                    _buildNavItem(
+                      icon: isHome ? Icons.home_rounded : Icons.home_outlined,
+                      label: 'Home',
+                      isSelected: isHome,
+                      showIndicatorDot: true,
+                      onTap: () => context.go('/app/home'),
                     ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2155F5).withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                    // Transactions
+                    _buildNavItem(
+                      icon: Icons.receipt_long_rounded,
+                      label: 'Transactions',
+                      isSelected: isTransactions,
+                      showIndicatorDot: false,
+                      onTap: () => context.go('/app/transactions'),
+                    ),
+                    // Gap for Center Elevated AI Mic Button
+                    const SizedBox(width: 64),
+                    // Reports
+                    _buildNavItem(
+                      icon: Icons.bar_chart_rounded,
+                      label: 'Reports',
+                      isSelected: isReports,
+                      showIndicatorDot: false,
+                      onTap: () => context.go('/app/reports'),
+                    ),
+                    // Settings
+                    _buildNavItem(
+                      icon: Icons.settings_rounded,
+                      label: 'Settings',
+                      isSelected: isSettings,
+                      showIndicatorDot: false,
+                      onTap: () => context.go('/app/settings'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Prominent Elevated Center AI Microphone Button
+              Positioned(
+                top: -22,
+                child: GestureDetector(
+                  onTap: () => context.push('/app/voice'),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2563EB), Color(0xFF6366F1), Color(0xFF7C3AED)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.mic_rounded,
-                      color: Colors.white,
-                      size: 24,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.40),
+                          blurRadius: 18,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.30),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 3.5,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.mic_rounded,
+                        color: Colors.white,
+                        size: 30,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.bar_chart_outlined,
-                activeIcon: Icons.bar_chart_rounded,
-                label: tr('reports'),
-                isSelected: isReports,
-                onTap: () => context.go('/app/reports'),
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.more_horiz_rounded,
-                activeIcon: Icons.more_horiz_rounded,
-                label: tr('more'),
-                isSelected: isSettings,
-                onTap: () => context.go('/app/settings'),
               ),
             ],
           ),
@@ -108,35 +132,48 @@ class AppBottomNav extends ConsumerWidget {
   }
 
   Widget _buildNavItem({
-    required BuildContext context,
     required IconData icon,
-    required IconData activeIcon,
     required String label,
     required bool isSelected,
+    required bool showIndicatorDot,
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? AppColors.primary : const Color(0xFF94A3B8),
-              size: 22,
+              icon,
+              size: 24,
+              color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
             ),
             const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : const Color(0xFF94A3B8),
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
               ),
             ),
+            const SizedBox(height: 2),
+            // Blue indicator dot for active item
+            if (isSelected && showIndicatorDot)
+              Container(
+                width: 4,
+                height: 4,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2563EB),
+                  shape: BoxShape.circle,
+                ),
+              )
+            else
+              const SizedBox(height: 4),
           ],
         ),
       ),

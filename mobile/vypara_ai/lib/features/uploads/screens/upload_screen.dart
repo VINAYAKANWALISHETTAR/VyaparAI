@@ -110,21 +110,18 @@ class _UploadScreenPlaceholderState
     ref.read(uploadProvider.notifier).reset();
 
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type:
             allowedExtensions != null ? FileType.custom : FileType.image,
         allowedExtensions: allowedExtensions,
-        withData: true,
-        allowMultiple: false,
       );
 
-      if (result == null || result.files.isEmpty) return; // user cancelled
+      if (file == null) return; // user cancelled
 
-      final file = result.files.first;
-      final Uint8List? bytes = file.bytes;
+      final Uint8List bytes = await file.readAsBytes();
       final String name = file.name;
 
-      if (bytes == null || bytes.isEmpty) {
+      if (bytes.isEmpty) {
         if (mounted) {
           _showErrorSnackbar(
             'Could not read file. Please try again.',
