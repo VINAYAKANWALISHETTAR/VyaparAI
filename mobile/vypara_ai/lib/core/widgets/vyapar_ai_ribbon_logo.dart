@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class VyaparAiRibbonLogo extends StatelessWidget {
   const VyaparAiRibbonLogo({
     super.key,
-    this.size = 36.0,
+    this.size = 38.0,
     this.fontSize = 20.0,
     this.showTagline = false,
   });
@@ -18,15 +18,38 @@ class VyaparAiRibbonLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Ribbon "V" Symbol with Sparkle
-        SizedBox(
-          width: size,
-          height: size,
-          child: CustomPaint(
-            painter: _RibbonLogoPainter(),
+        // User's Updated Logo from assets/images/VyaparAI_logo.png
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size * 0.22),
+          child: Image.asset(
+            'assets/images/VyaparAI_logo.png',
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+                  ),
+                  borderRadius: BorderRadius.circular(size * 0.22),
+                ),
+                child: const Center(
+                  child: Text(
+                    'V',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         // Wordmark
         Column(
           mainAxisSize: MainAxisSize.min,
@@ -41,7 +64,7 @@ class VyaparAiRibbonLogo extends StatelessWidget {
                   'Vyapar',
                   style: TextStyle(
                     fontSize: fontSize,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                     color: const Color(0xFF0F172A),
                     height: 1.1,
@@ -64,16 +87,6 @@ class VyaparAiRibbonLogo extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 2),
-                // Tiny sparkle near AI
-                Transform.translate(
-                  offset: const Offset(0, -6),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    size: 10,
-                    color: Color(0xFF2563EB),
-                  ),
-                ),
               ],
             ),
             if (showTagline) ...[
@@ -93,74 +106,4 @@ class VyaparAiRibbonLogo extends StatelessWidget {
       ],
     );
   }
-}
-
-class _RibbonLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Left Ribbon Strip (Cyan -> Blue)
-    final leftPath = Path()
-      ..moveTo(w * 0.15, h * 0.12)
-      ..lineTo(w * 0.40, h * 0.12)
-      ..lineTo(w * 0.58, h * 0.72)
-      ..lineTo(w * 0.35, h * 0.88)
-      ..close();
-
-    final leftPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF00D2FF), Color(0xFF2563EB)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromLTWH(0, 0, w, h));
-
-    canvas.drawPath(leftPath, leftPaint);
-
-    // Right Overlapping Ribbon Strip (Electric Blue -> Purple/Violet)
-    final rightPath = Path()
-      ..moveTo(w * 0.35, h * 0.88)
-      ..lineTo(w * 0.55, h * 0.74)
-      ..lineTo(w * 0.88, h * 0.12)
-      ..lineTo(w * 0.65, h * 0.12)
-      ..close();
-
-    final rightPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-        begin: Alignment.bottomLeft,
-        end: Alignment.topRight,
-      ).createShader(Rect.fromLTWH(0, 0, w, h));
-
-    // Shadow under the overlapping ribbon
-    final shadowPaint = Paint()
-      ..color = const Color(0x33000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawPath(rightPath, shadowPaint);
-
-    canvas.drawPath(rightPath, rightPaint);
-
-    // Sparkle accent at top right
-    final sparklePaint = Paint()
-      ..color = const Color(0xFF38BDF8)
-      ..style = PaintingStyle.fill;
-
-    final spX = w * 0.92;
-    final spY = h * 0.10;
-    final spR = w * 0.08;
-
-    final sparklePath = Path()
-      ..moveTo(spX, spY - spR)
-      ..quadraticBezierTo(spX, spY, spX + spR, spY)
-      ..quadraticBezierTo(spX, spY, spX, spY + spR)
-      ..quadraticBezierTo(spX, spY, spX - spR, spY)
-      ..quadraticBezierTo(spX, spY, spX, spY - spR)
-      ..close();
-
-    canvas.drawPath(sparklePath, sparklePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

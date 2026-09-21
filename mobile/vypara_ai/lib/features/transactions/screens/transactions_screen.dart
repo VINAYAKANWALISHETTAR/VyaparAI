@@ -208,39 +208,37 @@ class _TransactionsScreenPlaceholderState
   Widget build(BuildContext context) {
     final txState = ref.watch(transactionsProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Stack(
-        children: [
-          // Ambient soft gradient in top-right
-          Positioned(
-            top: -60,
-            right: -60,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF38BDF8).withValues(alpha: 0.12),
-                    const Color(0xFF818CF8).withValues(alpha: 0.06),
-                    Colors.transparent,
-                  ],
-                ),
+    return Stack(
+      children: [
+        // Ambient soft gradient in top-right
+        Positioned(
+          top: -60,
+          right: -60,
+          child: Container(
+            width: 320,
+            height: 320,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                  const Color(0xFF818CF8).withValues(alpha: 0.06),
+                  Colors.transparent,
+                ],
               ),
             ),
           ),
+        ),
 
-          RefreshIndicator(
-            color: const Color(0xFF2563EB),
-            onRefresh: () => ref.read(transactionsProvider.notifier).loadTransactions(),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 18.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+        RefreshIndicator(
+          color: const Color(0xFF2563EB),
+          onRefresh: () => ref.read(transactionsProvider.notifier).loadTransactions(),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   const SizedBox(height: 12),
 
                   // ── 1. HEADER TITLE & INSIGHTS PILL ─────────────────────────
@@ -547,8 +545,7 @@ class _TransactionsScreenPlaceholderState
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   bool _shouldShow(String itemType, String title) {

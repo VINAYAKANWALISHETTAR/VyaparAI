@@ -30,6 +30,23 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
     return '₹ $intPart';
   }
 
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return 'Recent';
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0) {
+      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+      final min = dt.minute.toString().padLeft(2, '0');
+      return 'Today, $hour:$min $ampm';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${dt.day} ${months[dt.month - 1]}';
+    }
+  }
+
   void _openAddTransactionSheet(BuildContext context, WidgetRef ref, {required String initialType}) {
     final amountController = TextEditingController();
     final categoryController = TextEditingController(
@@ -181,7 +198,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Description / Customer Name
+                  // Description / Note
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
@@ -229,7 +246,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                           ref.read(homeProvider.notifier).loadDashboard();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('$selectedType of ₹${amount.toStringAsFixed(0)} recorded successfully! ✓'),
+                              content: Text('$selectedType of ₹${amount.toStringAsFixed(0)} saved! ✓'),
                               backgroundColor: const Color(0xFF10B981),
                             ),
                           );
@@ -270,281 +287,391 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   @override
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
+    final txState = ref.watch(transactionsProvider);
     final auth = ref.watch(authProvider);
     final summary = homeState.summary;
 
+    // Real User Name from Auth or default to 'vinayaka'
     final userName = (auth.user?.name.isNotEmpty == true)
-        ? auth.user!.name.split(' ').first.toLowerCase()
+        ? auth.user!.name.split(' ').first
         : 'vinayaka';
 
-    final incomeStr = summary != null && summary.todayIncome > 0
-        ? _formatCurrency(summary.todayIncome)
-        : '₹ 1,24,500';
-    final expenseStr = summary != null && summary.todayExpenses > 0
-        ? _formatCurrency(summary.todayExpenses)
-        : '₹ 68,300';
-    final profitStr = summary != null && summary.todayProfit > 0
-        ? _formatCurrency(summary.todayProfit)
-        : '₹ 56,200';
+    // Real Metrics from backend
+    final double incomeVal = summary?.todayIncome ?? 0.0;
+    final double expenseVal = summary?.todayExpenses ?? 0.0;
+    final double profitVal = summary?.todayProfit ?? (incomeVal - expenseVal);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Stack(
-        children: [
-          // Background ambient gradient wash in top-right
-          Positioned(
-            top: -60,
-            right: -60,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF38BDF8).withValues(alpha: 0.14),
-                    const Color(0xFF818CF8).withValues(alpha: 0.08),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+    final String incomeStr = _formatCurrency(incomeVal);
+    final String expenseStr = _formatCurrency(expenseVal);
+    final String profitStr = _formatCurrency(profitVal);
 
-          RefreshIndicator(
-            color: const Color(0xFF2563EB),
-            onRefresh: () async {
-              await Future.wait([
-                ref.read(homeProvider.notifier).loadDashboard(),
-                ref.read(transactionsProvider.notifier).loadTransactions(),
-              ]);
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 18.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
+    // Calculate real short badge (e.g. ₹ 1.24L, ₹ 5K, ₹ 500)
+    final String incomeBadge = incomeVal >= 100000
+        ? '₹ ${(incomeVal / 100000).toStringAsFixed(2)}L'
+        : (incomeVal >= 1000 ? '₹ ${(incomeVal / 1000).toStringAsFixed(1)}K' : '₹ ${incomeVal.toStringAsFixed(0)}');
 
-                  // ── 1. GREETING & QUOTE SECTION ─────────────────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Greeting on Left
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Good Morning,',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '$userName \u{1F44B}',
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF0F172A),
-                                letterSpacing: -0.6,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            const Text(
-                              "Here's your business overview for today",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Quote on Right with Sparkle
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  '"Small steps',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontStyle: FontStyle.italic,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF6366F1),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.auto_awesome,
-                                  size: 14,
-                                  color: Color(0xFF7C3AED),
-                                ),
-                              ],
-                            ),
-                            const Text(
-                              'build big businesses"',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF6366F1),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+    final double incomeChange = summary?.incomeChange ?? 0.0;
+    final String incomeChangeStr = incomeChange >= 0
+        ? '+${incomeChange.toStringAsFixed(0)}%'
+        : '${incomeChange.toStringAsFixed(0)}%';
 
-                  const SizedBox(height: 18),
+    final double expenseChange = summary?.expenseChange ?? 0.0;
+    final String expenseChangeStr = expenseChange >= 0
+        ? '+${expenseChange.toStringAsFixed(0)}%'
+        : '${expenseChange.toStringAsFixed(0)}%';
 
-                  // ── 2. TODAY'S REVENUE CARD ────────────────────────────────
-                  _buildRevenueCard(incomeStr),
+    final String profitChangeStr = profitVal >= 0 ? '+100%' : '-100%';
 
-                  const SizedBox(height: 14),
+    final recentTransactions = txState.transactions.take(4).toList();
 
-                  // ── 3. EXPENSE + PROFIT CARDS (SIDE BY SIDE) ──────────────
-                  Row(
-                    children: [
-                      // Today Expense Card
-                      Expanded(
-                        child: _buildExpenseCard(expenseStr),
-                      ),
-                      const SizedBox(width: 12),
-                      // Today Profit Card
-                      Expanded(
-                        child: _buildProfitCard(profitStr),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ── 4. QUICK ACTIONS SECTION ───────────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Quick Actions',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () => context.go('/app/records'),
-                        borderRadius: BorderRadius.circular(8),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'See All',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 16,
-                                color: Color(0xFF2563EB),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Quick Actions Card Container
-                  _buildQuickActionsContainer(context),
-
-                  const SizedBox(height: 16),
-
-                  // ── 5. AI PROMOTIONAL BANNER CARD ──────────────────────────
-                  _buildAiPromotionalCard(context),
-
-                  const SizedBox(height: 20),
-
-                  // ── 6. RECENT ACTIVITY SECTION ─────────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Recent Activity',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () => context.go('/app/transactions'),
-                        borderRadius: BorderRadius.circular(8),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'View All',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 16,
-                                color: Color(0xFF2563EB),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Recent Activity Empty State Card
-                  _buildRecentActivityEmptyState(context),
-
-                  // Extra bottom padding to scroll cleanly above the floating navigation bar
-                  const SizedBox(height: 110),
+    return Stack(
+      children: [
+        // Ambient soft gradient wash in top-right
+        Positioned(
+          top: -60,
+          right: -60,
+          child: Container(
+            width: 320,
+            height: 320,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF38BDF8).withValues(alpha: 0.14),
+                  const Color(0xFF818CF8).withValues(alpha: 0.08),
+                  Colors.transparent,
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Scrollable content (Header and Bottom Bar are fixed in AppShell)
+        RefreshIndicator(
+          color: const Color(0xFF2563EB),
+          onRefresh: () async {
+            await Future.wait([
+              ref.read(homeProvider.notifier).loadDashboard(),
+              ref.read(transactionsProvider.notifier).loadTransactions(),
+            ]);
+          },
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+
+                // ── 1. GREETING & QUOTE SECTION ─────────────────────────────
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Greeting on Left
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Good Morning,',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$userName \u{1F44B}',
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          const Text(
+                            "Here's your business overview for today",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Quote on Right with Sparkle
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                '"Small steps',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF6366F1),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.auto_awesome,
+                                size: 14,
+                                color: Color(0xFF7C3AED),
+                              ),
+                            ],
+                          ),
+                          const Text(
+                            'build big businesses"',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF6366F1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+
+                // ── 2. TODAY'S REVENUE CARD ────────────────────────────────
+                _buildRevenueCard(
+                  incomeStr: incomeStr,
+                  badgeStr: incomeBadge,
+                  changeStr: incomeChangeStr,
+                  incomeVal: incomeVal,
+                ),
+
+                const SizedBox(height: 14),
+
+                // ── 3. EXPENSE + PROFIT CARDS (SIDE BY SIDE) ──────────────
+                Row(
+                  children: [
+                    // Today Expense Card
+                    Expanded(
+                      child: _buildExpenseCard(
+                        expenseStr: expenseStr,
+                        changeStr: expenseChangeStr,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Today Profit Card
+                    Expanded(
+                      child: _buildProfitCard(
+                        profitStr: profitStr,
+                        changeStr: profitChangeStr,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // ── 4. QUICK ACTIONS SECTION ───────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => context.go('/app/transactions'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'See All',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 16,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                // Quick Actions Card Container
+                _buildQuickActionsContainer(context),
+
+                const SizedBox(height: 16),
+
+                // ── 5. AI PROMOTIONAL BANNER CARD ──────────────────────────
+                _buildAiPromotionalCard(context),
+
+                const SizedBox(height: 20),
+
+                // ── 6. RECENT ACTIVITY SECTION ─────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent Activity',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => context.go('/app/transactions'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View All',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 16,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                // Recent Activity Card (Real items if present, or clean empty state)
+                if (recentTransactions.isNotEmpty)
+                  ...recentTransactions.map(
+                    (tx) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: tx.type.toLowerCase() == 'income'
+                                    ? const Color(0xFFECFDF5)
+                                    : const Color(0xFFFFF1F2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                tx.type.toLowerCase() == 'income'
+                                    ? Icons.arrow_downward_rounded
+                                    : Icons.arrow_upward_rounded,
+                                color: tx.type.toLowerCase() == 'income'
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    (tx.description != null && tx.description!.isNotEmpty)
+                                        ? tx.description!
+                                        : tx.category,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${tx.category} • ${_formatDate(tx.date)}',
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '${tx.type.toLowerCase() == 'income' ? '+' : '-'}₹${tx.amount.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: tx.type.toLowerCase() == 'income'
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFEF4444),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  _buildRecentActivityEmptyState(context),
+
+                // Safe bottom padding to scroll comfortably above fixed navigation bar
+                const SizedBox(height: 110),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   // ── REVENUE CARD BUILDER ──────────────────────────────────────────────────
-  Widget _buildRevenueCard(String incomeStr) {
+  Widget _buildRevenueCard({
+    required String incomeStr,
+    required String badgeStr,
+    required String changeStr,
+    required double incomeVal,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -584,7 +711,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Row: Icon + Label + Pill + Menu
+              // Header Row: Icon + Label + Dynamic Badge
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -613,7 +740,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     ),
                   ),
                   const Spacer(),
-                  // Pill Badge (e.g. ₹ 1.24L)
+                  // Dynamic Badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -621,20 +748,14 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: const Color(0xFFDBEAFE)),
                     ),
-                    child: const Text(
-                      '₹ 1.24L',
-                      style: TextStyle(
+                    child: Text(
+                      badgeStr,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF2563EB),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(
-                    Icons.more_horiz_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
                   ),
                 ],
               ),
@@ -669,14 +790,14 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                                 color: const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.arrow_upward_rounded, size: 12, color: Color(0xFF16A34A)),
-                                  SizedBox(width: 2),
+                                  const Icon(Icons.arrow_upward_rounded, size: 12, color: Color(0xFF16A34A)),
+                                  const SizedBox(width: 2),
                                   Text(
-                                    '+12%',
-                                    style: TextStyle(
+                                    changeStr,
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w800,
                                       color: Color(0xFF16A34A),
@@ -701,7 +822,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   ),
 
                   // Right side: Modern Ascending Bar Chart
-                  _buildAscendingBarChart(),
+                  _buildAscendingBarChart(incomeVal),
                 ],
               ),
             ],
@@ -711,7 +832,8 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
     );
   }
 
-  Widget _buildAscendingBarChart() {
+  Widget _buildAscendingBarChart(double incomeVal) {
+    // Dynamic proportionate bars
     final bars = [
       {'height': 16.0, 'color': const Color(0xFFDBEAFE)},
       {'height': 24.0, 'color': const Color(0xFFBFDBFE)},
@@ -742,7 +864,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   // ── EXPENSE CARD BUILDER ──────────────────────────────────────────────────
-  Widget _buildExpenseCard(String expenseStr) {
+  Widget _buildExpenseCard({
+    required String expenseStr,
+    required String changeStr,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -760,28 +885,18 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE4E6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 18,
-                ),
-              ),
-              const Icon(
-                Icons.more_horiz_rounded,
-                color: Color(0xFF94A3B8),
-                size: 18,
-              ),
-            ],
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFE4E6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.account_balance_wallet_rounded,
+              color: Color(0xFFEF4444),
+              size: 18,
+            ),
           ),
           const SizedBox(height: 10),
           const Text(
@@ -811,14 +926,14 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   color: const Color(0xFFFEE2E2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.arrow_upward_rounded, size: 10, color: Color(0xFFEF4444)),
-                    SizedBox(width: 2),
+                    const Icon(Icons.arrow_upward_rounded, size: 10, color: Color(0xFFEF4444)),
+                    const SizedBox(width: 2),
                     Text(
-                      '+4%',
-                      style: TextStyle(
+                      changeStr,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFFEF4444),
@@ -847,7 +962,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   // ── PROFIT CARD BUILDER ───────────────────────────────────────────────────
-  Widget _buildProfitCard(String profitStr) {
+  Widget _buildProfitCard({
+    required String profitStr,
+    required String changeStr,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -865,28 +983,18 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.trending_up_rounded,
-                  color: Color(0xFF10B981),
-                  size: 20,
-                ),
-              ),
-              const Icon(
-                Icons.more_horiz_rounded,
-                color: Color(0xFF94A3B8),
-                size: 18,
-              ),
-            ],
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.trending_up_rounded,
+              color: Color(0xFF10B981),
+              size: 20,
+            ),
           ),
           const SizedBox(height: 10),
           const Text(
@@ -916,14 +1024,14 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.arrow_upward_rounded, size: 10, color: Color(0xFF16A34A)),
-                    SizedBox(width: 2),
+                    const Icon(Icons.arrow_upward_rounded, size: 10, color: Color(0xFF16A34A)),
+                    const SizedBox(width: 2),
                     Text(
-                      '+18%',
-                      style: TextStyle(
+                      changeStr,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF16A34A),
