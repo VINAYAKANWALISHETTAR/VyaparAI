@@ -6,10 +6,13 @@ class AiRemoteDataSource {
 
   AiRemoteDataSource(this.apiClient);
 
-  Future<Map<String, dynamic>> sendChatMessage(String message) async {
+  Future<Map<String, dynamic>> sendChatMessage(String message, {String? language}) async {
     final res = await apiClient.dio.post(
       ApiEndpoints.copilotChat,
-      data: {'message': message},
+      data: {
+        'message': message,
+        'language': ?language,
+      },
     );
     return res.data as Map<String, dynamic>;
   }
@@ -20,7 +23,10 @@ class AiRemoteDataSource {
   }) async {
     final res = await apiClient.dio.post(
       ApiEndpoints.voiceQuery,
-      queryParameters: {'text': text},
+      data: {
+        'text': text,
+        'language': ?language,
+      },
     );
     return res.data as Map<String, dynamic>;
   }

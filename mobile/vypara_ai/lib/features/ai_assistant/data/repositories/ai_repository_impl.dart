@@ -7,8 +7,8 @@ class AiRepositoryImpl implements AiRepository {
   AiRepositoryImpl(this._dataSource);
 
   @override
-  Future<Map<String, dynamic>> sendChatMessage(String message) {
-    return _dataSource.sendChatMessage(message);
+  Future<Map<String, dynamic>> sendChatMessage(String message, {String? language}) {
+    return _dataSource.sendChatMessage(message, language: language);
   }
 
   @override

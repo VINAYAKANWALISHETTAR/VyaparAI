@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/features/ai_assistant/data/datasources/ai_remote_datasource.dart';
 import 'package:vypara_ai/features/ai_assistant/data/models/chat_message_model.dart';
 import 'package:vypara_ai/features/ai_assistant/data/repositories/ai_repository_impl.dart';
@@ -37,18 +39,25 @@ class AiChatProvider extends Notifier<AiChatState> {
     repository = AiRepositoryImpl(
       AiRemoteDataSource(ApiClient()),
     );
-    // Initial welcome message matching Screen 12
+    final lang = ref.watch(languageProvider);
+
+    // Initial welcome message localized to the user's selected language
+    final welcomeText = AppTranslations.get('ai_welcome_text', lang.code);
+    final suggest1 = AppTranslations.get('ai_suggest_1', lang.code);
+    final suggest2 = AppTranslations.get('ai_suggest_2', lang.code);
+    final suggest3 = AppTranslations.get('ai_suggest_3', lang.code);
+
     return AiChatState(
       messages: [
         ChatMessageModel(
           id: 'welcome_1',
-          text: 'Hello! I am VyaparAI, your AI business copilot. You can ask me about your profit, pending customer receivables, cash flow forecast, or expense summaries.',
+          text: welcomeText,
           isUser: false,
           timestamp: DateTime.now(),
           actionButtons: [
-            ChatActionButton(label: 'Who owes me money?', query: 'Who owes me money?'),
-            ChatActionButton(label: 'What is my profit today?', query: 'What is my profit today?'),
-            ChatActionButton(label: 'How is my business doing?', query: 'How is my business doing?'),
+            ChatActionButton(label: suggest1, query: suggest1),
+            ChatActionButton(label: suggest2, query: suggest2),
+            ChatActionButton(label: suggest3, query: suggest3),
           ],
         ),
       ],
@@ -59,8 +68,10 @@ class AiChatProvider extends Notifier<AiChatState> {
     final query = text.trim();
     if (query.isEmpty) return;
 
+    final lang = ref.read(languageProvider);
+
     final userMsg = ChatMessageModel(
-      id: 'user_\${DateTime.now().millisecondsSinceEpoch}',
+      id: 'user_${DateTime.now().millisecondsSinceEpoch}',
       text: query,
       isUser: true,
       timestamp: DateTime.now(),
@@ -73,7 +84,7 @@ class AiChatProvider extends Notifier<AiChatState> {
     );
 
     try {
-      final res = await repository.sendChatMessage(query);
+      final res = await repository.sendChatMessage(query, language: lang.langCode);
       final answer = res['answer']?.toString() ?? 'I could not process your query.';
       List<ChatActionButton> buttons = [];
       if (res['action_buttons'] is List) {
@@ -83,7 +94,7 @@ class AiChatProvider extends Notifier<AiChatState> {
       }
 
       final aiMsg = ChatMessageModel(
-        id: 'ai_\${DateTime.now().millisecondsSinceEpoch}',
+        id: 'ai_${DateTime.now().millisecondsSinceEpoch}',
         text: answer,
         isUser: false,
         timestamp: DateTime.now(),
@@ -96,9 +107,10 @@ class AiChatProvider extends Notifier<AiChatState> {
         messages: [...state.messages, aiMsg],
       );
     } catch (e) {
+      final errorMsgText = AppTranslations.get('ai_server_error', lang.code);
       final errorMsg = ChatMessageModel(
-        id: 'ai_err_\${DateTime.now().millisecondsSinceEpoch}',
-        text: 'Sorry, I had trouble reaching the server. Please try again.',
+        id: 'ai_err_${DateTime.now().millisecondsSinceEpoch}',
+        text: errorMsgText,
         isUser: false,
         timestamp: DateTime.now(),
       );
