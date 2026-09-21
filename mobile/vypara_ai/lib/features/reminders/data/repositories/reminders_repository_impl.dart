@@ -20,6 +20,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
     double? amount,
     String? partyName,
     String? reminderType,
+    String? recurrence,
   }) {
     return _remoteDataSource.createReminder(
       title: title,
@@ -28,6 +29,32 @@ class RemindersRepositoryImpl implements RemindersRepository {
       amount: amount,
       partyName: partyName,
       reminderType: reminderType,
+      recurrence: recurrence,
+    );
+  }
+
+  @override
+  Future<ReminderModel> updateReminder({
+    required String reminderId,
+    String? title,
+    String? description,
+    DateTime? dueAt,
+    double? amount,
+    String? partyName,
+    String? reminderType,
+    String? recurrence,
+    String? status,
+  }) {
+    return _remoteDataSource.updateReminder(
+      reminderId: reminderId,
+      title: title,
+      description: description,
+      dueAt: dueAt,
+      amount: amount,
+      partyName: partyName,
+      reminderType: reminderType,
+      recurrence: recurrence,
+      status: status,
     );
   }
 
@@ -46,4 +73,5 @@ class RemindersRepositoryImpl implements RemindersRepository {
   Future<void> deleteReminder(String reminderId) {
     return _remoteDataSource.deleteReminder(reminderId);
   }
+
 }

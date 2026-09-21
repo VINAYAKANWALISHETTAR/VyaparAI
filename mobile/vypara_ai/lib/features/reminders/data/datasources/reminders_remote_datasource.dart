@@ -47,6 +47,7 @@ class RemindersRemoteDataSource {
     double? amount,
     String? partyName,
     String? reminderType,
+    String? recurrence,
   }) async {
     final bizId = await getDefaultBusinessId();
     final data = <String, dynamic>{
@@ -57,6 +58,7 @@ class RemindersRemoteDataSource {
     if (dueAt != null) data['due_at'] = dueAt.toIso8601String();
     if (amount != null) data['amount'] = amount;
     if (partyName != null && partyName.isNotEmpty) data['party_name'] = partyName;
+    if (recurrence != null && recurrence.isNotEmpty) data['recurrence'] = recurrence;
 
     final url = bizId != null
         ? '${ApiEndpoints.reminders}?business_id=$bizId'
@@ -64,6 +66,35 @@ class RemindersRemoteDataSource {
 
     final res = await apiClient.dio.post(
       url,
+      data: data,
+    );
+
+    return ReminderModel.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<ReminderModel> updateReminder({
+    required String reminderId,
+    String? title,
+    String? description,
+    DateTime? dueAt,
+    double? amount,
+    String? partyName,
+    String? reminderType,
+    String? recurrence,
+    String? status,
+  }) async {
+    final data = <String, dynamic>{};
+    if (title != null) data['title'] = title;
+    if (description != null) data['description'] = description;
+    if (dueAt != null) data['due_at'] = dueAt.toIso8601String();
+    if (amount != null) data['amount'] = amount;
+    if (partyName != null) data['party_name'] = partyName;
+    if (reminderType != null) data['reminder_type'] = reminderType;
+    if (recurrence != null) data['recurrence'] = recurrence;
+    if (status != null) data['status'] = status;
+
+    final res = await apiClient.dio.patch(
+      '${ApiEndpoints.reminders}$reminderId',
       data: data,
     );
 
@@ -81,6 +112,7 @@ class RemindersRemoteDataSource {
 
     return ReminderModel.fromJson(res.data as Map<String, dynamic>);
   }
+
 
   Future<void> deleteReminder(String reminderId) async {
     await apiClient.dio.delete('${ApiEndpoints.reminders}$reminderId');

@@ -7,6 +7,7 @@ class ReminderModel {
   final double? amount;
   final String? partyName;
   final String reminderType; // 'supplier', 'customer', 'rent', 'utility', 'general'
+  final String? recurrence; // 'daily', 'weekly', 'monthly', or null
   final DateTime? createdAt;
 
   ReminderModel({
@@ -18,6 +19,7 @@ class ReminderModel {
     this.amount,
     this.partyName,
     this.reminderType = 'general',
+    this.recurrence,
     this.createdAt,
   });
 
@@ -38,6 +40,7 @@ class ReminderModel {
       amount: json['amount'] != null ? (json['amount'] as num).toDouble() : null,
       partyName: json['party_name']?.toString(),
       reminderType: json['reminder_type']?.toString() ?? 'general',
+      recurrence: json['recurrence']?.toString(),
       createdAt: parseDate(json['created_at']),
     );
   }
@@ -52,6 +55,7 @@ class ReminderModel {
     if (dueAt != null) map['due_at'] = dueAt!.toIso8601String();
     if (amount != null) map['amount'] = amount;
     if (partyName != null) map['party_name'] = partyName;
+    if (recurrence != null) map['recurrence'] = recurrence;
     return map;
   }
 
@@ -64,6 +68,7 @@ class ReminderModel {
     double? amount,
     String? partyName,
     String? reminderType,
+    String? recurrence,
     DateTime? createdAt,
   }) {
     return ReminderModel(
@@ -75,7 +80,9 @@ class ReminderModel {
       amount: amount ?? this.amount,
       partyName: partyName ?? this.partyName,
       reminderType: reminderType ?? this.reminderType,
+      recurrence: recurrence ?? this.recurrence,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 }
+

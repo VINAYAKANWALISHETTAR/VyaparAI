@@ -70,6 +70,7 @@ class RemindersProvider extends Notifier<RemindersState> {
     double? amount,
     String? partyName,
     String? reminderType,
+    String? recurrence,
   }) async {
     try {
       final created = await repository.createReminder(
@@ -79,6 +80,7 @@ class RemindersProvider extends Notifier<RemindersState> {
         amount: amount,
         partyName: partyName,
         reminderType: reminderType,
+        recurrence: recurrence,
       );
 
       state = state.copyWith(
@@ -90,6 +92,37 @@ class RemindersProvider extends Notifier<RemindersState> {
       return false;
     }
   }
+
+  Future<bool> updateReminder({
+    required String reminderId,
+    String? title,
+    String? description,
+    DateTime? dueAt,
+    double? amount,
+    String? partyName,
+    String? reminderType,
+    String? recurrence,
+  }) async {
+    try {
+      await repository.updateReminder(
+        reminderId: reminderId,
+        title: title,
+        description: description,
+        dueAt: dueAt,
+        amount: amount,
+        partyName: partyName,
+        reminderType: reminderType,
+        recurrence: recurrence,
+      );
+
+      await loadReminders();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
 
   Future<void> toggleReminderStatus(ReminderModel reminder) async {
     final newStatus = reminder.isCompleted ? 'pending' : 'completed';

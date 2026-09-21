@@ -9,6 +9,18 @@ abstract class RemindersRepository {
     double? amount,
     String? partyName,
     String? reminderType,
+    String? recurrence,
+  });
+  Future<ReminderModel> updateReminder({
+    required String reminderId,
+    String? title,
+    String? description,
+    DateTime? dueAt,
+    double? amount,
+    String? partyName,
+    String? reminderType,
+    String? recurrence,
+    String? status,
   });
   Future<ReminderModel> updateReminderStatus({
     required String reminderId,
@@ -16,3 +28,4 @@ abstract class RemindersRepository {
   });
   Future<void> deleteReminder(String reminderId);
 }
+
