@@ -372,15 +372,6 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Good Morning,',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
                           Text(
                             '$userName \u{1F44B}',
                             style: const TextStyle(
