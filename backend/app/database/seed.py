@@ -21,6 +21,11 @@ def seed_default_data():
             user = db.users.find_one({"_id": res.inserted_id})
         else:
             user_id = str(user["_id"])
+            if not verify_password("password123", user.get("password_hash", "")):
+                db.users.update_one(
+                    {"_id": user["_id"]},
+                    {"$set": {"password_hash": hash_password("password123")}}
+                )
 
         # Check or create business
         biz = db.businesses.find_one({"owner_id": user_id})

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+import re
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from app.database.mongodb import db
 from app.models.user import user_document
-from app.core.security import hash_password, get_current_user
+from app.models.business import business_document
+from app.core.security import hash_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -16,9 +18,23 @@ class UserCreate(BaseModel):
 
 @router.post("/")
 def create_user(user: UserCreate):
+    email = user.email.strip().lower()
+    name = user.name.strip()
+
+    if not email or not user.password or not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name, email, and password are required"
+        )
+
+    if len(user.password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 6 characters long"
+        )
 
     existing_user = db.users.find_one({
-        "email": user.email
+        "email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}
     })
 
     if existing_user:
@@ -27,29 +43,49 @@ def create_user(user: UserCreate):
             detail="User with this email already exists"
         )
 
-    # Temporary for Phase 2.
-    # Password hashing will be implemented in Phase 3.
     new_user = user_document(
-        name=user.name,
-        email=user.email,
+        name=name,
+        email=email,
         password_hash=hash_password(user.password)
     )
 
     result = db.users.insert_one(new_user)
+    user_id = str(result.inserted_id)
+
+    # Auto-provision a default business for the user
+    new_biz = business_document(
+        name=f"{name}'s Business",
+        business_type="Retail & Services",
+        owner_id=user_id,
+    )
+    db.businesses.insert_one(new_biz)
+
+    access_token = create_access_token(user_id)
 
     return {
         "message": "User created successfully",
-        "user_id": str(result.inserted_id)
+        "user_id": user_id,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user_id,
+            "name": name,
+            "email": email,
+        }
     }
 
 
 @router.get("/me")
 def get_current_user_profile(current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    biz = db.businesses.find_one({"owner_id": user_id})
+    biz_name = biz.get("name", "VyaparAI Enterprise") if biz else "VyaparAI Enterprise"
+
     return {
-        "id": str(current_user["_id"]),
-        "name": current_user.get("name", ""),
+        "id": user_id,
+        "name": current_user.get("name", "vinayaka"),
         "email": current_user.get("email", ""),
-        "business_name": current_user.get("business_name", ""),
+        "business_name": biz_name,
         "phone": current_user.get("phone", ""),
         "created_at": str(current_user.get("created_at", "")),
     }

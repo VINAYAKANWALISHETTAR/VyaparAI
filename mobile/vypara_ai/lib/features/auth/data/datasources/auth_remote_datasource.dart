@@ -27,13 +27,54 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<void> register(RegisterRequest request) async {
+  Future<LoginResponse> register(RegisterRequest request) async {
     try {
-      await apiClient.dio.post(ApiEndpoints.register, data: request.toJson());
+      final response = await apiClient.dio.post(
+        ApiEndpoints.register,
+        data: request.toJson(),
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      if (data.containsKey('access_token')) {
+        return LoginResponse.fromJson(data);
+      }
+      // Fallback if endpoint returns user_id
+      return login(LoginRequest(email: request.email, password: request.password));
     } on DioException catch (e) {
       throw NetworkException.fromDioError(e);
     } catch (_) {
       throw const UnknownException('Registration failed');
+    }
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await apiClient.dio.post(
+        ApiEndpoints.forgotPassword,
+        data: {'email': email.trim().toLowerCase()},
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw NetworkException.fromDioError(e);
+    } catch (_) {
+      throw const UnknownException('Password reset request failed');
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+    try {
+      final response = await apiClient.dio.post(
+        ApiEndpoints.resetPassword,
+        data: {
+          'token': token.trim(),
+          'new_password': newPassword,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw NetworkException.fromDioError(e);
+    } catch (_) {
+      throw const UnknownException('Password reset failed');
     }
   }
 }

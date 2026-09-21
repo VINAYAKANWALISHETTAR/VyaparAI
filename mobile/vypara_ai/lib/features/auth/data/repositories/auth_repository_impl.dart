@@ -11,22 +11,42 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User> login(String email, String password) async {
-    final request = LoginRequest(email: email, password: password);
+    final request = LoginRequest(
+      email: email.trim().toLowerCase(),
+      password: password,
+    );
     final response = await remoteDataSource.login(request);
-    // name is intentionally set to email here; AuthProvider will hydrate
-    // the real name from GET /users/me immediately after login succeeds.
     return User(
       id: response.accessToken,
-      name: email,
-      email: email,
+      name: email.trim().toLowerCase(),
+      email: email.trim().toLowerCase(),
     );
   }
 
   @override
   Future<User> register(String name, String email, String password) async {
-    await remoteDataSource.register(
-      RegisterRequest(name: name, email: email, password: password),
+    final normalizedEmail = email.trim().toLowerCase();
+    final response = await remoteDataSource.register(
+      RegisterRequest(
+        name: name.trim(),
+        email: normalizedEmail,
+        password: password,
+      ),
     );
-    return login(email, password);
+    return User(
+      id: response.accessToken,
+      name: name.trim(),
+      email: normalizedEmail,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    return remoteDataSource.forgotPassword(email.trim().toLowerCase());
+  }
+
+  @override
+  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+    return remoteDataSource.resetPassword(token.trim(), newPassword);
   }
 }

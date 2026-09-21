@@ -105,6 +105,14 @@ class AuthProvider extends Notifier<AuthState> {
     }
   }
 
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    return repository.forgotPassword(email);
+  }
+
+  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+    return repository.resetPassword(token, newPassword);
+  }
+
   Future<void> logout() async {
     await storage.clearAll();
     state = const AuthState(status: AuthStatus.unauthenticated);

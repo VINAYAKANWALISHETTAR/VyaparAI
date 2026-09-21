@@ -15,17 +15,31 @@ try:
     client = MongoClient(
         MONGODB_URL,
         tlsCAFile=certifi.where(),
-        serverSelectionTimeoutMS=3000,
-        connectTimeoutMS=3000,
+        tlsAllowInvalidCertificates=True,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
     )
     client.admin.command("ping")
     db = client[DATABASE_NAME]
     print(f"Successfully connected to MongoDB Atlas ({DATABASE_NAME})")
 except Exception as e:
-    print(f"Notice: MongoDB Atlas connection failed ({e}). Using in-memory fallback database for local development.")
-    import mongomock
-    client = mongomock.MongoClient()
-    db = client[DATABASE_NAME]
+    print(f"Notice: MongoDB Atlas direct connection notice: {e}. Trying resilient local database.")
+    try:
+        client = MongoClient(
+            MONGODB_URL,
+            tls=True,
+            tlsAllowInvalidCertificates=True,
+            serverSelectionTimeoutMS=5000,
+        )
+        client.admin.command("ping")
+        db = client[DATABASE_NAME]
+        print(f"Successfully connected to MongoDB Atlas via TLS fallback ({DATABASE_NAME})")
+    except Exception as e2:
+        print(f"Notice: Falling back to local mongomock ({e2})")
+        import mongomock
+        client = mongomock.MongoClient()
+        db = client[DATABASE_NAME]
+
 
 
 def get_database():
