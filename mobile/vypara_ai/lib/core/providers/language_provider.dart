@@ -1,24 +1,48 @@
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/core/storage/storage_service.dart';
 
 class LanguageModel {
-  final String code;
-  final String name;
-  final String nativeName;
-  final String speechLocale;
+  final String code; // 'EN', 'KN', 'HI'
+  final String name; // 'English', 'Kannada', 'Hindi'
+  final String nativeName; // 'English', 'ಕನ್ನಡ', 'हिंदी'
+  final String speechLocale; // 'en_IN', 'kn_IN', 'hi_IN'
+  final String localeTag; // 'en-IN', 'kn-IN', 'hi-IN'
 
   const LanguageModel({
     required this.code,
     required this.name,
     required this.nativeName,
     required this.speechLocale,
+    required this.localeTag,
   });
+
+  Locale get locale => Locale(code.toLowerCase(), 'IN');
+  String get langCode => code.toLowerCase();
 }
 
 const List<LanguageModel> supportedLanguages = [
-  LanguageModel(code: 'EN', name: 'English', nativeName: 'English', speechLocale: 'en_IN'),
-  LanguageModel(code: 'KN', name: 'Kannada', nativeName: 'ಕನ್ನಡ', speechLocale: 'kn_IN'),
-  LanguageModel(code: 'HI', name: 'Hindi', nativeName: 'हिंदी', speechLocale: 'hi_IN'),
+  LanguageModel(
+    code: 'EN',
+    name: 'English',
+    nativeName: 'English',
+    speechLocale: 'en_IN',
+    localeTag: 'en-IN',
+  ),
+  LanguageModel(
+    code: 'KN',
+    name: 'Kannada',
+    nativeName: 'ಕನ್ನಡ',
+    speechLocale: 'kn_IN',
+    localeTag: 'kn-IN',
+  ),
+  LanguageModel(
+    code: 'HI',
+    name: 'Hindi',
+    nativeName: 'हिंदी',
+    speechLocale: 'hi_IN',
+    localeTag: 'hi-IN',
+  ),
 ];
 
 class LanguageNotifier extends Notifier<LanguageModel> {
@@ -31,28 +55,42 @@ class LanguageNotifier extends Notifier<LanguageModel> {
   }
 
   Future<void> _loadSavedLanguage() async {
-    final savedCode = await _storage.getLanguage();
-    if (savedCode != null) {
-      final match = supportedLanguages.firstWhere(
-        (l) => l.code == savedCode || l.name == savedCode,
-        orElse: () => supportedLanguages.first,
-      );
-      state = match;
-    }
+    try {
+      final savedCode = await _storage.getLanguage();
+      if (savedCode != null && savedCode.isNotEmpty) {
+        final match = supportedLanguages.firstWhere(
+          (l) =>
+              l.code.toUpperCase() == savedCode.toUpperCase() ||
+              l.name.toLowerCase() == savedCode.toLowerCase() ||
+              l.langCode == savedCode.toLowerCase() ||
+              l.localeTag.toLowerCase() == savedCode.toLowerCase(),
+          orElse: () => supportedLanguages.first,
+        );
+        state = match;
+      }
+    } catch (_) {}
   }
 
   Future<void> setLanguage(LanguageModel lang) async {
     state = lang;
-    await _storage.setLanguage(lang.code);
+    try {
+      await _storage.setLanguage(lang.code);
+    } catch (_) {}
   }
 
   Future<void> setLanguageByCode(String code) async {
     final match = supportedLanguages.firstWhere(
-      (l) => l.code == code || l.name.toLowerCase() == code.toLowerCase(),
+      (l) =>
+          l.code.toUpperCase() == code.toUpperCase() ||
+          l.name.toLowerCase() == code.toLowerCase() ||
+          l.langCode == code.toLowerCase() ||
+          l.localeTag.toLowerCase() == code.toLowerCase(),
       orElse: () => supportedLanguages.first,
     );
     state = match;
-    await _storage.setLanguage(match.code);
+    try {
+      await _storage.setLanguage(match.code);
+    } catch (_) {}
   }
 }
 
