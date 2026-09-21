@@ -6,6 +6,7 @@ import shutil
 from typing import Optional, Tuple
 import numpy as np
 from PIL import Image, ImageOps
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,11 @@ class OCRService:
     def __init__(self):
         self._rapidocr_engine: Optional[object] = None
         self._tesseract_cmd: Optional[str] = None
+        self._ocr_space_key: str = (
+            os.getenv("OCR_SPACE_API_KEY")
+            or os.getenv("OCR_API_KEY")
+            or "K81686941188957"
+        )
         self._init_engines()
 
     def _init_engines(self):
@@ -69,8 +75,12 @@ class OCRService:
                     break
 
     def is_engine_available(self) -> bool:
-        """Returns True if at least one real OCR engine is initialized and ready."""
-        return (self._rapidocr_engine is not None) or (self._tesseract_cmd is not None)
+        """Returns True if at least one real OCR engine (RapidOCR, Tesseract, or OCR.space Cloud API) is ready."""
+        return (
+            (self._rapidocr_engine is not None)
+            or (self._tesseract_cmd is not None)
+            or bool(self._ocr_space_key)
+        )
 
     def validate_file(self, filename: str, content: bytes, content_type: str) -> None:
         if not content or len(content) == 0:
@@ -126,7 +136,80 @@ class OCRService:
 
         return image
 
-    def extract_text_with_details(self, content: bytes) -> Tuple[str, float]:
+    def _extract_via_ocr_space(self, content: bytes, language: Optional[str] = None) -> Tuple[str, float]:
+        """
+        Extract text using OCR.space Cloud API.
+        Engine 2 is optimized for numbers, invoices, receipts, and table extraction.
+        Engine 1 is used for regional scripts (Kannada, Hindi).
+        """
+        if not self._ocr_space_key:
+            return "", 0.0
+
+        ocr_lang = "eng"
+        engine = "2"
+        if language:
+            norm = language.lower().replace("-", "_").split("_")[0]
+            if norm == "kn":
+                ocr_lang = "kan"
+                engine = "1"
+            elif norm == "hi":
+                ocr_lang = "hin"
+                engine = "1"
+
+        try:
+            res = requests.post(
+                "https://api.ocr.space/parse/image",
+                files={"file": ("receipt.jpg", content, "image/jpeg")},
+                data={
+                    "apikey": self._ocr_space_key,
+                    "language": ocr_lang,
+                    "OCREngine": engine,
+                    "isTable": "true",
+                    "scale": "true",
+                    "detectOrientation": "true",
+                },
+                timeout=25,
+            )
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("OCRExitCode") in (1, 2) and data.get("ParsedResults"):
+                    parsed_texts = []
+                    for pr in data["ParsedResults"]:
+                        pt = pr.get("ParsedText", "").strip()
+                        if pt:
+                            parsed_texts.append(pt)
+                    if parsed_texts:
+                        return "\n".join(parsed_texts).strip(), 0.95
+                elif engine == "2":
+                    # Fallback to engine 1 if engine 2 encountered a parsing issue
+                    res2 = requests.post(
+                        "https://api.ocr.space/parse/image",
+                        files={"file": ("receipt.jpg", content, "image/jpeg")},
+                        data={
+                            "apikey": self._ocr_space_key,
+                            "language": ocr_lang,
+                            "OCREngine": "1",
+                            "isTable": "true",
+                            "scale": "true",
+                        },
+                        timeout=25,
+                    )
+                    if res2.status_code == 200:
+                        data2 = res2.json()
+                        if data2.get("OCRExitCode") in (1, 2) and data2.get("ParsedResults"):
+                            parsed_texts = [
+                                pr.get("ParsedText", "").strip()
+                                for pr in data2["ParsedResults"]
+                                if pr.get("ParsedText", "").strip()
+                            ]
+                            if parsed_texts:
+                                return "\n".join(parsed_texts).strip(), 0.90
+        except Exception as e:
+            logger.warning(f"OCR.space API request failed: {e}")
+
+        return "", 0.0
+
+    def extract_text_with_details(self, content: bytes, language: Optional[str] = None) -> Tuple[str, float]:
         """
         Extracts real text and average confidence from image content.
         NEVER returns fake, mocked, or simulated data.
@@ -135,12 +218,12 @@ class OCRService:
         if not self.is_engine_available():
             raise RuntimeError(
                 "OCR engine is not available on this server environment. "
-                "Please ensure rapidocr-onnxruntime or tesseract-ocr is installed."
+                "Please ensure rapidocr-onnxruntime, tesseract-ocr, or a valid OCR_SPACE_API_KEY is configured."
             )
 
         image = self.preprocess_image(content)
 
-        # 1. Primary Engine: RapidOCR (Deep Learning onnx, highly accurate for bills/invoices)
+        # 1. Primary Engine: RapidOCR (Deep Learning onnx, fast local inference)
         if self._rapidocr_engine is not None:
             try:
                 img_np = np.array(image)
@@ -149,7 +232,6 @@ class OCRService:
                     lines = []
                     confidences = []
                     for item in results:
-                        # item format: [box_coords, text, confidence_float]
                         text = item[1].strip()
                         conf = float(item[2])
                         if text:
@@ -161,18 +243,45 @@ class OCRService:
                         avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
                         return full_text.strip(), round(avg_conf, 2)
             except Exception as e:
-                logger.warning(f"RapidOCR execution failed: {e}. Falling back to Tesseract if available.")
+                logger.warning(f"RapidOCR execution failed: {e}. Falling back to OCR.space / Tesseract.")
 
-        # 2. Secondary Fallback Engine: Tesseract OCR
+        # 2. Secondary Engine: OCR.space Cloud API (High accuracy on bills, receipts, tables)
+        if self._ocr_space_key:
+            try:
+                img_bytes = io.BytesIO()
+                image.save(img_bytes, format="JPEG", quality=95)
+                ocr_text, ocr_conf = self._extract_via_ocr_space(img_bytes.getvalue(), language=language)
+                if ocr_text:
+                    return ocr_text, ocr_conf
+            except Exception as e:
+                logger.warning(f"OCR.space extraction failed: {e}. Falling back to Tesseract.")
+
+        # 3. Tertiary Fallback Engine: Tesseract OCR
         if self._tesseract_cmd is not None and PYTESSERACT_AVAILABLE:
             try:
                 pytesseract.pytesseract.tesseract_cmd = self._tesseract_cmd
-                # PSM 3: Fully automatic page segmentation (better for invoices with tables & headers)
-                data = pytesseract.image_to_data(
-                    image,
-                    config="--psm 3",
-                    output_type=pytesseract.Output.DICT,
-                )
+                tess_lang = "eng"
+                if language:
+                    norm = language.lower().replace("-", "_").split("_")[0]
+                    if norm == "kn":
+                        tess_lang = "kan+eng"
+                    elif norm == "hi":
+                        tess_lang = "hin+eng"
+
+                try:
+                    data = pytesseract.image_to_data(
+                        image,
+                        lang=tess_lang,
+                        config="--psm 3",
+                        output_type=pytesseract.Output.DICT,
+                    )
+                except Exception:
+                    data = pytesseract.image_to_data(
+                        image,
+                        lang="eng",
+                        config="--psm 3",
+                        output_type=pytesseract.Output.DICT,
+                    )
                 texts = []
                 confs = []
                 for i in range(len(data["text"])):
@@ -184,7 +293,6 @@ class OCRService:
 
                 if texts:
                     full_text = " ".join(texts)
-                    # Clean up multi-newlines
                     full_text = re.sub(r"\s{2,}", " ", full_text)
                     avg_conf = sum(confs) / len(confs) if confs else 0.0
                     return full_text.strip(), round(avg_conf, 2)
@@ -192,7 +300,6 @@ class OCRService:
                 logger.error(f"Tesseract execution failed: {e}")
 
         # If genuine OCR found no text, return empty string with 0.0 confidence.
-        # NEVER return fake / mocked / simulated data!
         return "", 0.0
 
     def extract_text(self, content: bytes) -> str:

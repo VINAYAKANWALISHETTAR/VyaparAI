@@ -1,34 +1,85 @@
 from calendar import monthrange
 from datetime import date, datetime, timezone, timedelta
+from typing import Optional
 
 from bson import ObjectId
 from app.database.mongodb import db
 
 
 class FinancialService:
-    def _get_date_range(self, period: str):
-        today = date.today()
+    def _get_date_range(
+        self,
+        period: str,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        tz_offset_minutes: int = 330,  # Default IST (+5:30)
+    ) -> tuple[Optional[datetime], Optional[datetime]]:
+        # Compute current local time of the user
+        tz_delta = timedelta(minutes=tz_offset_minutes)
+        local_now = datetime.now(timezone.utc) + tz_delta
+        today = local_now.date()
 
-        if period == "today":
-            start = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
-            end = datetime.combine(today, datetime.max.time()).replace(tzinfo=timezone.utc)
-        elif period == "week":
-            start_date = today - timedelta(days=today.weekday())
-            end_date = start_date + timedelta(days=6)
-            start = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-            end = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
-        elif period == "month":
-            start_date = today.replace(day=1)
+        p = (period or "month").strip().lower()
+
+        if p in ("all", "all_time"):
+            return None, None
+
+        if p == "custom":
+            if not start_date and not end_date:
+                return None, None
+            start = None
+            end = None
+            if start_date:
+                # Combine with local start of day, subtract offset to get UTC
+                start_local = datetime.combine(start_date, datetime.min.time())
+                start = (start_local - tz_delta).replace(tzinfo=timezone.utc)
+            if end_date:
+                end_local = datetime.combine(end_date, datetime.max.time())
+                end = (end_local - tz_delta).replace(tzinfo=timezone.utc)
+            return start, end
+
+        if p == "today":
+            start_local = datetime.combine(today, datetime.min.time())
+            end_local = datetime.combine(today, datetime.max.time())
+        elif p == "yesterday":
+            yest = today - timedelta(days=1)
+            start_local = datetime.combine(yest, datetime.min.time())
+            end_local = datetime.combine(yest, datetime.max.time())
+        elif p in ("week", "this_week"):
+            start_d = today - timedelta(days=today.weekday())
+            end_d = start_d + timedelta(days=6)
+            start_local = datetime.combine(start_d, datetime.min.time())
+            end_local = datetime.combine(end_d, datetime.max.time())
+        elif p in ("month", "this_month"):
+            start_d = today.replace(day=1)
             last_day = monthrange(today.year, today.month)[1]
-            end_date = today.replace(day=last_day)
-            start = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-            end = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+            end_d = today.replace(day=last_day)
+            start_local = datetime.combine(start_d, datetime.min.time())
+            end_local = datetime.combine(end_d, datetime.max.time())
+        elif p in ("previous_month", "last_month", "prev_month"):
+            first_of_this_month = today.replace(day=1)
+            last_day_prev_month = first_of_this_month - timedelta(days=1)
+            first_day_prev_month = last_day_prev_month.replace(day=1)
+            start_local = datetime.combine(first_day_prev_month, datetime.min.time())
+            end_local = datetime.combine(last_day_prev_month, datetime.max.time())
+        elif p in ("year", "this_year"):
+            start_d = date(today.year, 1, 1)
+            end_d = date(today.year, 12, 31)
+            start_local = datetime.combine(start_d, datetime.min.time())
+            end_local = datetime.combine(end_d, datetime.max.time())
         else:
-            raise ValueError("Invalid period")
+            # Fallback to month
+            start_d = today.replace(day=1)
+            last_day = monthrange(today.year, today.month)[1]
+            end_d = today.replace(day=last_day)
+            start_local = datetime.combine(start_d, datetime.min.time())
+            end_local = datetime.combine(end_d, datetime.max.time())
 
+        start = (start_local - tz_delta).replace(tzinfo=timezone.utc)
+        end = (end_local - tz_delta).replace(tzinfo=timezone.utc)
         return start, end
 
-    def _get_user_business_ids(self, user_id: str):
+    def _get_user_business_ids(self, user_id: str) -> list[str]:
         businesses = db.businesses.find({"owner_id": user_id})
         return [str(business["_id"]) for business in businesses]
 
@@ -38,22 +89,38 @@ class FinancialService:
             raise ValueError("Business not found or access denied")
         return business_id
 
-    def get_income(self, business_id: str | None, period: str, user_id: str):
+    def get_income(
+        self,
+        business_id: str | None,
+        period: str,
+        user_id: str,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ):
         business_ids = self._get_user_business_ids(user_id)
         if business_id:
             self._verify_business_access(business_id, user_id)
             business_ids = [business_id]
 
-        start, end = self._get_date_range(period)
+        start, end = self._get_date_range(period, start_date=start_date, end_date=end_date)
+
+        match_query: dict = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
+            "type": "income",
+        }
+
+        if start and end:
+            match_query["date"] = {"$gte": start, "$lte": end}
+        elif start:
+            match_query["date"] = {"$gte": start}
+        elif end:
+            match_query["date"] = {"$lte": end}
 
         pipeline = [
-            {
-                "$match": {
-                    "business_id": {"$in": business_ids},
-                    "type": "income",
-                    "date": {"$gte": start, "$lte": end},
-                }
-            },
+            {"$match": match_query},
             {
                 "$group": {
                     "_id": "$category",
@@ -67,33 +134,49 @@ class FinancialService:
         total_income = sum(float(r["amount"]) for r in results)
         transaction_count = sum(r["count"] for r in results)
         breakdown = [
-            {"category": r["_id"], "amount": float(r["amount"]), "count": r["count"]}
+            {"category": r["_id"] or "General", "amount": round(float(r["amount"]), 2), "count": r["count"]}
             for r in results
         ]
 
         return {
             "period": period,
-            "total_income": total_income,
+            "total_income": round(total_income, 2),
             "transaction_count": transaction_count,
             "breakdown": breakdown,
         }
 
-    def get_expenses(self, business_id: str | None, period: str, user_id: str):
+    def get_expenses(
+        self,
+        business_id: str | None,
+        period: str,
+        user_id: str,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ):
         business_ids = self._get_user_business_ids(user_id)
         if business_id:
             self._verify_business_access(business_id, user_id)
             business_ids = [business_id]
 
-        start, end = self._get_date_range(period)
+        start, end = self._get_date_range(period, start_date=start_date, end_date=end_date)
+
+        match_query: dict = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
+            "type": "expense",
+        }
+
+        if start and end:
+            match_query["date"] = {"$gte": start, "$lte": end}
+        elif start:
+            match_query["date"] = {"$gte": start}
+        elif end:
+            match_query["date"] = {"$lte": end}
 
         pipeline = [
-            {
-                "$match": {
-                    "business_id": {"$in": business_ids},
-                    "type": "expense",
-                    "date": {"$gte": start, "$lte": end},
-                }
-            },
+            {"$match": match_query},
             {
                 "$group": {
                     "_id": "$category",
@@ -107,21 +190,28 @@ class FinancialService:
         total_expenses = sum(float(r["amount"]) for r in results)
         transaction_count = sum(r["count"] for r in results)
         breakdown = [
-            {"category": r["_id"], "amount": float(r["amount"]), "count": r["count"]}
+            {"category": r["_id"] or "General", "amount": round(float(r["amount"]), 2), "count": r["count"]}
             for r in results
         ]
 
         return {
             "period": period,
-            "total_expenses": total_expenses,
+            "total_expenses": round(total_expenses, 2),
             "transaction_count": transaction_count,
             "breakdown": breakdown,
         }
 
-    def get_profit(self, business_id: str | None, period: str, user_id: str):
-        income = self.get_income(business_id, period, user_id)
-        expenses = self.get_expenses(business_id, period, user_id)
-        profit = income["total_income"] - expenses["total_expenses"]
+    def get_profit(
+        self,
+        business_id: str | None,
+        period: str,
+        user_id: str,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ):
+        income = self.get_income(business_id, period, user_id, start_date=start_date, end_date=end_date)
+        expenses = self.get_expenses(business_id, period, user_id, start_date=start_date, end_date=end_date)
+        profit = round(income["total_income"] - expenses["total_expenses"], 2)
 
         return {
             "period": period,
@@ -137,8 +227,11 @@ class FinancialService:
             self._verify_business_access(business_id, user_id)
             business_ids = [business_id]
 
-        query = {
-            "business_id": {"$in": business_ids},
+        query: dict = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
             "outstanding_amount": {"$gt": 0},
         }
 
@@ -191,8 +284,8 @@ class FinancialService:
             })
 
         return {
-            "total_receivables": total_receivables,
-            "overdue_amount": overdue_amount,
+            "total_receivables": round(total_receivables, 2),
+            "overdue_amount": round(overdue_amount, 2),
             "invoices": invoice_list,
         }
 
@@ -202,8 +295,11 @@ class FinancialService:
             self._verify_business_access(business_id, user_id)
             business_ids = [business_id]
 
-        query = {
-            "business_id": {"$in": business_ids},
+        query: dict = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
             "type": "expense",
         }
 
@@ -252,24 +348,31 @@ class FinancialService:
             })
 
         return {
-            "total_liabilities": total_liabilities,
-            "upcoming_amount": upcoming_amount,
-            "overdue_amount": overdue_amount,
+            "total_liabilities": round(total_liabilities, 2),
+            "upcoming_amount": round(upcoming_amount, 2),
+            "overdue_amount": round(overdue_amount, 2),
             "obligations": obligations,
         }
 
     def get_cash_position(self, user_id: str):
         business_ids = self._get_user_business_ids(user_id)
 
+        match_scope = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ]
+        }
+
         income_pipeline = [
-            {"$match": {"business_id": {"$in": business_ids}, "type": "income"}},
+            {"$match": {**match_scope, "type": "income"}},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
         ]
         income_result = list(db.transactions.aggregate(income_pipeline))
         total_income = float(income_result[0]["total"]) if income_result else 0.0
 
         expense_pipeline = [
-            {"$match": {"business_id": {"$in": business_ids}, "type": "expense"}},
+            {"$match": {**match_scope, "type": "expense"}},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
         ]
         expense_result = list(db.transactions.aggregate(expense_pipeline))
@@ -279,7 +382,10 @@ class FinancialService:
         recorded_cash_position = net_cash_flow
 
         receivables = db.invoices.find({
-            "business_id": {"$in": business_ids},
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
             "outstanding_amount": {"$gt": 0},
         })
         pending_receivables = sum(float(inv.get("outstanding_amount", 0)) for inv in receivables)
@@ -290,13 +396,13 @@ class FinancialService:
         available_cash = recorded_cash_position + pending_receivables - pending_liabilities
 
         return {
-            "recorded_cash_position": recorded_cash_position,
-            "total_income": total_income,
-            "total_expenses": total_expenses,
-            "net_cash_flow": net_cash_flow,
-            "pending_receivables": pending_receivables,
-            "pending_liabilities": pending_liabilities,
-            "available_cash": available_cash,
+            "recorded_cash_position": round(recorded_cash_position, 2),
+            "total_income": round(total_income, 2),
+            "total_expenses": round(total_expenses, 2),
+            "net_cash_flow": round(net_cash_flow, 2),
+            "pending_receivables": round(pending_receivables, 2),
+            "pending_liabilities": round(pending_liabilities, 2),
+            "available_cash": round(available_cash, 2),
         }
 
 

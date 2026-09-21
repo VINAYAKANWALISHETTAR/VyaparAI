@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from app.database.mongodb import db
+from app.services.notification_service import notification_service
 
 
 class ReminderService:
@@ -15,107 +16,71 @@ class ReminderService:
         amount: Optional[float] = None,
         party_name: Optional[str] = None,
         reminder_type: Optional[str] = None,
+        recurrence: Optional[str] = None,
     ) -> dict:
         due_datetime = None
         if due_at:
             try:
                 due_datetime = datetime.fromisoformat(due_at)
+                if due_datetime.tzinfo is None:
+                    due_datetime = due_datetime.replace(tzinfo=timezone.utc)
             except Exception:
                 due_datetime = None
 
+        now = datetime.now(timezone.utc)
         reminder = {
             "user_id": user_id,
             "business_id": business_id,
-            "title": title,
-            "description": description,
+            "title": title.strip(),
+            "description": description.strip() if description else "",
             "due_at": due_datetime,
-            "amount": amount,
-            "party_name": party_name,
+            "amount": round(float(amount), 2) if amount is not None else None,
+            "party_name": party_name.strip() if party_name else None,
             "reminder_type": reminder_type or "general",
+            "recurrence": recurrence.strip().lower() if recurrence else None,
             "status": "pending",
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
+            "created_at": now,
+            "updated_at": now,
         }
 
         result = db.reminders.insert_one(reminder)
+        created_id = str(result.inserted_id)
+
+        # Trigger notification for reminder creation
+        try:
+            notification_service.create_notification(
+                user_id=user_id,
+                business_id=business_id,
+                notification_type="reminder_created",
+                title=f"Reminder: {title}",
+                message=description or f"Due on {due_datetime.strftime('%b %d, %Y') if due_datetime else 'soon'}",
+                data={"reminder_id": created_id, "amount": reminder["amount"]},
+            )
+        except Exception:
+            pass
 
         return {
-            "id": str(result.inserted_id),
-            "title": title,
-            "description": description,
+            "id": created_id,
+            "title": reminder["title"],
+            "description": reminder["description"],
             "due_at": reminder["due_at"].isoformat() if reminder["due_at"] else None,
             "status": "pending",
-            "amount": amount,
-            "party_name": party_name,
+            "amount": reminder["amount"],
+            "party_name": reminder["party_name"],
             "reminder_type": reminder["reminder_type"],
+            "recurrence": reminder["recurrence"],
             "created_at": reminder["created_at"].isoformat(),
         }
 
     def get_reminders(self, user_id: str, business_id: str, status: Optional[str] = None) -> list[dict]:
-        query = {"business_id": business_id}
-        if status:
-            query["status"] = status
-
-        total_count = db.reminders.count_documents({"business_id": business_id})
-        if total_count == 0:
-            # Seed intelligent business reminders
-            from datetime import timedelta
-            now = datetime.now(timezone.utc)
-            initial_reminders = [
-                {
-                    "user_id": user_id,
-                    "business_id": business_id,
-                    "title": "Pay Supplier",
-                    "description": "ABC Traders",
-                    "due_at": now + timedelta(days=1),
-                    "amount": 8000.0,
-                    "party_name": "ABC Traders",
-                    "reminder_type": "supplier",
-                    "status": "pending",
-                    "created_at": now,
-                    "updated_at": now,
-                },
-                {
-                    "user_id": user_id,
-                    "business_id": business_id,
-                    "title": "Follow up with Ramesh",
-                    "description": "Payment due",
-                    "due_at": now + timedelta(days=2),
-                    "amount": 18000.0,
-                    "party_name": "Ramesh Textiles",
-                    "reminder_type": "customer",
-                    "status": "pending",
-                    "created_at": now,
-                    "updated_at": now,
-                },
-                {
-                    "user_id": user_id,
-                    "business_id": business_id,
-                    "title": "Rent Payment",
-                    "description": "Office Rent",
-                    "due_at": now + timedelta(days=5),
-                    "amount": 12000.0,
-                    "party_name": "Office Landlord",
-                    "reminder_type": "rent",
-                    "status": "pending",
-                    "created_at": now,
-                    "updated_at": now,
-                },
-                {
-                    "user_id": user_id,
-                    "business_id": business_id,
-                    "title": "Electricity Bill",
-                    "description": "BESCOM Utility Bill",
-                    "due_at": now + timedelta(days=7),
-                    "amount": 2500.0,
-                    "party_name": "Electricity Board",
-                    "reminder_type": "utility",
-                    "status": "pending",
-                    "created_at": now,
-                    "updated_at": now,
-                },
+        query: dict = {
+            "$or": [
+                {"business_id": business_id},
+                {"user_id": user_id},
             ]
-            db.reminders.insert_many(initial_reminders)
+        }
+        if status:
+            query["status"] = status.strip().lower()
 
         reminders = []
         for reminder in db.reminders.find(query).sort("due_at", 1):
@@ -126,41 +91,99 @@ class ReminderService:
     def get_reminder(self, user_id: str, reminder_id: str) -> dict | None:
         try:
             from bson import ObjectId
-            reminder = db.reminders.find_one({"_id": ObjectId(reminder_id), "user_id": user_id})
+            reminder = db.reminders.find_one({
+                "_id": ObjectId(reminder_id),
+                "user_id": user_id,
+            })
             return self._serialize_reminder(reminder) if reminder else None
         except Exception:
             return None
 
     def update_reminder(self, user_id: str, reminder_id: str, update_data: dict) -> dict | None:
-        from bson import ObjectId
-
-        reminder = db.reminders.find_one({"_id": ObjectId(reminder_id), "user_id": user_id})
-        if not reminder:
+        try:
+            from bson import ObjectId
+            oid = ObjectId(reminder_id)
+        except Exception:
             return None
 
-        allowed_fields = {"title", "description", "due_at", "status", "amount", "party_name", "reminder_type"}
+        reminder = db.reminders.find_one({"_id": oid, "user_id": user_id})
+        if not reminder:
+            reminder = db.reminders.find_one({"_id": oid})
+            if not reminder:
+                return None
+
+        allowed_fields = {"title", "description", "due_at", "status", "amount", "party_name", "reminder_type", "recurrence"}
         update_fields = {}
 
         for field, value in update_data.items():
             if field in allowed_fields and value is not None:
                 if field == "due_at" and isinstance(value, str):
-                    value = datetime.fromisoformat(value)
+                    try:
+                        value = datetime.fromisoformat(value)
+                        if value.tzinfo is None:
+                            value = value.replace(tzinfo=timezone.utc)
+                    except Exception:
+                        pass
+                if field == "amount" and value is not None:
+                    value = round(float(value), 2)
                 update_fields[field] = value
 
         if not update_fields:
             return self._serialize_reminder(reminder)
 
-        update_fields["updated_at"] = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+        update_fields["updated_at"] = now
 
-        db.reminders.update_one({"_id": ObjectId(reminder_id)}, {"$set": update_fields})
+        db.reminders.update_one({"_id": oid}, {"$set": update_fields})
 
-        updated = db.reminders.find_one({"_id": ObjectId(reminder_id)})
+        # Recurrence handling: when a recurring reminder is marked completed, generate the next occurrence
+        if update_fields.get("status") == "completed":
+            rec = update_fields.get("recurrence") or reminder.get("recurrence")
+            base_due = reminder.get("due_at")
+            if base_due and isinstance(base_due, datetime) and base_due.tzinfo is None:
+                base_due = base_due.replace(tzinfo=timezone.utc)
+            if rec and base_due:
+                next_due = None
+                if rec == "daily":
+                    next_due = base_due + timedelta(days=1)
+                elif rec == "weekly":
+                    next_due = base_due + timedelta(weeks=1)
+                elif rec == "monthly":
+                    next_due = base_due + timedelta(days=30)
+
+                if next_due and next_due.tzinfo is None:
+                    next_due = next_due.replace(tzinfo=timezone.utc)
+
+                if next_due and next_due > now:
+                    next_reminder = {
+                        "user_id": user_id,
+                        "business_id": reminder.get("business_id"),
+                        "title": reminder.get("title", ""),
+                        "description": reminder.get("description", ""),
+                        "due_at": next_due,
+                        "amount": reminder.get("amount"),
+                        "party_name": reminder.get("party_name"),
+                        "reminder_type": reminder.get("reminder_type", "general"),
+                        "recurrence": rec,
+                        "status": "pending",
+                        "created_at": now,
+                        "updated_at": now,
+                    }
+                    db.reminders.insert_one(next_reminder)
+
+        updated = db.reminders.find_one({"_id": oid})
         return self._serialize_reminder(updated) if updated else None
 
     def delete_reminder(self, user_id: str, reminder_id: str) -> bool:
-        from bson import ObjectId
+        try:
+            from bson import ObjectId
+            oid = ObjectId(reminder_id)
+        except Exception:
+            return False
 
-        result = db.reminders.delete_one({"_id": ObjectId(reminder_id), "user_id": user_id})
+        result = db.reminders.delete_one({"_id": oid, "user_id": user_id})
+        if result.deleted_count == 0:
+            result = db.reminders.delete_one({"_id": oid})
         return result.deleted_count > 0
 
     def get_morning_briefing(self, user_id: str, business_id: str) -> dict:
@@ -175,11 +198,12 @@ class ReminderService:
         liabilities = financial_service.get_liabilities(user_id, business_id=business_id, upcoming_only=True)
 
         pending_reminders = []
+        now_date = datetime.now(timezone.utc).date()
         for reminder in reminders:
             due_at = reminder.get("due_at")
             if due_at:
-                due_at = datetime.fromisoformat(due_at) if isinstance(due_at, str) else due_at
-                if due_at.date() == datetime.now(timezone.utc).date():
+                due_at_dt = datetime.fromisoformat(due_at) if isinstance(due_at, str) else due_at
+                if due_at_dt.date() == now_date:
                     pending_reminders.append(reminder)
 
         notifications = []
@@ -209,7 +233,7 @@ class ReminderService:
             })
 
         return {
-            "date": datetime.now(timezone.utc).date().isoformat(),
+            "date": now_date.isoformat(),
             "today_income": today_income["total_income"],
             "today_expenses": today_expenses["total_expenses"],
             "notifications": notifications,
@@ -225,6 +249,7 @@ class ReminderService:
             "amount": reminder.get("amount"),
             "party_name": reminder.get("party_name"),
             "reminder_type": reminder.get("reminder_type", "general"),
+            "recurrence": reminder.get("recurrence"),
             "created_at": reminder["created_at"].isoformat() if reminder.get("created_at") else None,
         }
 
