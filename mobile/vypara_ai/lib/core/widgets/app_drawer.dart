@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/widgets/vyapar_ai_ribbon_logo.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
@@ -9,6 +10,7 @@ class AppDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = ref.watch(appTranslationsProvider);
     final location = GoRouterState.of(context).uri.path;
     final auth = ref.watch(authProvider);
     final userName = (auth.user?.name.isNotEmpty == true) ? auth.user!.name : 'User';
@@ -108,14 +110,14 @@ class AppDrawer extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: const Color(0xFFDBEAFE)),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.workspace_premium_rounded, size: 12, color: Color(0xFF2563EB)),
-                                SizedBox(width: 4),
+                                const Icon(Icons.workspace_premium_rounded, size: 12, color: Color(0xFF2563EB)),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Business Account',
-                                  style: TextStyle(
+                                  tr('business_account'),
+                                  style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF2563EB),
@@ -149,7 +151,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.home_rounded,
                     iconBg: const Color(0xFF2563EB),
                     iconColor: Colors.white,
-                    label: 'Home',
+                    label: tr('home'),
                     route: '/app/home',
                     isActive: location == '/app/home',
                   ),
@@ -158,7 +160,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.receipt_long_rounded,
                     iconBg: const Color(0xFFEFF6FF),
                     iconColor: const Color(0xFF2563EB),
-                    label: 'Transactions',
+                    label: tr('records'),
                     route: '/app/transactions',
                     isActive: location.startsWith('/app/transactions'),
                   ),
@@ -167,7 +169,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.bar_chart_rounded,
                     iconBg: const Color(0xFFECFDF5),
                     iconColor: const Color(0xFF10B981),
-                    label: 'Reports',
+                    label: tr('reports'),
                     route: '/app/reports',
                     isActive: location.startsWith('/app/reports'),
                   ),
@@ -176,7 +178,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.people_alt_rounded,
                     iconBg: const Color(0xFFF0F9FF),
                     iconColor: const Color(0xFF0284C7),
-                    label: 'Customers',
+                    label: tr('customers'),
                     route: '/app/customers',
                     isActive: location.startsWith('/app/customers'),
                   ),
@@ -185,7 +187,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.store_rounded,
                     iconBg: const Color(0xFFFFF7ED),
                     iconColor: const Color(0xFFEA580C),
-                    label: 'Suppliers',
+                    label: tr('suppliers'),
                     route: '/app/suppliers',
                     isActive: location.startsWith('/app/suppliers'),
                   ),
@@ -194,7 +196,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.calendar_month_rounded,
                     iconBg: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF7C3AED),
-                    label: 'Reminders',
+                    label: tr('reminders'),
                     route: '/app/reminders',
                     isActive: location.startsWith('/app/reminders'),
                   ),
@@ -203,7 +205,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.cloud_upload_rounded,
                     iconBg: const Color(0xFFECFDF5),
                     iconColor: const Color(0xFF059669),
-                    label: 'Upload',
+                    label: tr('upload_btn'),
                     route: '/app/upload',
                     isActive: location.startsWith('/app/upload'),
                   ),
@@ -212,7 +214,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.trending_up_rounded,
                     iconBg: const Color(0xFFEFF6FF),
                     iconColor: const Color(0xFF3B82F6),
-                    label: 'Cash Flow',
+                    label: tr('cash_flow'),
                     route: '/app/cash-flow',
                     isActive: location.startsWith('/app/cash-flow'),
                   ),
@@ -221,7 +223,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.smart_toy_rounded,
                     iconBg: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF8B5CF6),
-                    label: 'AI Assistant',
+                    label: tr('ai_assistant'),
                     route: '/app/ai',
                     isActive: location.startsWith('/app/ai'),
                   ),
@@ -230,7 +232,7 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.settings_rounded,
                     iconBg: const Color(0xFFF1F5F9),
                     iconColor: const Color(0xFF64748B),
-                    label: 'Settings',
+                    label: tr('settings'),
                     route: '/app/settings',
                     isActive: location.startsWith('/app/settings'),
                   ),
@@ -267,22 +269,22 @@ class AppDrawer extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Grow Smarter with VyaparAI',
-                                style: TextStyle(
+                                tr('grow_smarter_title'),
+                                style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF1E1B4B),
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                'AI-powered insights for a better tomorrow',
-                                style: TextStyle(
+                                tr('grow_smarter_sub'),
+                                style: const TextStyle(
                                   fontSize: 10,
                                   color: Color(0xFF64748B),
                                 ),
@@ -328,14 +330,14 @@ class AppDrawer extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: const Color(0xFFFFE4E6)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.logout_rounded, color: Color(0xFFE11D48), size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.logout_rounded, color: Color(0xFFE11D48), size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Logout',
-                        style: TextStyle(
+                        tr('logout'),
+                        style: const TextStyle(
                           color: Color(0xFFE11D48),
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -348,12 +350,12 @@ class AppDrawer extends ConsumerWidget {
             ),
 
             // Footer
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.only(bottom: 12.0, top: 4.0),
+                padding: const EdgeInsets.only(bottom: 12.0, top: 4.0),
                 child: Text(
-                  'Build • Manage • Grow',
-                  style: TextStyle(
+                  tr('build_manage_grow'),
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF94A3B8),
                     fontWeight: FontWeight.w500,

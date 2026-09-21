@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 
 class AppBottomNav extends ConsumerWidget {
   const AppBottomNav({super.key, required this.location});
@@ -9,6 +10,7 @@ class AppBottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = ref.watch(appTranslationsProvider);
     final isHome = location == '/app/home' || location == '/';
     final isTransactions = location.startsWith('/app/transactions') || location.startsWith('/app/records');
     final isReports = location.startsWith('/app/reports');
@@ -39,43 +41,50 @@ class AppBottomNav extends ConsumerWidget {
             children: [
               // Navigation Items Row
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     // Home
-                    _buildNavItem(
-                      icon: isHome ? Icons.home_rounded : Icons.home_outlined,
-                      label: 'Home',
-                      isSelected: isHome,
-                      showIndicatorDot: isHome,
-                      onTap: () => context.go('/app/home'),
+                    Expanded(
+                      child: _buildNavItem(
+                        icon: isHome ? Icons.home_rounded : Icons.home_outlined,
+                        label: tr('home'),
+                        isSelected: isHome,
+                        showIndicatorDot: isHome,
+                        onTap: () => context.go('/app/home'),
+                      ),
                     ),
                     // Transactions
-                    _buildNavItem(
-                      icon: Icons.receipt_long_rounded,
-                      label: 'Transactions',
-                      isSelected: isTransactions,
-                      showIndicatorDot: isTransactions,
-                      onTap: () => context.go('/app/transactions'),
+                    Expanded(
+                      child: _buildNavItem(
+                        icon: Icons.receipt_long_rounded,
+                        label: tr('records'),
+                        isSelected: isTransactions,
+                        showIndicatorDot: isTransactions,
+                        onTap: () => context.go('/app/transactions'),
+                      ),
                     ),
                     // Gap for Center Elevated AI Mic Button
-                    const SizedBox(width: 64),
+                    const SizedBox(width: 56),
                     // Reports
-                    _buildNavItem(
-                      icon: Icons.bar_chart_rounded,
-                      label: 'Reports',
-                      isSelected: isReports,
-                      showIndicatorDot: isReports,
-                      onTap: () => context.go('/app/reports'),
+                    Expanded(
+                      child: _buildNavItem(
+                        icon: Icons.bar_chart_rounded,
+                        label: tr('reports'),
+                        isSelected: isReports,
+                        showIndicatorDot: isReports,
+                        onTap: () => context.go('/app/reports'),
+                      ),
                     ),
                     // Settings
-                    _buildNavItem(
-                      icon: Icons.settings_rounded,
-                      label: 'Settings',
-                      isSelected: isSettings,
-                      showIndicatorDot: isSettings,
-                      onTap: () => context.go('/app/settings'),
+                    Expanded(
+                      child: _buildNavItem(
+                        icon: Icons.settings_rounded,
+                        label: tr('settings'),
+                        isSelected: isSettings,
+                        showIndicatorDot: isSettings,
+                        onTap: () => context.go('/app/settings'),
+                      ),
                     ),
                   ],
                 ),
@@ -84,11 +93,14 @@ class AppBottomNav extends ConsumerWidget {
               // Prominent Elevated Center AI Microphone Button
               Positioned(
                 top: -22,
-                child: GestureDetector(
-                  onTap: () => context.push('/app/voice'),
-                  child: Container(
-                    width: 64,
-                    height: 64,
+                child: Semantics(
+                  button: true,
+                  label: tr('a11y_mic_button'),
+                  child: GestureDetector(
+                    onTap: () => context.push('/app/voice'),
+                    child: Container(
+                      width: 64,
+                      height: 64,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
@@ -124,7 +136,8 @@ class AppBottomNav extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],
+            ),
+          ],
           ),
         ),
       ),
@@ -142,23 +155,28 @@ class AppBottomNav extends ConsumerWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: 24,
+              size: 22,
               color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
             ),
             const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                ),
               ),
             ),
             const SizedBox(height: 2),

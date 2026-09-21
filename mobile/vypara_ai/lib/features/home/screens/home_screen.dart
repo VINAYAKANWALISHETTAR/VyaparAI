@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
@@ -48,9 +49,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   void _openAddTransactionSheet(BuildContext context, WidgetRef ref, {required String initialType}) {
+    final tr = ref.read(appTranslationsProvider);
     final amountController = TextEditingController();
     final categoryController = TextEditingController(
-      text: initialType == 'Income' ? 'Sale' : 'General Expense',
+      text: initialType == 'Income' ? tr('sale') : tr('general_expense'),
     );
     final descController = TextEditingController();
     String selectedType = initialType;
@@ -72,28 +74,32 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 top: 20,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedType == 'Income' ? 'Add Sale / Income' : 'Add Expense',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedType == 'Income' ? tr('add_sale_income') : tr('add_expense_title'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
                   // Toggle Income / Expense
                   Row(
@@ -103,7 +109,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Income';
-                              categoryController.text = 'Sale';
+                              categoryController.text = tr('sale');
                             });
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -117,7 +123,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                             ),
                             child: Center(
                               child: Text(
-                                'Income',
+                                tr('income'),
                                 style: TextStyle(
                                   color: selectedType == 'Income'
                                       ? Colors.white
@@ -135,7 +141,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                           onTap: () {
                             setModalState(() {
                               selectedType = 'Expense';
-                              categoryController.text = 'General Expense';
+                              categoryController.text = tr('general_expense');
                             });
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -149,7 +155,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                             ),
                             child: Center(
                               child: Text(
-                                'Expense',
+                                tr('expense'),
                                 style: TextStyle(
                                   color: selectedType == 'Expense'
                                       ? Colors.white
@@ -170,7 +176,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Amount (₹)',
+                      labelText: tr('amount_label'),
                       prefixIcon: const Icon(Icons.currency_rupee, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -186,7 +192,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   TextField(
                     controller: categoryController,
                     decoration: InputDecoration(
-                      labelText: 'Category',
+                      labelText: tr('category_label'),
                       prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -202,7 +208,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
-                      labelText: 'Description / Note',
+                      labelText: tr('desc_label'),
                       prefixIcon: const Icon(Icons.description_outlined, color: Color(0xFF2563EB)),
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
@@ -219,12 +225,12 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                       final amount = double.tryParse(amountController.text.trim()) ?? 0;
                       if (amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid amount')),
+                          SnackBar(content: Text(tr('valid_amount_error'))),
                         );
                         return;
                       }
                       final category = categoryController.text.trim().isEmpty
-                          ? (selectedType == 'Income' ? 'Sale' : 'Expense')
+                          ? (selectedType == 'Income' ? tr('sale') : tr('expense'))
                           : categoryController.text.trim();
                       final desc = descController.text.trim().isEmpty
                           ? null
@@ -252,9 +258,9 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to save transaction'),
-                              backgroundColor: Color(0xFFEF4444),
+                            SnackBar(
+                              content: Text(tr('something_went_wrong')),
+                              backgroundColor: const Color(0xFFEF4444),
                             ),
                           );
                         }
@@ -270,9 +276,9 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text(
-                      'Save Record',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    child: Text(
+                      tr('save_record'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -286,6 +292,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final homeState = ref.watch(homeProvider);
     final txState = ref.watch(transactionsProvider);
     final auth = ref.watch(authProvider);
@@ -355,6 +362,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
               ref.read(transactionsProvider.notifier).loadTransactions(),
             ]);
           },
+          child: RepaintBoundary(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -369,23 +377,28 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   children: [
                     // Greeting on Left
                     Expanded(
+                      flex: 5,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '$userName \u{1F44B}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 26,
+                              fontSize: 24,
                               fontWeight: FontWeight.w900,
                               color: Color(0xFF0F172A),
-                              letterSpacing: -0.6,
+                              letterSpacing: -0.5,
                             ),
                           ),
                           const SizedBox(height: 3),
-                          const Text(
-                            "Here's your business overview for today",
-                            style: TextStyle(
-                              fontSize: 13,
+                          Text(
+                            tr('business_overview_today'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w400,
                             ),
@@ -393,42 +406,52 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     // Quote on Right with Sparkle
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                '"Small steps',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF6366F1),
+                    Flexible(
+                      flex: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    tr('small_steps_quote'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontStyle: FontStyle.italic,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF6366F1),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.auto_awesome,
-                                size: 14,
-                                color: Color(0xFF7C3AED),
-                              ),
-                            ],
-                          ),
-                          const Text(
-                            'build big businesses"',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF6366F1),
+                                const SizedBox(width: 3),
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  size: 13,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            Text(
+                              tr('build_big_businesses'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF6366F1),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -442,6 +465,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   badgeStr: incomeBadge,
                   changeStr: incomeChangeStr,
                   incomeVal: incomeVal,
+                  tr: tr,
                 ),
 
                 const SizedBox(height: 14),
@@ -454,6 +478,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                       child: _buildExpenseCard(
                         expenseStr: expenseStr,
                         changeStr: expenseChangeStr,
+                        tr: tr,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -462,6 +487,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                       child: _buildProfitCard(
                         profitStr: profitStr,
                         changeStr: profitChangeStr,
+                        tr: tr,
                       ),
                     ),
                   ],
@@ -473,9 +499,9 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
+                    Text(
+                      tr('quick_actions'),
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF0F172A),
@@ -485,21 +511,21 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     InkWell(
                       onTap: () => context.go('/app/transactions'),
                       borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'See All',
-                              style: TextStyle(
+                              tr('view_all'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF2563EB),
                               ),
                             ),
-                            SizedBox(width: 2),
-                            Icon(
+                            const SizedBox(width: 2),
+                            const Icon(
                               Icons.chevron_right_rounded,
                               size: 16,
                               color: Color(0xFF2563EB),
@@ -514,12 +540,12 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 const SizedBox(height: 10),
 
                 // Quick Actions Card Container
-                _buildQuickActionsContainer(context),
+                _buildQuickActionsContainer(context, tr),
 
                 const SizedBox(height: 16),
 
                 // ── 5. AI PROMOTIONAL BANNER CARD ──────────────────────────
-                _buildAiPromotionalCard(context),
+                _buildAiPromotionalCard(context, tr),
 
                 const SizedBox(height: 20),
 
@@ -527,9 +553,9 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Recent Activity',
-                      style: TextStyle(
+                    Text(
+                      tr('recent_activity'),
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF0F172A),
@@ -539,21 +565,21 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     InkWell(
                       onTap: () => context.go('/app/transactions'),
                       borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'View All',
-                              style: TextStyle(
+                              tr('view_all'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF2563EB),
                               ),
                             ),
-                            SizedBox(width: 2),
-                            Icon(
+                            const SizedBox(width: 2),
+                            const Icon(
                               Icons.chevron_right_rounded,
                               size: 16,
                               color: Color(0xFF2563EB),
@@ -584,75 +610,76 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                           ),
                           child: Row(
                             children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: tx.type.toLowerCase() == 'income'
-                                    ? const Color(0xFFECFDF5)
-                                    : const Color(0xFFFFF1F2),
-                                borderRadius: BorderRadius.circular(12),
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: tx.type.toLowerCase() == 'income'
+                                      ? const Color(0xFFECFDF5)
+                                      : const Color(0xFFFFF1F2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  tx.type.toLowerCase() == 'income'
+                                      ? Icons.arrow_downward_rounded
+                                      : Icons.arrow_upward_rounded,
+                                  color: tx.type.toLowerCase() == 'income'
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFEF4444),
+                                  size: 20,
+                                ),
                               ),
-                              child: Icon(
-                                tx.type.toLowerCase() == 'income'
-                                    ? Icons.arrow_downward_rounded
-                                    : Icons.arrow_upward_rounded,
-                                color: tx.type.toLowerCase() == 'income'
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFEF4444),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    (tx.description != null && tx.description!.isNotEmpty)
-                                        ? tx.description!
-                                        : tx.category,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0F172A),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      (tx.description != null && tx.description!.isNotEmpty)
+                                          ? tx.description!
+                                          : tx.category,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${tx.category} • ${_formatDate(tx.date)}',
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: Color(0xFF64748B),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${tx.category} • ${_formatDate(tx.date)}',
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${tx.type.toLowerCase() == 'income' ? '+' : '-'}₹${tx.amount.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                color: tx.type.toLowerCase() == 'income'
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFEF4444),
+                              Text(
+                                '${tx.type.toLowerCase() == 'income' ? '+' : '-'}₹${tx.amount.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: tx.type.toLowerCase() == 'income'
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFEF4444),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
+                  )
                 else
-                  _buildRecentActivityEmptyState(context),
+                  _buildRecentActivityEmptyState(context, tr),
 
                 // Safe bottom padding to scroll comfortably above fixed navigation bar
                 const SizedBox(height: 110),
               ],
+            ),
             ),
           ),
         ),
@@ -666,6 +693,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
     required String badgeStr,
     required String changeStr,
     required double incomeVal,
+    required String Function(String, [Map<String, String>?]) tr,
   }) {
     return Container(
       width: double.infinity,
@@ -726,29 +754,39 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
-                    "Today's Revenue",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
+                  Expanded(
+                    child: Text(
+                      tr('today_revenue'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   // Dynamic Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFDBEAFE)),
-                    ),
-                    child: Text(
-                      badgeStr,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF2563EB),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFDBEAFE)),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          badgeStr,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -766,14 +804,18 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          incomeStr,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            letterSpacing: -1.0,
-                            height: 1.1,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            incomeStr,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -1.0,
+                              height: 1.1,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -802,12 +844,16 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                               ),
                             ),
                             const SizedBox(width: 6),
-                            const Text(
-                              'vs. yesterday',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
+                            Expanded(
+                              child: Text(
+                                tr('vs_yesterday'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -862,6 +908,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   Widget _buildExpenseCard({
     required String expenseStr,
     required String changeStr,
+    required String Function(String, [Map<String, String>?]) tr,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -894,22 +941,26 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Today Expense',
-            style: TextStyle(
+          Text(
+            tr('today_expense'),
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            expenseStr,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.5,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              expenseStr,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -938,10 +989,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'vs. yesterday',
-                  style: TextStyle(
+                  tr('vs_yesterday'),
+                  style: const TextStyle(
                     fontSize: 10,
                     color: Color(0xFF64748B),
                     fontWeight: FontWeight.w500,
@@ -960,6 +1011,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   Widget _buildProfitCard({
     required String profitStr,
     required String changeStr,
+    required String Function(String, [Map<String, String>?]) tr,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -992,22 +1044,26 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            "Today's Profit",
-            style: TextStyle(
+          Text(
+            tr('today_profit'),
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            profitStr,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.5,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              profitStr,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -1036,10 +1092,10 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'vs. yesterday',
-                  style: TextStyle(
+                  tr('vs_yesterday'),
+                  style: const TextStyle(
                     fontSize: 10,
                     color: Color(0xFF64748B),
                     fontWeight: FontWeight.w500,
@@ -1055,7 +1111,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   // ── QUICK ACTIONS CONTAINER BUILDER ───────────────────────────────────────
-  Widget _buildQuickActionsContainer(BuildContext context) {
+  Widget _buildQuickActionsContainer(BuildContext context, String Function(String, [Map<String, String>?]) tr) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
@@ -1078,7 +1134,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             icon: Icons.description_rounded,
             iconBg: const Color(0xFFEFF6FF),
             iconColor: const Color(0xFF2563EB),
-            title: 'Upload\nDocument',
+            title: tr('upload_btn'),
             onTap: () => context.push('/app/upload'),
           ),
 
@@ -1087,7 +1143,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             icon: Icons.auto_awesome_rounded,
             iconBg: const Color(0xFFF5F3FF),
             iconColor: const Color(0xFF8B5CF6),
-            title: 'Ask AI\n',
+            title: tr('ask_ai'),
             onTap: () => context.push('/app/voice'),
           ),
 
@@ -1096,7 +1152,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             icon: Icons.add_circle_outline_rounded,
             iconBg: const Color(0xFFECFDF5),
             iconColor: const Color(0xFF10B981),
-            title: 'Add\nTransaction',
+            title: tr('add_sale'),
             onTap: () => _openAddTransactionSheet(context, ref, initialType: 'Income'),
           ),
 
@@ -1105,7 +1161,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             icon: Icons.camera_alt_rounded,
             iconBg: const Color(0xFFF0F9FF),
             iconColor: const Color(0xFF0284C7),
-            title: 'Scan with\nCamera',
+            title: tr('camera'),
             onTap: () => context.push('/app/scan'),
           ),
         ],
@@ -1124,7 +1180,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1140,14 +1196,21 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
-                height: 1.2,
+            SizedBox(
+              height: 28,
+              child: Center(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                    height: 1.15,
+                  ),
+                ),
               ),
             ),
           ],
@@ -1157,7 +1220,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   // ── AI PROMOTIONAL BANNER BUILDER ─────────────────────────────────────────
-  Widget _buildAiPromotionalCard(BuildContext context) {
+  Widget _buildAiPromotionalCard(BuildContext context, String Function(String, [Map<String, String>?]) tr) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -1182,8 +1245,8 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
         children: [
           // Circular Sparkle Icon container
           Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: const Color(0xFFEDE9FE),
               shape: BoxShape.circle,
@@ -1193,30 +1256,34 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
               child: Icon(
                 Icons.auto_awesome_rounded,
                 color: Color(0xFF7C3AED),
-                size: 24,
+                size: 22,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           // Texts
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  'Turn your data into opportunities with AI',
-                  style: TextStyle(
-                    fontSize: 13,
+                  tr('turn_data_into_opportunities'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0F172A),
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'Get insights, recommendations and grow your business faster.',
-                  style: TextStyle(
-                    fontSize: 10.5,
+                  tr('turn_data_into_opportunities_sub'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
                     color: Color(0xFF64748B),
                     height: 1.2,
                   ),
@@ -1230,7 +1297,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             onTap: () => context.push('/app/voice'),
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB),
                 borderRadius: BorderRadius.circular(20),
@@ -1242,21 +1309,24 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Explore with AI',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      tr('explore_with_ai'),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(
+                  const SizedBox(width: 4),
+                  const Icon(
                     Icons.arrow_forward_rounded,
-                    size: 14,
+                    size: 13,
                     color: Colors.white,
                   ),
                 ],
@@ -1269,7 +1339,7 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
   }
 
   // ── RECENT ACTIVITY EMPTY STATE CARD BUILDER ──────────────────────────────
-  Widget _buildRecentActivityEmptyState(BuildContext context) {
+  Widget _buildRecentActivityEmptyState(BuildContext context, String Function(String, [Map<String, String>?]) tr) {
     return Container(
       width: double.infinity,
       height: 130,
@@ -1300,25 +1370,25 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(
+                children: [
+                  const Icon(
                     Icons.article_outlined,
                     size: 38,
                     color: Color(0xFF94A3B8),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
-                    'No recent transactions',
-                    style: TextStyle(
+                    tr('no_recent_transactions'),
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  SizedBox(height: 3),
+                  const SizedBox(height: 3),
                   Text(
-                    'Record a sale or upload an invoice to see activity',
-                    style: TextStyle(
+                    tr('record_sale_sub'),
+                    style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF64748B),
                     ),

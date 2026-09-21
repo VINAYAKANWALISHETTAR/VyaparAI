@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/features/notifications/providers/notifications_provider.dart';
 
-class NotificationButton extends StatelessWidget {
-  const NotificationButton({super.key, this.hasUnread = true});
+class NotificationButton extends ConsumerWidget {
+  const NotificationButton({super.key, this.hasUnread});
 
-  final bool hasUnread;
+  final bool? hasUnread;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = hasUnread ?? (ref.watch(notificationsProvider).unreadCount > 0);
+
     return IconButton(
       tooltip: 'Notifications',
       onPressed: () => context.push('/app/notifications'),
@@ -20,7 +24,7 @@ class NotificationButton extends StatelessWidget {
             color: AppColors.textPrimary,
             size: 24,
           ),
-          if (hasUnread)
+          if (unread)
             Positioned(
               top: 2,
               right: 2,
