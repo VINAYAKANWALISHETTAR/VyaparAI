@@ -2,4 +2,5 @@ import 'package:vypara_ai/features/reports/data/models/financial_report_model.da
 
 abstract class ReportsRepository {
   Future<FinancialReportModel> getReport({String period = 'month'});
+  Future<String> exportReportCsv({String period = 'month'});
 }

@@ -80,6 +80,26 @@ def parse_transaction_voice(message: str) -> dict | None:
         except ValueError:
             pass
 
+    # 4. Flexible English & Multilingual Income: "Sale 500", "500 sale", "Sold goods 1500", "500 ಮಾರಾಟ", "500 की बिक्री"
+    m = re.search(r'(?:(?:add|record|made|enter|log)\s+(?:a\s+)?)?(?:sale|income|revenue|ಮಾರಾಟ|ಆದಾಯ|बिक्री|आय|कमाई)\s+(?:of\s+)?(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if not m:
+        m = re.search(r'(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s*(?:rs|rupees|ರೂಪಾಯಿ|रुपये)?\s+(?:sale|income|ಮಾರಾಟ|ಆದಾಯ|बिक्री|आय)', text, re.IGNORECASE)
+    if not m:
+        m = re.search(r'sold\s+(?:goods|items)?\s*(?:for)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if m:
+        amt_str = m.group(1).replace(',', '')
+        try:
+            amt = float(amt_str)
+            if amt > 0:
+                return {
+                    "type": "income",
+                    "amount": amt,
+                    "category": "Sale",
+                    "description": "Sale Transaction",
+                }
+        except ValueError:
+            pass
+
     # Match Expense patterns:
     # 1. "Spent 500 on chai and snacks", "Spent 1200 on diesel"
     m = re.search(r'spent\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s+(?:on|for)\s+(.+)', text, re.IGNORECASE)
@@ -115,8 +135,10 @@ def parse_transaction_voice(message: str) -> dict | None:
         except ValueError:
             pass
 
-    # 3. "Add expense of 800", "Record expense 450"
-    m = re.search(r'(?:add|record)\s+(?:an?\s+)?expense(?:\s+of)?\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    # 3. Flexible English & Multilingual Expense: "Add expense 800", "500 expense", "500 ಖರ್ಚು", "500 खर्च"
+    m = re.search(r'(?:add|record|enter|log)\s+(?:an?\s+)?(?:expense|spending|cost|ಖರ್ಚು|ವೆಚ್ಚ|खर्च|व्यय)(?:\s+of)?\s+(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)', text, re.IGNORECASE)
+    if not m:
+        m = re.search(r'(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d+)?)\s*(?:rs|rupees|ರೂಪಾಯಿ|रुपये)?\s+(?:expense|spending|ಖರ್ಚು|ವೆಚ್ಚ|खर्च|व्यय)', text, re.IGNORECASE)
     if m:
         amt_str = m.group(1).replace(',', '')
         try:
@@ -137,41 +159,92 @@ def parse_transaction_voice(message: str) -> dict | None:
 def classify_intent(message: str) -> tuple[str, dict | None]:
     text = message.strip().lower()
 
-    # Check for greetings
-    greetings = ["hello", "hi", "hey", "good morning", "good evening", "namaste", "who are you", "what can you do", "help"]
+    # Check for greetings in English, Kannada, and Hindi
+    greetings = [
+        "hello", "hi", "hey", "good morning", "good evening", "namaste", "who are you",
+        "what can you do", "help", "ನಮಸ್ಕಾರ", "ಹಲೋ", "ಶುಭೋದಯ", "ನಮಸ್ತೆ", "नमस्ते", "नमस्कार", "सुप्रभात"
+    ]
     if any(text == g or text.startswith(g + " ") or text.startswith(g + ",") or text.startswith(g + "!") for g in greetings):
         return "greeting", {}
 
-    # Check for voice transaction recording
+    # Check for voice transaction recording (English, Kannada, Hindi)
     txn_parsed = parse_transaction_voice(message)
     if txn_parsed:
         return "record_transaction", txn_parsed
 
-    if "profit" in text and ("today" in text or "now" in text or "current" in text or len(text.split()) <= 4):
+    # 1. Profit queries (English, Kannada, Hindi)
+    profit_keywords = ["profit", "margins", "earnings", "ಲಾಭ", "लाभ", "मुनाफा"]
+    if any(k in text for k in profit_keywords):
         return "get_today_profit", {}
-    if ("income" in text or "revenue" in text or "sales" in text) and ("today" in text or len(text.split()) <= 4):
+
+    # 2. Income / Revenue / Sales queries (English, Kannada, Hindi)
+    income_keywords = [
+        "income", "revenue", "sale", "sales", "made today", "earned", "turnover",
+        "ಮಾರಾಟ", "ಆದಾಯ", "ಬಂದ ಹಣ", "आय", "राजस्व", "बिक्री", "कमाई"
+    ]
+    if any(k in text for k in income_keywords):
         return "get_today_income", {}
-    if "expense" in text and ("today" in text or len(text.split()) <= 4):
+
+    # 3. Expense / Spending queries (English, Kannada, Hindi)
+    expense_keywords = [
+        "expense", "expenses", "spend", "spent", "spending", "cost", "costs",
+        "ಖರ್ಚು", "ವೆಚ್ಚ", "ಹೋದ ಹಣ", "खर्च", "व्यय", "खर्चा"
+    ]
+    if any(k in text for k in expense_keywords):
         return "get_today_expenses", {}
-    if "cash position" in text or "current cash" in text or "balance" in text:
+
+    # 4. Cash position queries
+    cash_keywords = ["cash position", "current cash", "balance", "how much cash", "ನಗದು", "ಬ್ಯಾಲೆನ್ಸ್", "रोकड़", "बैलेंस", "तिजोरी"]
+    if any(k in text for k in cash_keywords):
         return "get_cash_position", {}
-    if "cash flow" in text or "forecast" in text or "projection" in text:
+
+    # 5. Cash flow forecast
+    forecast_keywords = ["cash flow", "forecast", "projection", "next 30 days", "ನಗದು ಹರಿವು", "ಮುಂದಿನ", "रोकड़ प्रवाह", "पूर्वानुमान"]
+    if any(k in text for k in forecast_keywords):
         return "get_cash_flow_forecast", {}
-    if ("receivable" in text or "overdue" in text) and "overdue" in text:
+
+    # 6. Overdue receivables
+    overdue_keywords = ["overdue", "late payment", "delayed", "ಮಿತಿಮೀರಿದ", "ಅವಧಿ ಮೀರಿದ", "ಅತಿ ಹೆಚ್ಚು ಬಾಕಿ", "अतिदेय", "देरी"]
+    if any(k in text for k in overdue_keywords):
         return "get_overdue_receivables", {}
-    if "receivable" in text or "who owes" in text or "pending payment" in text or "customers owe" in text:
+
+    # 7. Receivables / Who owes me money
+    receivable_keywords = [
+        "receivable", "receivables", "who owes", "pending payment", "customers owe", "due from", "owe me", "who has to pay",
+        "ಕೊಡಬೇಕು", "ಬಾಕಿ", "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು", "ಯಾರು ಕೊಡಬೇಕು", "ಬರಬೇಕಾದ",
+        "बकाया", "पाना है", "किसका बकाया", "मुझ पर किसका", "किसने पैसे नहीं दिए", "किससे लेना है"
+    ]
+    if any(k in text for k in receivable_keywords):
         return "get_receivables", {}
-    if ("liability" in text or "payables" in text or "what do i owe" in text or "supplier due" in text) and "upcoming" in text:
-        return "get_upcoming_liabilities", {}
-    if "liability" in text or "payables" in text or "what do i owe" in text or "supplier due" in text:
+
+    # 8. Liabilities / What do I owe to suppliers/others
+    liability_keywords = [
+        "liability", "liabilities", "payables", "what do i owe", "supplier due", "whom do i owe", "i have to pay", "pay to supplier",
+        "ನಾನು ಕೊಡಬೇಕು", "ಸಾಲ", "ದೇಯತೆ", "ಪಾವತಿಸಬೇಕು",
+        "देना है", "देनदारी", "किसको देना है", "उधार"
+    ]
+    if any(k in text for k in liability_keywords):
         return "get_liabilities", {}
-    if "invoice" in text:
+
+    # 9. Invoice lookup
+    if "invoice" in text or "bill" in text or "ರಶೀದಿ" in text or "ಇನ್‌ವಾಯ್ಸ್" in text or "बिल" in text or "बीजक" in text:
         return "get_invoice", {}
-    if "customer" in text and "balance" in text:
+
+    # 10. Customer balance
+    if ("customer" in text or "party" in text or "ಗ್ರಾಹಕ" in text or "ग्राहक" in text) and ("balance" in text or "ಬಾಕಿ" in text or "बैलेंस" in text):
         return "get_customer_balance", {}
-    if "payment history" in text or "received from" in text:
+
+    # 11. Payment history
+    if "payment history" in text or "received from" in text or "ಇತಿಹಾಸ" in text or "इतिहास" in text:
         return "get_payment_history", {}
-    if "summary" in text or "overview" in text or "business" in text or "doing" in text:
+
+    # 12. Business summary / General overview
+    summary_keywords = [
+        "summary", "overview", "business", "doing", "how is", "store", "shop", "status", "performance",
+        "ಅವಲೋಕನ", "ಸಾರಾಂಶ", "ಹೇಗಿದೆ", "ವಿವರಣೆ", "ಪರಿಸ್ಥಿತಿ",
+        "सारांश", "अवलोकन", "कैसा चल रहा", "स्थिति", "दुकान", "कारोबार"
+    ]
+    if any(k in text for k in summary_keywords):
         return "get_business_summary", {}
 
     return "unknown", {}

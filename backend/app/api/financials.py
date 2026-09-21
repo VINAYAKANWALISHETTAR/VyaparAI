@@ -280,3 +280,97 @@ def get_supplier_summary(
     if business_id:
         verify_business_ownership(business_id, current_user)
     return reconciliation_service.get_supplier_summary(business_id, user_id)
+
+
+@router.get("/export/csv")
+def export_financial_report_csv(
+    current_user=Depends(get_current_user),
+    period: str = Query(default="month"),
+    business_id: str | None = Query(default=None),
+):
+    import csv
+    import io
+    from datetime import datetime, timezone
+    from fastapi.responses import Response
+
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    else:
+        business_ids = financial_service._get_user_business_ids(user_id)
+        business_id = business_ids[0] if business_ids else None
+
+    # Get business name
+    business_name = "My Business"
+    if business_id:
+        biz = db.businesses.find_one({"_id": ObjectId(business_id)})
+        if biz:
+            business_name = biz.get("name", "My Business")
+
+    api_period = "month" if period == "all" else period
+    inc_data = financial_service.get_income(business_id, api_period, user_id)
+    exp_data = financial_service.get_expenses(business_id, api_period, user_id)
+    prof_data = financial_service.get_profit(business_id, api_period, user_id)
+
+    total_inc = inc_data.get("total_income", 0.0)
+    total_exp = exp_data.get("total_expenses", 0.0)
+    net_profit = prof_data.get("profit", total_inc - total_exp)
+
+    # Get transactions
+    query = {"user_id": user_id}
+    if business_id:
+        query["business_id"] = business_id
+    txns = list(db.transactions.find(query).sort("created_at", -1))
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header section
+    writer.writerow(["VYAPARAI FINANCIAL STATEMENT & REPORT"])
+    writer.writerow(["Business Name", business_name])
+    writer.writerow(["Period", period.capitalize()])
+    writer.writerow(["Generated Date", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")])
+    writer.writerow([])
+
+    # Financial Summary
+    writer.writerow(["FINANCIAL SUMMARY"])
+    writer.writerow(["Total Income (₹)", f"{total_inc:,.2f}"])
+    writer.writerow(["Total Expenses (₹)", f"{total_exp:,.2f}"])
+    writer.writerow(["Net Profit / Loss (₹)", f"{net_profit:,.2f}"])
+    writer.writerow(["Total Transactions", len(txns)])
+    writer.writerow([])
+
+    # Transactions Ledger
+    writer.writerow(["TRANSACTION LEDGER"])
+    writer.writerow(["Date", "Type", "Category", "Description", "Reference ID", "Source", "Amount (₹)"])
+
+    for tx in txns:
+        date_str = ""
+        raw_date = tx.get("date") or tx.get("created_at")
+        if isinstance(raw_date, datetime):
+            date_str = raw_date.strftime("%Y-%m-%d %H:%M")
+        elif raw_date:
+            date_str = str(raw_date)
+
+        writer.writerow([
+            date_str,
+            tx.get("type", "").upper(),
+            tx.get("category", ""),
+            tx.get("description", ""),
+            tx.get("reference_id", ""),
+            tx.get("source", "manual"),
+            f"{float(tx.get('amount', 0.0)):,.2f}"
+        ])
+
+    csv_content = output.getvalue()
+    filename = f"vyapar_financial_report_{period}_{datetime.now().strftime('%Y%m%d')}.csv"
+
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+

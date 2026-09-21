@@ -11,4 +11,9 @@ class ReportsRepositoryImpl implements ReportsRepository {
   Future<FinancialReportModel> getReport({String period = 'month'}) {
     return remoteDataSource.getReport(period: period);
   }
+
+  @override
+  Future<String> exportReportCsv({String period = 'month'}) {
+    return remoteDataSource.exportReportCsv(period: period);
+  }
 }

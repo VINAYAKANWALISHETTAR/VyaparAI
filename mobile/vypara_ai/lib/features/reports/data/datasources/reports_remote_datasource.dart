@@ -190,4 +190,16 @@ class ReportsRemoteDataSource {
       DailyChartPoint(label: 'W4', date: DateTime.now(), income: 0, expense: 0),
     ];
   }
+
+  Future<String> exportReportCsv({String period = 'month'}) async {
+    final bizId = await getDefaultBusinessId();
+    final queryParams = <String, dynamic>{'period': period};
+    if (bizId != null) queryParams['business_id'] = bizId;
+
+    final res = await apiClient.dio.get<String>(
+      '/financials/export/csv',
+      queryParameters: queryParams,
+    );
+    return res.data ?? '';
+  }
 }

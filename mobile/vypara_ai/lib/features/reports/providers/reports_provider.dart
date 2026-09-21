@@ -60,6 +60,10 @@ class ReportsProvider extends Notifier<ReportsState> {
     state = state.copyWith(selectedPeriod: period);
     loadReport();
   }
+
+  Future<String> exportReportCsv() async {
+    return repository.exportReportCsv(period: state.selectedPeriod);
+  }
 }
 
 final reportsProvider =

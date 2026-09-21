@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/core/utils/file_downloader.dart';
 import 'package:vypara_ai/features/reports/data/models/financial_report_model.dart';
 import 'package:vypara_ai/features/reports/providers/reports_provider.dart';
 
@@ -37,6 +39,79 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     }
 
     return isNegative ? '-$formatted' : formatted;
+  }
+
+  Future<void> _handleExportCsv(BuildContext context) async {
+    final period = ref.read(reportsProvider).selectedPeriod;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generating financial statement CSV...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+    try {
+      final csvData = await ref.read(reportsProvider.notifier).exportReportCsv();
+      if (csvData.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No report data found for this period.'),
+              backgroundColor: Color(0xFFEF4444),
+            ),
+          );
+        }
+        return;
+      }
+      final now = DateTime.now();
+      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+      final fileName = 'vyapar_financial_report_${period}_$dateStr.csv';
+      FileDownloader.download(csvData, fileName);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Financial report downloaded: $fileName ✓'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to export CSV report. Please try again.'),
+            backgroundColor: Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleShareReport(BuildContext context, FinancialReportModel? report, String period) {
+    if (report == null) return;
+    final income = report.totalIncome;
+    final expenses = report.totalExpenses;
+    final profit = report.netProfit;
+    final count = report.transactionCount;
+
+    final shareText = '''
+📊 VyaparAI Financial Statement (${period.toUpperCase()})
+━━━━━━━━━━━━━━━━━━━━
+💰 Total Income: ${_formatAmount(income)}
+📉 Total Expenses: ${_formatAmount(expenses)}
+📈 Net Profit: ${_formatAmount(profit)}
+🧾 Transactions: $count
+
+Generated securely via VyaparAI
+'''.trim();
+
+    Clipboard.setData(ClipboardData(text: shareText));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Report summary copied to clipboard! Ready to share on WhatsApp or SMS. ✓'),
+        backgroundColor: Color(0xFF10B981),
+      ),
+    );
   }
 
   @override
@@ -361,14 +436,7 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Financial statement exported to CSV successfully.'),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
-                        },
+                        onPressed: () => _handleExportCsv(context),
                         icon: const Icon(Icons.download_rounded, size: 18),
                         label: const Text('Export CSV'),
                         style: OutlinedButton.styleFrom(
@@ -382,14 +450,7 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Report summary ready to share.'),
-                              backgroundColor: Color(0xFF0F764F),
-                            ),
-                          );
-                        },
+                        onPressed: () => _handleShareReport(context, report, period),
                         icon: const Icon(Icons.share_rounded, size: 18),
                         label: const Text('Share Report'),
                         style: ElevatedButton.styleFrom(
