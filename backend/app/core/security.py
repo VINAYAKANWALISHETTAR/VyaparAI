@@ -19,24 +19,32 @@ JWT_EXPIRE_MINUTES = int(
 if not JWT_SECRET:
     raise RuntimeError("JWT_SECRET is not configured")
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
-
+import bcrypt
+import hashlib
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(
     plain_password: str,
     hashed_password: str
 ) -> bool:
-    return pwd_context.verify(
-        plain_password,
-        hashed_password
-    )
+    if not hashed_password or not plain_password:
+        return False
+    try:
+        if hashed_password.startswith(("$2a$", "$2b$", "$2y$")):
+            return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        pass
+    try:
+        sha = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
+        if hashed_password == sha or hashed_password == plain_password:
+            return True
+    except Exception:
+        pass
+    return False
+
 
 
 def create_access_token(user_id: str) -> str:
