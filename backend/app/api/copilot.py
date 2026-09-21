@@ -24,5 +24,17 @@ def chat(
             detail="Message cannot be empty",
         )
 
-    result = copilot_service.chat(user_id=user_id, message=message, business_id=None)
+    # Normalize language: e.g. "kn", "kn-IN", "kn_IN" -> "kn"
+    lang = "en"
+    if payload.language:
+        l = payload.language.lower().replace("-", "_").split("_")[0]
+        if l in ("en", "kn", "hi"):
+            lang = l
+
+    result = copilot_service.chat(
+        user_id=user_id,
+        message=message,
+        business_id=None,
+        language=lang,
+    )
     return CopilotChatResponse(**result)

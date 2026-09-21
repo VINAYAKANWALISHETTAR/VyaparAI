@@ -158,6 +158,49 @@ def get_profit_month(
     return financial_service.get_profit(business_id, "month", user_id)
 
 
+@router.get("/income/{period}", response_model=IncomeResponse)
+def get_income_period(
+    period: str,
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_income(business_id, period, user_id, start_date=start_date, end_date=end_date)
+
+
+@router.get("/expenses/{period}", response_model=ExpenseResponse)
+def get_expenses_period(
+    period: str,
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_expenses(business_id, period, user_id, start_date=start_date, end_date=end_date)
+
+
+@router.get("/profit/{period}", response_model=ProfitResponse)
+def get_profit_period(
+    period: str,
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_profit(business_id, period, user_id, start_date=start_date, end_date=end_date)
+
+
+
 @router.get("/receivables", response_model=ReceivableResponse)
 def get_receivables(
     current_user=Depends(get_current_user),
@@ -287,6 +330,8 @@ def export_financial_report_csv(
     current_user=Depends(get_current_user),
     period: str = Query(default="month"),
     business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
 ):
     import csv
     import io
@@ -294,33 +339,41 @@ def export_financial_report_csv(
     from fastapi.responses import Response
 
     user_id = str(current_user["_id"])
+    business_ids = financial_service._get_user_business_ids(user_id)
     if business_id:
         verify_business_ownership(business_id, current_user)
     else:
-        business_ids = financial_service._get_user_business_ids(user_id)
         business_id = business_ids[0] if business_ids else None
 
-    # Get business name
     business_name = "My Business"
     if business_id:
         biz = db.businesses.find_one({"_id": ObjectId(business_id)})
         if biz:
             business_name = biz.get("name", "My Business")
 
-    api_period = "month" if period == "all" else period
-    inc_data = financial_service.get_income(business_id, api_period, user_id)
-    exp_data = financial_service.get_expenses(business_id, api_period, user_id)
-    prof_data = financial_service.get_profit(business_id, api_period, user_id)
+    start, end = financial_service._get_date_range(period, start_date=start_date, end_date=end_date)
+    inc_data = financial_service.get_income(business_id, period, user_id, start_date=start_date, end_date=end_date)
+    exp_data = financial_service.get_expenses(business_id, period, user_id, start_date=start_date, end_date=end_date)
+    prof_data = financial_service.get_profit(business_id, period, user_id, start_date=start_date, end_date=end_date)
 
     total_inc = inc_data.get("total_income", 0.0)
     total_exp = exp_data.get("total_expenses", 0.0)
     net_profit = prof_data.get("profit", total_inc - total_exp)
 
-    # Get transactions
-    query = {"user_id": user_id}
-    if business_id:
-        query["business_id"] = business_id
-    txns = list(db.transactions.find(query).sort("created_at", -1))
+    query = {
+        "$or": [
+            {"business_id": {"$in": business_ids}},
+            {"user_id": user_id},
+        ]
+    }
+    if start and end:
+        query["date"] = {"$gte": start, "$lte": end}
+    elif start:
+        query["date"] = {"$gte": start}
+    elif end:
+        query["date"] = {"$lte": end}
+
+    txns = list(db.transactions.find(query).sort("date", -1))
 
     output = io.StringIO()
     writer = csv.writer(output)
@@ -342,7 +395,7 @@ def export_financial_report_csv(
 
     # Transactions Ledger
     writer.writerow(["TRANSACTION LEDGER"])
-    writer.writerow(["Date", "Type", "Category", "Description", "Reference ID", "Source", "Amount (₹)"])
+    writer.writerow(["Transaction ID", "Date", "Type", "Category", "Amount", "Description", "Reference ID", "Source"])
 
     for tx in txns:
         date_str = ""
@@ -353,13 +406,14 @@ def export_financial_report_csv(
             date_str = str(raw_date)
 
         writer.writerow([
+            str(tx.get("_id", "")),
             date_str,
             tx.get("type", "").upper(),
             tx.get("category", ""),
+            f"{float(tx.get('amount', 0.0)):,.2f}",
             tx.get("description", ""),
             tx.get("reference_id", ""),
             tx.get("source", "manual"),
-            f"{float(tx.get('amount', 0.0)):,.2f}"
         ])
 
     csv_content = output.getvalue()

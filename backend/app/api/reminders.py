@@ -51,7 +51,9 @@ def create_reminder(
         amount=reminder.amount,
         party_name=reminder.party_name,
         reminder_type=reminder.reminder_type,
+        recurrence=reminder.recurrence,
     )
+
 
 
 @router.get("/", response_model=list[ReminderResponse])

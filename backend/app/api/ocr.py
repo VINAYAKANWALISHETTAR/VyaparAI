@@ -104,6 +104,7 @@ def serialize_ocr_extraction(extracted: OCRExtraction) -> dict:
 async def extract_invoice(
     business_id: str = Form(...),
     file: UploadFile = File(...),
+    language: str | None = Form(None),
     current_user=Depends(get_current_user),
 ):
     verify_business_ownership(business_id, current_user)
@@ -124,7 +125,7 @@ async def extract_invoice(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     try:
-        raw_text, avg_conf = ocr_service.extract_text_with_details(content)
+        raw_text, avg_conf = ocr_service.extract_text_with_details(content, language=language)
     except RuntimeError as exc:
         logger.warning(f"OCR engine unavailable: {exc}")
         return OCRResponse(
@@ -224,6 +225,21 @@ def confirm_invoice(
 
     effective_due_date = payload.due_date or datetime.now(timezone.utc).date()
 
+    # Duplicate check for invoice number
+    if payload.invoice_number and payload.invoice_number.strip():
+        existing_tx = db.transactions.find_one({
+            "$or": [{"business_id": business_id}, {"user_id": user_id}],
+            "reference_id": payload.invoice_number.strip(),
+        })
+        if existing_tx:
+            from app.api.invoices import serialize_invoice
+            existing_inv = db.invoices.find_one({
+                "$or": [{"business_id": business_id}, {"customer_name": customer_clean}],
+                "invoice_number": payload.invoice_number.strip(),
+            })
+            if existing_inv:
+                return serialize_invoice(existing_inv)
+
     invoice_create = InvoiceCreate(
         business_id=business_id,
         customer_name=customer_clean,
@@ -257,6 +273,20 @@ def confirm_invoice(
         user_id=str(current_user["_id"]),
     )
     db.transactions.insert_one(tx_doc)
+
+    # Trigger notification for OCR invoice
+    try:
+        from app.services.notification_service import notification_service
+        notification_service.create_notification(
+            user_id=user_id,
+            business_id=business_id,
+            notification_type="ocr_processed",
+            title=f"Invoice saved: ₹{payload.amount:,.0f}",
+            message=f"Invoice for {customer_clean} successfully confirmed and added to ledger.",
+            data={"invoice_number": payload.invoice_number, "amount": payload.amount},
+        )
+    except Exception:
+        pass
 
     # Upsert customer in parties collection safely
     db.parties.update_one(
