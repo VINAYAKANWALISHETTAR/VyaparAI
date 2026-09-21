@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vypara_ai/core/constants/api_endpoints.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
 import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/core/services/notification_service.dart';
@@ -82,55 +83,56 @@ class VoiceProvider extends Notifier<VoiceState> {
 
   @override
   VoiceState build() {
-    _initTts();
+    final lang = ref.watch(languageProvider);
+    _initTts(lang);
     return const VoiceState();
   }
 
-  void _initTts() {
-    if (_ttsInitialized) return;
-    _ttsInitialized = true;
-    _tts.setStartHandler(() {
-      state = state.copyWith(isSpeaking: true);
+  void _initTts(LanguageModel lang) {
+    if (!_ttsInitialized) {
+      _ttsInitialized = true;
+      _tts.setStartHandler(() {
+        state = state.copyWith(isSpeaking: true);
+      });
+      _tts.setCompletionHandler(() {
+        state = state.copyWith(isSpeaking: false);
+        if (state.isWakeWordListening && state.status != VoiceStatus.listening) {
+          Future.delayed(const Duration(milliseconds: 400), () {
+            if (state.isWakeWordListening && state.status != VoiceStatus.processing) {
+              startListening();
+            }
+          });
+        }
+      });
+      _tts.setErrorHandler((_) {
+        state = state.copyWith(isSpeaking: false);
+      });
+      _tts.setSpeechRate(0.5).catchError((_) {});
+      _tts.setPitch(1.0).catchError((_) {});
+    }
+
+    final ttsCode = lang.speechLocale.replaceAll('_', '-');
+    _tts.setLanguage(ttsCode).catchError((_) {
+      _tts.setLanguage(lang.speechLocale).catchError((_) {});
     });
-    _tts.setCompletionHandler(() {
-      state = state.copyWith(isSpeaking: false);
-      if (state.isWakeWordListening && state.status != VoiceStatus.listening) {
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (state.isWakeWordListening && state.status != VoiceStatus.processing) {
-            startListening();
-          }
-        });
-      }
-    });
-    _tts.setErrorHandler((_) {
-      state = state.copyWith(isSpeaking: false);
-    });
-    final lang = ref.read(languageProvider);
-    _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
-    _tts.setSpeechRate(0.5).catchError((_) {});
-    _tts.setPitch(1.0).catchError((_) {});
   }
 
   Future<void> speakGreeting() async {
     final lang = ref.read(languageProvider);
-    String greeting;
-    if (lang.code.toUpperCase() == 'KN') {
-      greeting = "ನಮಸ್ಕಾರ! ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?";
-    } else if (lang.code.toUpperCase() == 'HI') {
-      greeting = "नमस्ते! आज मैं आपकी कैसे मदद कर सकता हूँ?";
-    } else {
-      greeting = "Hello! How can I help your business today?";
-    }
-    _initTts();
+    final greeting = AppTranslations.get('voice_greeting_speech', lang.code);
+    _initTts(lang);
     await _tts.stop();
-    await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
+    final ttsCode = lang.speechLocale.replaceAll('_', '-');
+    await _tts.setLanguage(ttsCode).catchError((_) {
+      return _tts.setLanguage(lang.speechLocale).catchError((_) {});
+    });
     await _tts.speak(greeting);
 
     // Show wake up alert
     NotificationService().showVoiceWakeupAlert(
       query: 'Voice Wakeup',
       responseText: greeting,
-      language: lang.code,
+      language: lang.code.toLowerCase(),
     );
   }
 
@@ -138,7 +140,7 @@ class VoiceProvider extends Notifier<VoiceState> {
     final text = state.response;
     if (text == null || text.isEmpty) return;
     final lang = ref.read(languageProvider);
-    _initTts();
+    _initTts(lang);
     await _tts.stop();
     await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
     await _tts.speak(text);
@@ -280,7 +282,7 @@ class VoiceProvider extends Notifier<VoiceState> {
       final data = response.data as Map<String, dynamic>;
       final answer = data['answer']?.toString() ??
           data['response']?.toString() ??
-          'No response from VyparaAI.';
+          AppTranslations.get('no_voice_response', lang.code);
       final intent = data['intent']?.toString();
 
       final List<Map<String, String>> actions = [];
@@ -296,10 +298,10 @@ class VoiceProvider extends Notifier<VoiceState> {
       }
       if (actions.isEmpty) {
         actions.addAll([
-          {'label': 'View Details', 'route': '/app/transactions'},
-          {'label': 'Show Reports', 'route': '/app/reports'},
-          {'label': 'Set Reminder', 'route': '/app/reminders'},
-          {'label': 'Check Cash Flow', 'route': '/app/cash-flow'},
+          {'label': AppTranslations.get('view_details', lang.code), 'route': '/app/transactions'},
+          {'label': AppTranslations.get('show_reports', lang.code), 'route': '/app/reports'},
+          {'label': AppTranslations.get('set_reminder', lang.code), 'route': '/app/reminders'},
+          {'label': AppTranslations.get('check_cash_flow', lang.code), 'route': '/app/cash-flow'},
         ]);
       }
 
@@ -323,20 +325,22 @@ class VoiceProvider extends Notifier<VoiceState> {
       NotificationService().showVoiceWakeupAlert(
         query: text,
         responseText: answer,
-        language: lang.code,
+        language: lang.code.toLowerCase(),
       );
     } on DioException catch (e) {
       final detail = e.response?.data is Map
           ? e.response!.data['detail']?.toString()
           : null;
+      final lang = ref.read(languageProvider);
       state = state.copyWith(
         status: VoiceStatus.error,
-        error: detail ?? 'Could not connect to VyparaAI. Please try again.',
+        error: detail ?? AppTranslations.get('network_error', lang.code),
       );
     } catch (_) {
+      final lang = ref.read(languageProvider);
       state = state.copyWith(
         status: VoiceStatus.error,
-        error: 'Something went wrong. Please try again.',
+        error: AppTranslations.get('something_went_wrong', lang.code),
       );
     }
   }

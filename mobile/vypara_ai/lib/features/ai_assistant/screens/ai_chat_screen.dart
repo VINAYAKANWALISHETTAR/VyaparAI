@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/ai_assistant/data/models/chat_message_model.dart';
 import 'package:vypara_ai/features/ai_assistant/providers/ai_chat_provider.dart';
 
@@ -38,6 +39,7 @@ class _AIScreenState extends ConsumerState<AIScreenPlaceholder> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(aiChatProvider);
+    final tr = ref.watch(appTranslationsProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -45,9 +47,9 @@ class _AIScreenState extends ConsumerState<AIScreenPlaceholder> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Chat with VyaparAI',
-          style: TextStyle(
+        title: Text(
+          tr('ai_copilot'),
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
@@ -94,18 +96,18 @@ class _AIScreenState extends ConsumerState<AIScreenPlaceholder> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 12,
                             height: 12,
                             child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
-                            'VyaparAI is typing...',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            tr('processing'),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
@@ -117,7 +119,7 @@ class _AIScreenState extends ConsumerState<AIScreenPlaceholder> {
 
             // Bottom Input Bar matching Screen 12
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -149,9 +151,9 @@ class _AIScreenState extends ConsumerState<AIScreenPlaceholder> {
                               controller: _inputController,
                               textInputAction: TextInputAction.send,
                               onSubmitted: (val) => _sendCurrentMessage(),
-                              decoration: const InputDecoration(
-                                hintText: 'Ask anything...',
-                                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                              decoration: InputDecoration(
+                                hintText: tr('ai_type_placeholder'),
+                                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                                 border: InputBorder.none,
                                 isDense: true,
                               ),

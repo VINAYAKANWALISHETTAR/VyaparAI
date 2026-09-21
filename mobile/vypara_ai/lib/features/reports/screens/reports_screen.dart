@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/utils/file_downloader.dart';
 import 'package:vypara_ai/features/reports/data/models/financial_report_model.dart';
 import 'package:vypara_ai/features/reports/providers/reports_provider.dart';
@@ -41,12 +42,12 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     return isNegative ? '-$formatted' : formatted;
   }
 
-  Future<void> _handleExportCsv(BuildContext context) async {
+  Future<void> _handleExportCsv(BuildContext context, String Function(String, [Map<String, dynamic>?]) tr) async {
     final period = ref.read(reportsProvider).selectedPeriod;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Generating financial statement CSV...'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(tr('generating_csv')),
+        duration: const Duration(seconds: 1),
       ),
     );
     try {
@@ -54,9 +55,9 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
       if (csvData.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No report data found for this period.'),
-              backgroundColor: Color(0xFFEF4444),
+            SnackBar(
+              content: Text(tr('no_report_data')),
+              backgroundColor: const Color(0xFFEF4444),
             ),
           );
         }
@@ -70,7 +71,7 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Financial report downloaded: $fileName ✓'),
+            content: Text('${tr('export_csv')} $fileName ✓'),
             backgroundColor: const Color(0xFF10B981),
           ),
         );
@@ -78,16 +79,16 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to export CSV report. Please try again.'),
-            backgroundColor: Color(0xFFEF4444),
+          SnackBar(
+            content: Text(tr('failed_export_csv')),
+            backgroundColor: const Color(0xFFEF4444),
           ),
         );
       }
     }
   }
 
-  void _handleShareReport(BuildContext context, FinancialReportModel? report, String period) {
+  void _handleShareReport(BuildContext context, FinancialReportModel? report, String period, String Function(String, [Map<String, dynamic>?]) tr) {
     if (report == null) return;
     final income = report.totalIncome;
     final expenses = report.totalExpenses;
@@ -95,21 +96,21 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     final count = report.transactionCount;
 
     final shareText = '''
-📊 VyaparAI Financial Statement (${period.toUpperCase()})
+📊 VyaparAI ${tr('financial_overview')} (${period.toUpperCase()})
 ━━━━━━━━━━━━━━━━━━━━
-💰 Total Income: ${_formatAmount(income)}
-📉 Total Expenses: ${_formatAmount(expenses)}
-📈 Net Profit: ${_formatAmount(profit)}
-🧾 Transactions: $count
+💰 ${tr('total_revenue')}: ${_formatAmount(income)}
+📉 ${tr('total_expenses')}: ${_formatAmount(expenses)}
+📈 ${tr('net_profit')}: ${_formatAmount(profit)}
+🧾 ${tr('transactions')}: $count
 
 Generated securely via VyaparAI
 '''.trim();
 
     Clipboard.setData(ClipboardData(text: shareText));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Report summary copied to clipboard! Ready to share on WhatsApp or SMS. ✓'),
-        backgroundColor: Color(0xFF10B981),
+      SnackBar(
+        content: Text(tr('report_summary_copied')),
+        backgroundColor: const Color(0xFF10B981),
       ),
     );
   }
@@ -117,6 +118,7 @@ Generated securely via VyaparAI
   @override
   Widget build(BuildContext context) {
     final reportState = ref.watch(reportsProvider);
+    final tr = ref.watch(appTranslationsProvider);
     final report = reportState.report;
     final period = reportState.selectedPeriod;
 
@@ -142,10 +144,10 @@ Generated securely via VyaparAI
                 ),
                 child: Row(
                   children: [
-                    _buildPeriodTab('Today', 'today', period),
-                    _buildPeriodTab('This Week', 'week', period),
-                    _buildPeriodTab('This Month', 'month', period),
-                    _buildPeriodTab('All Time', 'all', period),
+                    _buildPeriodTab(tr('today'), 'today', period),
+                    _buildPeriodTab(tr('this_week'), 'week', period),
+                    _buildPeriodTab(tr('this_month'), 'month', period),
+                    _buildPeriodTab(tr('all_time'), 'all', period),
                   ],
                 ),
               ),
@@ -188,9 +190,9 @@ Generated securely via VyaparAI
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
-                                  'Income',
-                                  style: TextStyle(
+                                Text(
+                                  tr('income'),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF0F764F),
@@ -209,7 +211,7 @@ Generated securely via VyaparAI
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '$incCount transactions',
+                              '$incCount ${tr('transactions_label')}',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: const Color(0xFF0F764F).withValues(alpha: 0.8),
@@ -247,9 +249,9 @@ Generated securely via VyaparAI
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
-                                  'Expenses',
-                                  style: TextStyle(
+                                Text(
+                                  tr('expenses'),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.error,
@@ -268,7 +270,7 @@ Generated securely via VyaparAI
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '$expCount transactions',
+                              '$expCount ${tr('transactions_label')}',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.error.withValues(alpha: 0.8),
@@ -298,9 +300,9 @@ Generated securely via VyaparAI
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Net Profit',
-                            style: TextStyle(
+                          Text(
+                            tr('net_profit'),
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
@@ -313,8 +315,8 @@ Generated securely via VyaparAI
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: (report?.netProfit ?? 0) >= 0
-                                  ? AppColors.primary
-                                  : AppColors.error,
+                                    ? AppColors.primary
+                                    : AppColors.error,
                             ),
                           ),
                         ],
@@ -328,7 +330,7 @@ Generated securely via VyaparAI
                           borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Text(
-                          '${(report?.profitMargin ?? 0) >= 0 ? '+' : ''}${(report?.profitMargin ?? 0).toStringAsFixed(1)}% margin',
+                          '${(report?.profitMargin ?? 0) >= 0 ? '+' : ''}${(report?.profitMargin ?? 0).toStringAsFixed(1)}% ${tr('margin_label')}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -357,9 +359,9 @@ Generated securely via VyaparAI
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Income vs Expenses',
-                            style: TextStyle(
+                          Text(
+                            tr('income_vs_expenses'),
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
@@ -367,15 +369,15 @@ Generated securely via VyaparAI
                           ),
                           Row(
                             children: [
-                              _buildLegend('Income', const Color(0xFF0F764F)),
+                              _buildLegend(tr('income'), const Color(0xFF0F764F)),
                               const SizedBox(width: 12),
-                              _buildLegend('Expense', AppColors.error),
+                              _buildLegend(tr('expense'), AppColors.error),
                             ],
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
-                      _buildBarChart(report?.chartPoints ?? []),
+                      _buildBarChart(report?.chartPoints ?? [], tr),
                     ],
                   ),
                 ),
@@ -395,9 +397,9 @@ Generated securely via VyaparAI
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Category Breakdown',
-                            style: TextStyle(
+                          Text(
+                            tr('category_breakdown'),
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
@@ -410,8 +412,8 @@ Generated securely via VyaparAI
                             ),
                             child: Row(
                               children: [
-                                _buildCategoryToggle('Income'),
-                                _buildCategoryToggle('Expense'),
+                                _buildCategoryToggle(tr('income'), 'Income'),
+                                _buildCategoryToggle(tr('expense'), 'Expense'),
                               ],
                             ),
                           ),
@@ -436,9 +438,12 @@ Generated securely via VyaparAI
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _handleExportCsv(context),
+                        onPressed: () => _handleExportCsv(context, tr),
                         icon: const Icon(Icons.download_rounded, size: 18),
-                        label: const Text('Export CSV'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(tr('export_csv')),
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           side: const BorderSide(color: AppColors.primary),
@@ -450,9 +455,12 @@ Generated securely via VyaparAI
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _handleShareReport(context, report, period),
+                        onPressed: () => _handleShareReport(context, report, period, tr),
                         icon: const Icon(Icons.share_rounded, size: 18),
-                        label: const Text('Share Report'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(tr('share_report')),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -483,12 +491,16 @@ Generated securely via VyaparAI
             borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                title,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                ),
               ),
             ),
           ),
@@ -514,10 +526,10 @@ Generated securely via VyaparAI
     );
   }
 
-  Widget _buildCategoryToggle(String title) {
-    final isSelected = _activeCategoryTab == title;
+  Widget _buildCategoryToggle(String title, String tabKey) {
+    final isSelected = _activeCategoryTab == tabKey;
     return GestureDetector(
-      onTap: () => setState(() => _activeCategoryTab = title),
+      onTap: () => setState(() => _activeCategoryTab = tabKey),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
@@ -536,12 +548,12 @@ Generated securely via VyaparAI
     );
   }
 
-  Widget _buildBarChart(List<DailyChartPoint> points) {
+  Widget _buildBarChart(List<DailyChartPoint> points, String Function(String, [Map<String, dynamic>?]) tr) {
     if (points.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 120,
         child: Center(
-          child: Text('No transaction data for this period', style: TextStyle(color: AppColors.textTertiary)),
+          child: Text(tr('no_tx_data_period'), style: const TextStyle(color: AppColors.textTertiary)),
         ),
       );
     }
