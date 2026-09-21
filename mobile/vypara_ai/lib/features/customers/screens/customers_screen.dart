@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/customers/data/models/party_model.dart';
 import 'package:vypara_ai/features/customers/providers/parties_provider.dart';
 
@@ -60,6 +61,7 @@ class _CustomersScreenPlaceholderState
   }
 
   void _showAddPartyModal(BuildContext context, bool isCustomer) {
+    final tr = ref.read(appTranslationsProvider);
     final nameController = TextEditingController();
     final amountController = TextEditingController();
     final refController = TextEditingController();
@@ -79,114 +81,116 @@ class _CustomersScreenPlaceholderState
             top: 20,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isCustomer ? 'Add New Customer' : 'Add New Supplier',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: isCustomer ? 'Customer / Business Name' : 'Supplier Name',
-                  hintText: isCustomer ? 'e.g. Sharma Textiles' : 'e.g. Krishna Logistics',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: isCustomer ? 'Opening Due Balance (₹)' : 'Opening Balance / Bill (₹)',
-                  hintText: 'e.g. 15000',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: refController,
-                decoration: InputDecoration(
-                  labelText: isCustomer ? 'Invoice # (Optional)' : 'Category (Optional)',
-                  hintText: isCustomer ? 'e.g. INV-201' : 'e.g. Inventory',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descController,
-                decoration: InputDecoration(
-                  labelText: 'Notes / Description (Optional)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final name = nameController.text.trim();
-                  final amount = double.tryParse(amountController.text.trim()) ?? 0.0;
-                  if (name.isEmpty || amount <= 0) return;
-
-                  Navigator.pop(ctx);
-
-                  if (isCustomer) {
-                    await ref.read(partiesProvider.notifier).addCustomer(
-                          name: name,
-                          amount: amount,
-                          invoiceNumber: refController.text.trim(),
-                          description: descController.text.trim(),
-                        );
-                  } else {
-                    await ref.read(partiesProvider.notifier).addSupplier(
-                          name: name,
-                          amount: amount,
-                          category: refController.text.trim().isNotEmpty
-                              ? refController.text.trim()
-                              : 'Supplier Payment',
-                        );
-                  }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isCustomer
-                              ? 'Customer $name recorded successfully.'
-                              : 'Supplier $name recorded successfully.',
-                        ),
-                        backgroundColor: const Color(0xFF0F764F),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isCustomer ? tr('add_new_customer') : tr('add_new_supplier'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  isCustomer ? 'Save Customer' : 'Save Supplier',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: isCustomer ? tr('customer_business_name') : tr('supplier_name'),
+                    hintText: isCustomer ? 'e.g. Sharma Textiles' : 'e.g. Krishna Logistics',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: isCustomer ? tr('opening_due_balance') : tr('opening_balance_bill'),
+                    hintText: 'e.g. 15000',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: refController,
+                  decoration: InputDecoration(
+                    labelText: isCustomer ? tr('invoice_num_optional') : tr('category_optional'),
+                    hintText: isCustomer ? 'e.g. INV-201' : 'e.g. Inventory',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descController,
+                  decoration: InputDecoration(
+                    labelText: tr('description_notes'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final name = nameController.text.trim();
+                    final amount = double.tryParse(amountController.text.trim()) ?? 0.0;
+                    if (name.isEmpty || amount <= 0) return;
+
+                    Navigator.pop(ctx);
+
+                    if (isCustomer) {
+                      await ref.read(partiesProvider.notifier).addCustomer(
+                            name: name,
+                            amount: amount,
+                            invoiceNumber: refController.text.trim(),
+                            description: descController.text.trim(),
+                          );
+                    } else {
+                      await ref.read(partiesProvider.notifier).addSupplier(
+                            name: name,
+                            amount: amount,
+                            category: refController.text.trim().isNotEmpty
+                                ? refController.text.trim()
+                                : 'Supplier Payment',
+                          );
+                    }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isCustomer
+                                ? '$name: ${tr('saved')}'
+                                : '$name: ${tr('saved')}',
+                          ),
+                          backgroundColor: const Color(0xFF0F764F),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    isCustomer ? tr('save_customer') : tr('save_supplier'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -194,6 +198,7 @@ class _CustomersScreenPlaceholderState
   }
 
   void _showRecordPaymentModal(BuildContext context, PartyModel party) {
+    final tr = ref.read(appTranslationsProvider);
     final payController = TextEditingController(text: party.outstandingAmount.toStringAsFixed(0));
 
     showModalBottomSheet(
@@ -210,60 +215,62 @@ class _CustomersScreenPlaceholderState
             top: 20,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Record Payment from ${party.name}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Outstanding Balance: ${_formatAmount(party.outstandingAmount)}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: payController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Payment Received (₹)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  tr('record_payment_from', {'name': party.name}),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final amt = double.tryParse(payController.text.trim()) ?? 0.0;
-                  if (amt <= 0) return;
-                  Navigator.pop(ctx);
-
-                  if (party.lastInvoiceId != null) {
-                    await ref.read(partiesProvider.notifier).recordPayment(
-                          invoiceId: party.lastInvoiceId!,
-                          amount: amt,
-                        );
-                  }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Payment of ${_formatAmount(amt)} recorded.'),
-                        backgroundColor: const Color(0xFF0F764F),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F764F),
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                const SizedBox(height: 8),
+                Text(
+                  tr('outstanding_balance_label', {'amount': _formatAmount(party.outstandingAmount)}),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
-                child: const Text('Confirm Payment', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: payController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: tr('payment_received_inr'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final amt = double.tryParse(payController.text.trim()) ?? 0.0;
+                    if (amt <= 0) return;
+                    Navigator.pop(ctx);
+
+                    if (party.lastInvoiceId != null) {
+                      await ref.read(partiesProvider.notifier).recordPayment(
+                            invoiceId: party.lastInvoiceId!,
+                            amount: amt,
+                          );
+                    }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(tr('payment_recorded', {'amount': _formatAmount(amt)})),
+                          backgroundColor: const Color(0xFF0F764F),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F764F),
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(tr('confirm_payment'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -271,24 +278,25 @@ class _CustomersScreenPlaceholderState
   }
 
   void _showReminderPreview(BuildContext context, PartyModel party) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Row(
-          children: const [
-            Icon(Icons.message_outlined, color: AppColors.primary, size: 22),
-            SizedBox(width: 8),
-            Text('Payment Reminder', style: TextStyle(fontSize: 16)),
+          children: [
+            const Icon(Icons.message_outlined, color: AppColors.primary, size: 22),
+            const SizedBox(width: 8),
+            Text(tr('payment_reminder'), style: const TextStyle(fontSize: 16)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Message Preview (WhatsApp / SMS):',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            Text(
+              tr('msg_preview_label'),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
             Container(
@@ -308,20 +316,20 @@ class _CustomersScreenPlaceholderState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Reminder sent to ${party.name} via WhatsApp.'),
+                  content: Text(tr('reminder_sent_whatsapp', {'name': party.name})),
                   backgroundColor: const Color(0xFF0F764F),
                 ),
               );
             },
             icon: const Icon(Icons.send_rounded, size: 16),
-            label: const Text('Send Reminder'),
+            label: Text(tr('send_reminder')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0F764F),
               foregroundColor: Colors.white,
@@ -335,9 +343,17 @@ class _CustomersScreenPlaceholderState
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final state = ref.watch(partiesProvider);
     final isCustomer = state.activeTab == 'Customers';
     final parties = state.currentList;
+
+    final filterLabels = {
+      'All': tr('filter_all'),
+      'Due': tr('due_label'),
+      'Paid': tr('paid'),
+      'Active': tr('active'),
+    };
 
     final filteredParties = parties.where((p) {
       if (_subFilter == 'Due') return p.outstandingAmount > 0;
@@ -368,8 +384,8 @@ class _CustomersScreenPlaceholderState
                     ),
                     child: Row(
                       children: [
-                        _buildTab('Customers (${state.customers.length})', 'Customers', state.activeTab),
-                        _buildTab('Suppliers (${state.suppliers.length})', 'Suppliers', state.activeTab),
+                        _buildTab('${tr('customers')} (${state.customers.length})', 'Customers', state.activeTab),
+                        _buildTab('${tr('suppliers')} (${state.suppliers.length})', 'Suppliers', state.activeTab),
                       ],
                     ),
                   ),
@@ -381,8 +397,8 @@ class _CustomersScreenPlaceholderState
                     onChanged: (v) => ref.read(partiesProvider.notifier).search(v),
                     decoration: InputDecoration(
                       hintText: isCustomer
-                          ? 'Search customers by name...'
-                          : 'Search suppliers by name...',
+                          ? '${tr('customers')}...'
+                          : '${tr('suppliers')}...',
                       prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textTertiary),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       filled: true,
@@ -409,28 +425,35 @@ class _CustomersScreenPlaceholderState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isCustomer ? "You will Get (Receivables)" : "You will Give (Payables)",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isCustomer ? tr('you_will_get') : tr('you_will_give'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _formatAmount(isCustomer ? state.totalReceivables : state.totalPayables),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _formatAmount(isCustomer ? state.totalReceivables : state.totalPayables),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
@@ -438,12 +461,15 @@ class _CustomersScreenPlaceholderState
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                         boxShadow: AppShadows.subtle,
                       ),
-                      child: Text(
-                        '${parties.length} ${isCustomer ? "Parties" : "Vendors"}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${parties.length} ${isCustomer ? tr('parties') : tr('suppliers')}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isCustomer ? const Color(0xFF0F764F) : AppColors.error,
+                          ),
                         ),
                       ),
                     ),
@@ -460,11 +486,12 @@ class _CustomersScreenPlaceholderState
                 child: Row(
                   children: _filterOptions.map((f) {
                     final isSel = _subFilter == f;
+                    final labelText = filterLabels[f] ?? f;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: ChoiceChip(
                         label: Text(
-                          f,
+                          labelText,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
@@ -501,7 +528,7 @@ class _CustomersScreenPlaceholderState
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            isCustomer ? 'No customers found' : 'No suppliers found',
+                            isCustomer ? tr('no_customers_found') : tr('no_suppliers_found'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -509,11 +536,13 @@ class _CustomersScreenPlaceholderState
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            isCustomer
-                                ? 'Tap "+ Add Customer" below to record your first client'
-                                : 'Tap "+ Add Supplier" below to record vendor balances',
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Text(
+                              isCustomer ? tr('tap_add_customer') : tr('tap_add_supplier'),
+                              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ],
                       ),
@@ -569,10 +598,12 @@ class _CustomersScreenPlaceholderState
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.textPrimary,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          '${party.count} ${isCustomer ? "invoice(s)" : "bill(s)"}',
+                                          '${party.count} ${isCustomer ? tr('invoices') : tr('records')}',
                                           style: const TextStyle(
                                             fontSize: 11,
                                             color: AppColors.textSecondary,
@@ -586,14 +617,18 @@ class _CustomersScreenPlaceholderState
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text(
-                                        _formatAmount(party.outstandingAmount),
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w800,
-                                          color: hasDue
-                                              ? (isCustomer ? AppColors.error : const Color(0xFF0F764F))
-                                              : const Color(0xFF0F764F),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerRight,
+                                        child: Text(
+                                          _formatAmount(party.outstandingAmount),
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            color: hasDue
+                                                ? (isCustomer ? AppColors.error : const Color(0xFF0F764F))
+                                                : const Color(0xFF0F764F),
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -608,7 +643,7 @@ class _CustomersScreenPlaceholderState
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
-                                          hasDue ? 'Due' : 'Settled',
+                                          hasDue ? tr('due_label') : tr('settled'),
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -631,7 +666,7 @@ class _CustomersScreenPlaceholderState
                                     OutlinedButton.icon(
                                       onPressed: () => _showReminderPreview(context, party),
                                       icon: const Icon(Icons.notifications_active_outlined, size: 14),
-                                      label: const Text('Remind', style: TextStyle(fontSize: 12)),
+                                      label: Text(tr('remind'), style: const TextStyle(fontSize: 12)),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: AppColors.primary,
                                         side: const BorderSide(color: AppColors.primary),
@@ -644,7 +679,7 @@ class _CustomersScreenPlaceholderState
                                     ElevatedButton.icon(
                                       onPressed: () => _showRecordPaymentModal(context, party),
                                       icon: const Icon(Icons.check_circle_outline, size: 14),
-                                      label: const Text('Payment', style: TextStyle(fontSize: 12)),
+                                      label: Text(tr('payment'), style: const TextStyle(fontSize: 12)),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF0F764F),
                                         foregroundColor: Colors.white,
@@ -671,7 +706,7 @@ class _CustomersScreenPlaceholderState
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: Text(
-          isCustomer ? 'Add Customer' : 'Add Supplier',
+          isCustomer ? tr('add_customer') : tr('add_supplier'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -690,12 +725,15 @@ class _CustomersScreenPlaceholderState
             borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                ),
               ),
             ),
           ),

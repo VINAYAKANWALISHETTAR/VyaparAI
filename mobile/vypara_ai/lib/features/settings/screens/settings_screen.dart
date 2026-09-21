@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/core/widgets/app_card.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
@@ -17,6 +18,7 @@ class SettingsScreenPlaceholder extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final auth = ref.watch(authProvider);
     final currentLang = ref.watch(languageProvider);
 
@@ -24,7 +26,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
     final userName = (auth.user?.name.isNotEmpty == true && auth.user!.name != userEmail)
         ? auth.user!.name
         : (userEmail.isNotEmpty ? userEmail.split('@').first : 'User');
-    const bizName = 'Business Owner';
+    final bizName = tr('business_account');
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -97,66 +99,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                 children: [
                   _buildSettingItem(
                     icon: Icons.storefront_outlined,
-                    title: 'Business Profile',
+                    title: tr('business_profile'),
                     onTap: () => _showBusinessProfileModal(context, auth),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.language_outlined,
-                    title: 'Language',
+                    title: tr('language'),
                     trailingText: '${currentLang.name} (${currentLang.nativeName})',
                     onTap: () => _showLanguageModal(context, currentLang),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.mic_none_rounded,
-                    title: 'Voice Assistant & Wake-Word',
-                    trailingBadge: 'Active',
+                    title: tr('voice_assistant'),
+                    trailingBadge: tr('active'),
                     onTap: () => context.push('/app/voice'),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.auto_awesome,
-                    title: 'AI Business Insights',
-                    trailingBadge: 'New',
+                    title: tr('ai_assistant'),
+                    trailingBadge: tr('new_badge'),
                     onTap: () => context.push('/app/insights'),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.chat_bubble_outline_rounded,
-                    title: 'Auto-Fetch Messages (WhatsApp, SMS, Gmail)',
-                    trailingBadge: 'Connected',
+                    title: tr('auto_fetch_messages'),
+                    trailingBadge: tr('connected'),
                     onTap: () => context.push('/app/messages'),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.notifications_none_outlined,
-                    title: 'Notifications & Alerts',
+                    title: tr('notifications_alerts'),
                     onTap: () => context.push('/app/notifications'),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.shield_outlined,
-                    title: 'Data & Privacy',
+                    title: tr('data_privacy'),
                     onTap: () => _showPrivacyDialog(context),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.card_membership_outlined,
-                    title: 'Subscription',
-                    trailingBadge: 'Pro Plan',
+                    title: tr('subscription'),
+                    trailingBadge: tr('pro_plan'),
                     onTap: () => _showSubscriptionModal(context),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.help_outline,
-                    title: 'Help & Support',
+                    title: tr('help_support'),
                     onTap: () => _showHelpSupportModal(context),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.logout,
-                    title: 'Logout',
+                    title: tr('logout'),
                     iconColor: Colors.red,
                     textColor: Colors.red,
                     showChevron: false,
@@ -168,10 +170,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
             const SizedBox(height: 24),
 
             // App version footer
-            const Center(
+            Center(
               child: Text(
-                'VyaparAI v1.0.0 • Made with ❤️ for Indian MSMEs',
-                style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                tr('app_version_info'),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
               ),
             ),
           ],
@@ -248,6 +250,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
 
   // Screen 14: Language Selection Modal
   void _showLanguageModal(BuildContext context, LanguageModel currentLang) {
+    final tr = ref.read(appTranslationsProvider);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
@@ -264,9 +267,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Select Language',
-                      style: TextStyle(
+                    Text(
+                      tr('select_language'),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1E293B),
@@ -286,9 +289,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                     onTap: () {
                       ref.read(languageProvider.notifier).setLanguage(lang);
                       Navigator.pop(ctx);
+                      final updatedTr = ref.read(appTranslationsProvider);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Language switched to ${lang.name} (${lang.nativeName})'),
+                          content: Text(updatedTr('language_switched', {
+                            'name': lang.name,
+                            'nativeName': lang.nativeName,
+                          })),
                           backgroundColor: AppColors.primary,
                           duration: const Duration(seconds: 2),
                         ),
@@ -333,26 +340,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
   }
 
   void _showBusinessProfileModal(BuildContext context, AuthState auth) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.storefront, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('Business Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Icon(Icons.storefront, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(tr('business_profile'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildProfileRow('Business Name', 'My Vyapar Store'),
-            _buildProfileRow('Owner', auth.user?.name ?? 'Business Owner'),
-            _buildProfileRow('Email', auth.user?.email ?? '—'),
-            _buildProfileRow('Currency', 'INR (₹)'),
-            _buildProfileRow('Status', 'Verified & Active'),
+            _buildProfileRow(tr('business_name'), 'My Vyapar Store'),
+            _buildProfileRow(tr('full_name'), auth.user?.name ?? tr('business_account')),
+            _buildProfileRow(tr('email'), auth.user?.email ?? '—'),
+            _buildProfileRow(tr('currency'), 'INR (₹)'),
+            _buildProfileRow(tr('status'), tr('active')),
           ],
         ),
         actions: [
@@ -363,7 +371,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: Text(tr('close')),
           ),
         ],
       ),
@@ -384,30 +392,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
   }
 
   void _showSubscriptionModal(BuildContext context) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.card_membership, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('VyaparAI Pro Plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Icon(Icons.card_membership, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(tr('subscription'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Your subscription is active.', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            SizedBox(height: 10),
-            Text('✓ Unlimited AI Copilot & Voice queries'),
-            SizedBox(height: 4),
-            Text('✓ Smart WhatsApp & SMS payment reminders'),
-            SizedBox(height: 4),
-            Text('✓ Automated OCR bill & receipt scanning'),
-            SizedBox(height: 4),
-            Text('✓ Predictive 30-day cash flow projections'),
+          children: [
+            Text(tr('subscription_active'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            Text(tr('feature_ai_copilot')),
+            const SizedBox(height: 4),
+            Text(tr('feature_smart_reminders')),
+            const SizedBox(height: 4),
+            Text(tr('feature_ocr_scanning')),
+            const SizedBox(height: 4),
+            Text(tr('feature_cashflow_projections')),
           ],
         ),
         actions: [
@@ -418,7 +427,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Awesome'),
+            child: Text(tr('awesome')),
           ),
         ],
       ),
@@ -426,57 +435,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
   }
 
   void _showPrivacyDialog(BuildContext context) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Data & Privacy'),
-        content: const Text(
-          'Your financial data is encrypted in transit (TLS) and stored securely in MongoDB with JWT role-based access. Your invoices and accounts are strictly private to your registered business.',
-          style: TextStyle(fontSize: 14, height: 1.4),
+        title: Text(tr('data_privacy')),
+        content: Text(
+          tr('security_compliance_desc'),
+          style: const TextStyle(fontSize: 14, height: 1.4),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('ok'))),
         ],
       ),
     );
   }
 
   void _showHelpSupportModal(BuildContext context) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Help & Support'),
+        title: Text(tr('help_support')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Need help managing your accounts or invoices?'),
-            SizedBox(height: 10),
-            Text('📧 support@vyapar.ai', style: TextStyle(fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text('📞 +91 8000-VYAPAR (Toll Free)', style: TextStyle(fontWeight: FontWeight.w700)),
+          children: [
+            Text(tr('need_help_title')),
+            const SizedBox(height: 10),
+            const Text('📧 support@vyapar.ai', style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text('📞 +91 8000-VYAPAR (${tr('toll_free')})', style: const TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('close'))),
         ],
       ),
     );
   }
 
   void _confirmLogout(BuildContext context) {
+    final tr = ref.read(appTranslationsProvider);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to sign out of your account?'),
+        title: Text(tr('logout')),
+        content: Text(tr('confirm_logout')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -491,7 +503,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                 context.go('/login');
               }
             },
-            child: const Text('Logout'),
+            child: Text(tr('logout')),
           ),
         ],
       ),

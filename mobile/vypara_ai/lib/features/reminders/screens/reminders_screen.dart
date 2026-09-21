@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/reminders/data/models/reminder_model.dart';
 import 'package:vypara_ai/features/reminders/providers/reminders_provider.dart';
 
@@ -69,6 +70,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final state = ref.watch(remindersProvider);
     final displayedList = _selectedTab == 'Upcoming'
         ? state.upcomingReminders
@@ -80,9 +82,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Reminders',
-          style: TextStyle(
+        title: Text(
+          tr('reminders'),
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
@@ -113,7 +115,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                   children: [
                     Expanded(
                       child: _buildSegmentButton(
-                        title: 'Upcoming',
+                        title: tr('upcoming'),
                         isSelected: _selectedTab == 'Upcoming',
                         count: state.upcomingReminders.length,
                         onTap: () => setState(() => _selectedTab = 'Upcoming'),
@@ -121,7 +123,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                     ),
                     Expanded(
                       child: _buildSegmentButton(
-                        title: 'Completed',
+                        title: tr('completed'),
                         isSelected: _selectedTab == 'Completed',
                         count: state.completedReminders.length,
                         onTap: () => setState(() => _selectedTab = 'Completed'),
@@ -138,7 +140,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
               child: state.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : displayedList.isEmpty
-                      ? _buildEmptyState()
+                      ? _buildEmptyState(tr)
                       : RefreshIndicator(
                           onRefresh: () => ref.read(remindersProvider.notifier).loadReminders(),
                           child: ListView.separated(
@@ -147,7 +149,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                             separatorBuilder: (context, index) => const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final item = displayedList[index];
-                              return _buildReminderCard(item);
+                              return _buildReminderCard(item, tr);
                             },
                           ),
                         ),
@@ -162,9 +164,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                 child: ElevatedButton.icon(
                   onPressed: () => _showAddReminderSheet(context),
                   icon: const Icon(Icons.add, size: 22, color: Colors.white),
-                  label: const Text(
-                    'Add Reminder',
-                    style: TextStyle(
+                  label: Text(
+                    tr('add_reminder'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -213,12 +215,15 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
               : null,
         ),
         child: Center(
-          child: Text(
-            '$title ($count)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.primary : const Color(0xFF64748B),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '$title ($count)',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : const Color(0xFF64748B),
+              ),
             ),
           ),
         ),
@@ -226,7 +231,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
     );
   }
 
-  Widget _buildReminderCard(ReminderModel item) {
+  Widget _buildReminderCard(ReminderModel item, String Function(String, [Map<String, dynamic>?]) tr) {
     Color iconBg;
     Color iconColor;
     IconData iconData;
@@ -336,13 +341,16 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
           ),
           if (item.amount != null && item.amount! > 0) ...[
             const SizedBox(width: 8),
-            Text(
-              _formatAmount(item.amount!),
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: item.isCompleted ? const Color(0xFF94A3B8) : const Color(0xFF0F172A),
-                decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _formatAmount(item.amount!),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: item.isCompleted ? const Color(0xFF94A3B8) : const Color(0xFF0F172A),
+                  decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+                ),
               ),
             ),
           ],
@@ -353,12 +361,14 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
             onSelected: (action) {
               if (action == 'toggle') {
                 ref.read(remindersProvider.notifier).toggleReminderStatus(item);
+              } else if (action == 'edit') {
+                _showEditReminderSheet(context, item);
               } else if (action == 'whatsapp') {
-                _showWhatsAppReminderDialog(context, item);
+                _showWhatsAppReminderDialog(context, item, tr);
               } else if (action == 'sms') {
-                _showSmsReminderDialog(context, item);
+                _showSmsReminderDialog(context, item, tr);
               } else if (action == 'delete') {
-                _confirmDeleteReminder(context, item);
+                _confirmDeleteReminder(context, item, tr);
               }
             },
             itemBuilder: (context) => [
@@ -372,7 +382,17 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                       color: item.isCompleted ? AppColors.primary : const Color(0xFF10B981),
                     ),
                     const SizedBox(width: 8),
-                    Text(item.isCompleted ? 'Mark Pending' : 'Mark Completed'),
+                    Text(item.isCompleted ? tr('mark_pending') : tr('mark_completed')),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF2563EB)),
+                    const SizedBox(width: 8),
+                    Text(tr('edit_reminder')),
                   ],
                 ),
               ),
@@ -382,7 +402,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                   children: [
                     const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF25D366)),
                     const SizedBox(width: 8),
-                    const Text('Send WhatsApp'),
+                    Text(tr('send_whatsapp')),
                   ],
                 ),
               ),
@@ -392,7 +412,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                   children: [
                     const Icon(Icons.sms_outlined, size: 18, color: Color(0xFF3B82F6)),
                     const SizedBox(width: 8),
-                    const Text('Send SMS'),
+                    Text(tr('send_sms')),
                   ],
                 ),
               ),
@@ -403,7 +423,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
                   children: [
                     const Icon(Icons.delete_outline, size: 18, color: Colors.red),
                     const SizedBox(width: 8),
-                    const Text('Delete', style: TextStyle(color: Colors.red)),
+                    Text(tr('delete'), style: const TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -414,7 +434,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String Function(String, [Map<String, dynamic>?]) tr) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -433,7 +453,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
           ),
           const SizedBox(height: 16),
           Text(
-            _selectedTab == 'Upcoming' ? 'All caught up!' : 'No completed reminders',
+            _selectedTab == 'Upcoming' ? tr('all_caught_up') : tr('no_completed_reminders'),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -443,8 +463,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
           const SizedBox(height: 6),
           Text(
             _selectedTab == 'Upcoming'
-                ? 'You have no pending payments or alerts.'
-                : 'Reminders you mark as finished will appear here.',
+                ? tr('no_pending_alerts')
+                : tr('completed_reminders_appear'),
             style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
             textAlign: TextAlign.center,
           ),
@@ -462,7 +482,16 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
     );
   }
 
-  void _showWhatsAppReminderDialog(BuildContext context, ReminderModel item) {
+  void _showEditReminderSheet(BuildContext context, ReminderModel item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _EditReminderSheet(reminder: item),
+    );
+  }
+
+  void _showWhatsAppReminderDialog(BuildContext context, ReminderModel item, String Function(String, [Map<String, dynamic>?]) tr) {
     final amt = item.amount != null ? _formatAmount(item.amount!) : '';
     final dateStr = _formatDueDate(item.dueAt);
 
@@ -472,20 +501,20 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.chat, color: Color(0xFF25D366)),
-            SizedBox(width: 8),
-            Text('WhatsApp Reminder', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Icon(Icons.chat, color: Color(0xFF25D366)),
+            const SizedBox(width: 8),
+            Text(tr('whatsapp_reminder'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Preview of the reminder message:',
-              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            Text(
+              tr('preview_reminder_msg'),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 10),
             Container(
@@ -505,11 +534,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: Text(tr('close')),
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.copy, size: 16, color: Colors.white),
-            label: const Text('Copy & Share'),
+            label: Text(tr('copy_and_share')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF25D366),
               foregroundColor: Colors.white,
@@ -519,7 +548,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
               Clipboard.setData(ClipboardData(text: text));
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('WhatsApp message copied to clipboard!')),
+                SnackBar(content: Text(tr('whatsapp_copied'))),
               );
             },
           ),
@@ -528,7 +557,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
     );
   }
 
-  void _showSmsReminderDialog(BuildContext context, ReminderModel item) {
+  void _showSmsReminderDialog(BuildContext context, ReminderModel item, String Function(String, [Map<String, dynamic>?]) tr) {
     final amt = item.amount != null ? _formatAmount(item.amount!) : '';
     final dateStr = _formatDueDate(item.dueAt);
 
@@ -538,11 +567,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.sms, color: Color(0xFF3B82F6)),
-            SizedBox(width: 8),
-            Text('SMS Reminder', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Icon(Icons.sms, color: Color(0xFF3B82F6)),
+            const SizedBox(width: 8),
+            Text(tr('sms_reminder'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Container(
@@ -557,11 +586,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.copy, size: 16, color: Colors.white),
-            label: const Text('Copy SMS'),
+            label: Text(tr('copy_sms')),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -571,7 +600,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
               Clipboard.setData(ClipboardData(text: text));
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('SMS text copied to clipboard!')),
+                SnackBar(content: Text(tr('sms_copied'))),
               );
             },
           ),
@@ -580,17 +609,17 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
     );
   }
 
-  void _confirmDeleteReminder(BuildContext context, ReminderModel item) {
+  void _confirmDeleteReminder(BuildContext context, ReminderModel item, String Function(String, [Map<String, dynamic>?]) tr) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Reminder?'),
-        content: Text('Are you sure you want to delete "${item.title}"?'),
+        title: Text(tr('delete_reminder_q')),
+        content: Text(tr('delete_reminder_confirm', {'title': item.title})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -602,7 +631,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
               Navigator.pop(ctx);
               ref.read(remindersProvider.notifier).deleteReminder(item.id);
             },
-            child: const Text('Delete'),
+            child: Text(tr('delete')),
           ),
         ],
       ),
@@ -624,6 +653,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
   final _notesController = TextEditingController();
 
   String _reminderType = 'supplier';
+  String? _recurrence;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
   bool _isSubmitting = false;
@@ -647,6 +677,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final months = [
       '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -676,9 +707,9 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Add New Reminder',
-                  style: TextStyle(
+                Text(
+                  tr('add_new_reminder'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),
@@ -722,8 +753,8 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                labelText: 'Title *',
-                hintText: 'e.g. Pay Supplier',
+                labelText: '${tr('title')} *',
+                hintText: tr('eg_pay_supplier'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -733,8 +764,8 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
             TextField(
               controller: _partyController,
               decoration: InputDecoration(
-                labelText: 'Party / Reference Name',
-                hintText: 'e.g. Acme Stores or Apex Supplies',
+                labelText: tr('party_reference_name'),
+                hintText: tr('eg_party_name'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -749,7 +780,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Amount (₹)',
+                      labelText: tr('amount_inr_label'),
                       prefixText: '₹ ',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -761,15 +792,15 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _reminderType,
                     decoration: InputDecoration(
-                      labelText: 'Type',
+                      labelText: tr('type'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'supplier', child: Text('Supplier')),
-                      DropdownMenuItem(value: 'customer', child: Text('Customer')),
-                      DropdownMenuItem(value: 'rent', child: Text('Rent')),
-                      DropdownMenuItem(value: 'utility', child: Text('Utility')),
-                      DropdownMenuItem(value: 'general', child: Text('General')),
+                    items: [
+                      DropdownMenuItem(value: 'supplier', child: Text(tr('supplier_label'))),
+                      DropdownMenuItem(value: 'customer', child: Text(tr('customer_label'))),
+                      DropdownMenuItem(value: 'rent', child: Text(tr('rent_label'))),
+                      DropdownMenuItem(value: 'utility', child: Text(tr('utility_label'))),
+                      DropdownMenuItem(value: 'general', child: Text(tr('general_label'))),
                     ],
                     onChanged: (val) {
                       if (val != null) setState(() => _reminderType = val);
@@ -777,6 +808,25 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+
+            // Recurrence Dropdown
+            DropdownButtonFormField<String?>(
+              initialValue: _recurrence,
+              decoration: InputDecoration(
+                labelText: tr('recurrence_label'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: [
+                DropdownMenuItem(value: null, child: Text(tr('recurrence_none_oneoff'))),
+                DropdownMenuItem(value: 'daily', child: Text(tr('recurrence_daily'))),
+                DropdownMenuItem(value: 'weekly', child: Text(tr('recurrence_weekly'))),
+                DropdownMenuItem(value: 'monthly', child: Text(tr('recurrence_monthly'))),
+              ],
+              onChanged: (val) {
+                setState(() => _recurrence = val);
+              },
             ),
             const SizedBox(height: 12),
 
@@ -835,8 +885,8 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
               controller: _notesController,
               maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'Notes / Description',
-                hintText: 'Additional details or invoice reference',
+                labelText: tr('description_notes'),
+                hintText: tr('additional_details_ref'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -858,9 +908,9 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text(
-                        'Save Reminder',
-                        style: TextStyle(
+                    : Text(
+                        tr('save_reminder'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -875,10 +925,11 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
   }
 
   Future<void> _submitReminder() async {
+    final tr = ref.read(appTranslationsProvider);
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a reminder title')),
+        SnackBar(content: Text(tr('enter_reminder_title'))),
       );
       return;
     }
@@ -903,6 +954,7 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
       amount: amt,
       partyName: _partyController.text.trim(),
       reminderType: _reminderType,
+      recurrence: _recurrence,
     );
 
     if (!mounted) return;
@@ -910,12 +962,331 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
     if (success) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reminder added successfully!')),
+        SnackBar(content: Text(tr('reminder_added_success'))),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add reminder')),
+        SnackBar(content: Text(tr('failed_add_reminder'))),
       );
     }
   }
 }
+
+class _EditReminderSheet extends ConsumerStatefulWidget {
+  final ReminderModel reminder;
+  const _EditReminderSheet({required this.reminder});
+
+  @override
+  ConsumerState<_EditReminderSheet> createState() => _EditReminderSheetState();
+}
+
+class _EditReminderSheetState extends ConsumerState<_EditReminderSheet> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _partyController;
+  late final TextEditingController _amountController;
+  late final TextEditingController _notesController;
+
+  late String _reminderType;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+  String? _recurrence;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.reminder.title);
+    _partyController = TextEditingController(text: widget.reminder.partyName ?? '');
+    _amountController = TextEditingController(
+      text: widget.reminder.amount != null ? widget.reminder.amount!.toStringAsFixed(0) : '',
+    );
+    _notesController = TextEditingController(text: widget.reminder.description);
+    _reminderType = widget.reminder.reminderType;
+    _recurrence = widget.reminder.recurrence;
+    _selectedDate = widget.reminder.dueAt ?? DateTime.now().add(const Duration(days: 1));
+    _selectedTime = widget.reminder.dueAt != null
+        ? TimeOfDay(hour: widget.reminder.dueAt!.hour, minute: widget.reminder.dueAt!.minute)
+        : const TimeOfDay(hour: 10, minute: 0);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _partyController.dispose();
+    _amountController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
+    final months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final dateStr = '${_selectedDate.day} ${months[_selectedDate.month]} ${_selectedDate.year}';
+    final hour = _selectedTime.hour > 12 ? _selectedTime.hour - 12 : (_selectedTime.hour == 0 ? 12 : _selectedTime.hour);
+    final period = _selectedTime.hour >= 12 ? 'PM' : 'AM';
+    final minuteStr = _selectedTime.minute.toString().padLeft(2, '0');
+    final timeStr = '$hour:$minuteStr $period';
+
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  tr('edit_reminder'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Title Field
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: '${tr('title')} *',
+                hintText: tr('eg_pay_supplier'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Party Name
+            TextField(
+              controller: _partyController,
+              decoration: InputDecoration(
+                labelText: tr('party_reference_name'),
+                hintText: tr('eg_party_name'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Amount & Type Row
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: tr('amount_inr_label'),
+                      prefixText: '₹ ',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _reminderType,
+                    decoration: InputDecoration(
+                      labelText: tr('type'),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: [
+                      DropdownMenuItem(value: 'supplier', child: Text(tr('supplier_label'))),
+                      DropdownMenuItem(value: 'customer', child: Text(tr('customer_label'))),
+                      DropdownMenuItem(value: 'rent', child: Text(tr('rent_label'))),
+                      DropdownMenuItem(value: 'utility', child: Text(tr('utility_label'))),
+                      DropdownMenuItem(value: 'general', child: Text(tr('general_label'))),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _reminderType = val);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Recurrence Dropdown
+            DropdownButtonFormField<String?>(
+              initialValue: _recurrence,
+              decoration: InputDecoration(
+                labelText: tr('recurrence_label'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: [
+                DropdownMenuItem(value: null, child: Text(tr('recurrence_none_oneoff'))),
+                DropdownMenuItem(value: 'daily', child: Text(tr('recurrence_daily'))),
+                DropdownMenuItem(value: 'weekly', child: Text(tr('recurrence_weekly'))),
+                DropdownMenuItem(value: 'monthly', child: Text(tr('recurrence_monthly'))),
+              ],
+              onChanged: (val) {
+                setState(() => _recurrence = val);
+              },
+            ),
+            const SizedBox(height: 12),
+
+            // Date and Time Row
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.calendar_month, size: 18),
+                    label: Text(
+                      dateStr,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) setState(() => _selectedDate = picked);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.access_time, size: 18),
+                    label: Text(
+                      timeStr,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    onPressed: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedTime,
+                      );
+                      if (picked != null) setState(() => _selectedTime = picked);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Notes
+            TextField(
+              controller: _notesController,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: tr('description_notes'),
+                hintText: tr('additional_details_ref'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Update Button
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _submitUpdate,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        tr('update_reminder'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitUpdate() async {
+    final tr = ref.read(appTranslationsProvider);
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('enter_reminder_title'))),
+      );
+      return;
+    }
+
+    final amt = double.tryParse(_amountController.text.trim());
+    final dueDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    setState(() => _isSubmitting = true);
+
+    final success = await ref.read(remindersProvider.notifier).updateReminder(
+      reminderId: widget.reminder.id,
+      title: title,
+      description: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : (_partyController.text.trim().isNotEmpty ? _partyController.text.trim() : 'Payment reminder'),
+      dueAt: dueDateTime,
+      amount: amt,
+      partyName: _partyController.text.trim(),
+      reminderType: _reminderType,
+      recurrence: _recurrence,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    if (success) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('reminder_updated_success'))),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('failed_update_reminder'))),
+      );
+    }
+  }
+}
+

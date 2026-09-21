@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/cash_flow/data/models/cash_flow_model.dart';
 import 'package:vypara_ai/features/cash_flow/providers/cash_flow_provider.dart';
 
@@ -35,6 +36,7 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final state = ref.watch(cashFlowProvider);
     final data = state.data;
 
@@ -44,9 +46,9 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Cash Flow',
-          style: TextStyle(
+        title: Text(
+          tr('cash_flow'),
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
@@ -75,11 +77,11 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                     value: state.selectedDays,
                     icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF1E293B)),
                     isDense: true,
-                    items: const [
-                      DropdownMenuItem(value: 7, child: Text('Next 7 Days', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-                      DropdownMenuItem(value: 15, child: Text('Next 15 Days', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-                      DropdownMenuItem(value: 30, child: Text('Next 30 Days', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-                      DropdownMenuItem(value: 60, child: Text('Next 60 Days', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                    items: [
+                      DropdownMenuItem(value: 7, child: Text(tr('next_7_days'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                      DropdownMenuItem(value: 15, child: Text(tr('next_15_days'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                      DropdownMenuItem(value: 30, child: Text(tr('next_30_days'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                      DropdownMenuItem(value: 60, child: Text(tr('next_60_days'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
                     ],
                     onChanged: (days) {
                       if (days != null) {
@@ -118,21 +120,24 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Expected Inflow',
-                                    style: TextStyle(
+                                  Text(
+                                    tr('expected_inflow'),
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: Color(0xFF047857),
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
-                                    _formatAmount(data?.expectedReceivables ?? 45000),
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF10B981),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _formatAmount(data?.expectedReceivables ?? 0.0),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF10B981),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -151,21 +156,24 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Expected Outflow',
-                                    style: TextStyle(
+                                  Text(
+                                    tr('expected_outflow'),
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: Color(0xFFB91C1C),
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
-                                    _formatAmount(data?.upcomingLiabilities ?? 32000),
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFFEF4444),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _formatAmount(data?.upcomingLiabilities ?? 0.0),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFFEF4444),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -200,21 +208,24 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Projected Balance',
-                                      style: TextStyle(
+                                    Text(
+                                      tr('projected_balance'),
+                                      style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                         color: Color(0xFF64748B),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      _formatAmount(data?.projectedBalance ?? 82450),
-                                      style: const TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF0F172A),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _formatAmount(data?.projectedBalance ?? 0.0),
+                                        style: const TextStyle(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF0F172A),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -230,7 +241,7 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                                       const Icon(Icons.arrow_upward, size: 14, color: Color(0xFF10B981)),
                                       const SizedBox(width: 2),
                                       Text(
-                                        '${data?.growthRate.abs().toStringAsFixed(0) ?? 8}%',
+                                        '${data?.growthRate.abs().toStringAsFixed(0) ?? 0}%',
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
@@ -305,10 +316,10 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                                 children: [
                                   Text(
                                     data?.riskIndicator == 'low'
-                                        ? 'Healthy Cash Reserve'
+                                        ? tr('healthy_cash_reserve')
                                         : (data?.riskIndicator == 'medium'
-                                            ? 'Balanced Working Capital'
-                                            : 'Cash Flow Deficit Warning'),
+                                            ? tr('balanced_working_capital')
+                                            : tr('cash_flow_deficit_warning')),
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
@@ -317,7 +328,7 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreenPlaceholder> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Net liquidity covers upcoming expenses with a surplus of ${_formatAmount((data?.expectedReceivables ?? 45000) - (data?.upcomingLiabilities ?? 32000))}.',
+                                    '${tr('net_profit')}: ${_formatAmount((data?.expectedReceivables ?? 0.0) - (data?.upcomingLiabilities ?? 0.0))}.',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
