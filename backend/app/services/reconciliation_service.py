@@ -131,6 +131,9 @@ def get_supplier_summary(business_id: str | None, user_id: str):
     for txn in transactions:
         supplier_name = txn.get("description") or txn.get("category", "unknown")
         amount = float(txn["amount"])
+        is_pending = txn.get("status") == "pending"
+        paid_amount = float(txn.get("paid_amount", 0.0 if is_pending else amount))
+        outstanding = float(txn.get("outstanding_amount", amount if is_pending else 0.0))
 
         if supplier_name not in supplier_map:
             supplier_map[supplier_name] = {
@@ -142,10 +145,11 @@ def get_supplier_summary(business_id: str | None, user_id: str):
             }
 
         supplier_map[supplier_name]["amount"] += amount
-        supplier_map[supplier_name]["paid_amount"] += amount
-        supplier_map[supplier_name]["outstanding_amount"] += amount
+        supplier_map[supplier_name]["paid_amount"] += paid_amount
+        supplier_map[supplier_name]["outstanding_amount"] += outstanding
         supplier_map[supplier_name]["transaction_count"] += 1
-        total_payables += amount
+
+    total_payables = sum(s["outstanding_amount"] for s in supplier_map.values())
 
     return {
         "total_payables": total_payables,
