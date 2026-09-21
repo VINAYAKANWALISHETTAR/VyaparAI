@@ -18,8 +18,8 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'walishettar123@gmail.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = true;
 
@@ -85,7 +85,7 @@ class _LoginFormState extends State<LoginForm> {
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
-              hintText: 'walishettar123@gmail.com',
+              hintText: 'you@example.com',
               hintStyle: const TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 14,

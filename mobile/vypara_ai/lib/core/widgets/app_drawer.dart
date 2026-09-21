@@ -11,8 +11,8 @@ class AppDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).uri.path;
     final auth = ref.watch(authProvider);
-    final userName = (auth.user?.name.isNotEmpty == true) ? auth.user!.name : 'vinayaka';
-    final userEmail = (auth.user?.email.isNotEmpty == true) ? auth.user!.email : 'walishettar123@gmail.com';
+    final userName = (auth.user?.name.isNotEmpty == true) ? auth.user!.name : 'User';
+    final userEmail = (auth.user?.email.isNotEmpty == true) ? auth.user!.email : '';
 
     return Drawer(
       backgroundColor: Colors.white,

@@ -31,7 +31,7 @@ class NetworkException extends AppException {
         return const NetworkException(message: 'Request was cancelled.');
       case DioExceptionType.connectionError:
         return const NetworkException(
-            message: 'Unable to connect to backend server. Ensure backend is running at http://localhost:8000');
+            message: 'Unable to connect to backend server. Please check your internet connection or try again.');
       default:
         return NetworkException(message: error.message ?? 'An unexpected network error occurred.');
     }
