@@ -176,7 +176,20 @@ class _UploadScreenPlaceholderState
       return;
     }
     if (uploadState.result != null) {
-      _showReviewBottomSheet(uploadState.result!);
+      final res = uploadState.result!;
+      if (res.ocrStatus == 'unreadable') {
+        _showErrorSnackbar(
+          res.message ?? 'Could not detect readable text in this image. Please take a clearer photo.',
+          allowRetry: true,
+        );
+      } else if (res.ocrStatus == 'unsupported') {
+        _showErrorSnackbar(
+          res.message ?? 'This image does not appear to contain an invoice or receipt.',
+          allowRetry: true,
+        );
+      } else {
+        _showReviewBottomSheet(res);
+      }
     }
   }
 
@@ -292,8 +305,8 @@ class _UploadScreenPlaceholderState
       text: result.customerName ?? result.businessName ?? '',
     );
     final amountController = TextEditingController(
-      text: result.totalAmount > 0
-          ? result.totalAmount.toStringAsFixed(2)
+      text: (result.totalAmount != null && result.totalAmount! > 0)
+          ? result.totalAmount!.toStringAsFixed(2)
           : '',
     );
     final invoiceNumController = TextEditingController(
@@ -304,7 +317,10 @@ class _UploadScreenPlaceholderState
     final hasWarning =
         result.ocrStatus == 'needs_confirmation' ||
         result.customerName == null ||
-        result.totalAmount == 0;
+        result.customerName!.trim().isEmpty ||
+        result.totalAmount == null ||
+        result.totalAmount == 0 ||
+        result.validationWarnings.isNotEmpty;
 
     showModalBottomSheet<void>(
       context: context,

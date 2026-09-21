@@ -111,7 +111,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       text: result.customerName ?? result.businessName ?? '',
     );
     final amountController = TextEditingController(
-      text: result.totalAmount > 0 ? result.totalAmount.toStringAsFixed(2) : '',
+      text: (result.totalAmount != null && result.totalAmount! > 0)
+          ? result.totalAmount!.toStringAsFixed(2)
+          : '',
     );
     final invoiceNumController = TextEditingController(
       text: result.invoiceNumber ?? '',
@@ -167,25 +169,47 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: (result.ocrStatus == 'extracted' && result.confidence > 0.6)
+                          ? const Color(0xFFECFDF5)
+                          : const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Text(
-                      'AI Confidence: ${(result.confidence * 100).toInt()}%',
-                      style: const TextStyle(
+                      (result.ocrStatus == 'extracted' && result.confidence > 0.6)
+                          ? 'AI Confidence: ${(result.confidence * 100).toInt()}%'
+                          : 'Review Required',
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF059669),
+                        color: (result.ocrStatus == 'extracted' && result.confidence > 0.6)
+                            ? const Color(0xFF059669)
+                            : const Color(0xFFD97706),
                       ),
                     ),
                   ),
                 ],
               ),
+              if (result.message != null && result.message!.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    result.message!,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               TextField(
                 controller: customerController,
                 decoration: InputDecoration(
-                  labelText: 'Customer / Vendor Name',
+                  labelText: 'Customer / Vendor Name *',
+                  hintText: 'Enter customer or vendor name',
                   prefixIcon: const Icon(Icons.person_outline),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -197,7 +221,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 controller: amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Total Amount (₹)',
+                  labelText: 'Total Amount (₹) *',
+                  hintText: 'Enter total amount',
                   prefixIcon: const Icon(Icons.currency_rupee),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -208,7 +233,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               TextField(
                 controller: invoiceNumController,
                 decoration: InputDecoration(
-                  labelText: 'Invoice Number',
+                  labelText: 'Invoice Number (optional)',
                   prefixIcon: const Icon(Icons.tag),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
@@ -218,14 +243,33 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: () async {
-                  final amt = double.tryParse(amountController.text.trim()) ?? 0;
+                  final amt = double.tryParse(amountController.text.replaceAll(',', '').trim()) ?? 0;
                   final cust = customerController.text.trim();
                   final inv = invoiceNumController.text.trim();
+
+                  if (cust.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter Customer / Vendor name'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+                  if (amt <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid amount greater than zero'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
 
                   Navigator.pop(ctx);
 
                   final success = await ref.read(uploadProvider.notifier).confirmAndSave(
-                    vendor: cust.isNotEmpty ? cust : 'General Customer',
+                    vendor: cust,
                     amount: amt,
                     invoiceNum: inv,
                   );

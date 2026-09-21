@@ -77,16 +77,24 @@ class OcrRemoteDataSource {
   }) async {
     final businessId = await getDefaultBusinessId();
 
+    final cleanName = customerName.trim();
+    if (cleanName.isEmpty) {
+      throw ArgumentError('Customer or vendor name cannot be empty');
+    }
+    if (amount <= 0) {
+      throw ArgumentError('Invoice amount must be greater than zero');
+    }
+
     final body = <String, dynamic>{
-      'customer_name': customerName,
+      'customer_name': cleanName,
       'amount': amount,
     };
     if (businessId != null) body['business_id'] = businessId;
-    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
-      body['invoice_number'] = invoiceNumber;
+    if (invoiceNumber != null && invoiceNumber.trim().isNotEmpty) {
+      body['invoice_number'] = invoiceNumber.trim();
     }
-    if (description != null && description.isNotEmpty) {
-      body['description'] = description;
+    if (description != null && description.trim().isNotEmpty) {
+      body['description'] = description.trim();
     }
     final effectiveDue = dueDate ?? DateTime.now();
     body['due_date'] = '${effectiveDue.year.toString().padLeft(4, '0')}-${effectiveDue.month.toString().padLeft(2, '0')}-${effectiveDue.day.toString().padLeft(2, '0')}';
@@ -105,8 +113,11 @@ class OcrRemoteDataSource {
     String? description,
     String? referenceId,
   }) async {
+    final name = (description != null && description.trim().isNotEmpty)
+        ? description.trim()
+        : 'Customer';
     return confirmInvoice(
-      customerName: description ?? 'Unknown',
+      customerName: name,
       amount: amount,
       invoiceNumber: referenceId,
       description: category,

@@ -1,10 +1,10 @@
+import logging
 import os
 from datetime import date, datetime, timezone
 from typing import Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.background import BackgroundTasks
 
 from app.core.security import get_current_user
 from app.database.mongodb import db
@@ -24,6 +24,8 @@ from app.services.invoice_matching import invoice_matching_service
 from app.services.ocr_service import ocr_service
 from app.services.payment_extractor import payment_extractor
 from app.services.payment_processing import payment_processing_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/ocr",
@@ -74,16 +76,26 @@ def detect_duplicate_invoice(business_id: str, extracted: OCRExtraction) -> bool
 
 def serialize_ocr_extraction(extracted: OCRExtraction) -> dict:
     return {
+        "document_type": extracted.document_type,
         "invoice_number": extracted.invoice_number,
         "customer_name": extracted.customer_name,
         "business_name": extracted.business_name,
+        "seller_name": extracted.seller_name,
+        "buyer_name": extracted.buyer_name,
+        "seller_gstin": extracted.seller_gstin,
+        "buyer_gstin": extracted.buyer_gstin,
         "invoice_date": extracted.invoice_date.isoformat() if extracted.invoice_date else None,
         "due_date": extracted.due_date.isoformat() if extracted.due_date else None,
         "subtotal": extracted.subtotal,
         "tax": extracted.tax,
+        "cgst": extracted.cgst,
+        "sgst": extracted.sgst,
+        "igst": extracted.igst,
         "total_amount": extracted.total_amount,
         "currency": extracted.currency,
         "items": extracted.items,
+        "confidence_score": extracted.confidence_score,
+        "validation_warnings": extracted.validation_warnings,
         "raw_text": extracted.raw_text,
     }
 
@@ -96,38 +108,75 @@ async def extract_invoice(
 ):
     verify_business_ownership(business_id, current_user)
 
-    if not file.content_type or not file.content_type.startswith("image/"):
+    if not file.content_type or not (
+        file.content_type.startswith("image/") or file.content_type == "application/octet-stream"
+    ):
         raise HTTPException(
             status_code=400,
-            detail="File must be an image",
+            detail="File must be a supported image format (JPG, PNG, WebP)",
         )
 
     content = await file.read()
 
     try:
-        ocr_service.validate_file(file.filename or "upload", content, file.content_type or "application/octet-stream")
+        ocr_service.validate_file(file.filename or "upload", content, file.content_type or "image/jpeg")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     try:
-        raw_text = ocr_service.extract_text(content)
+        raw_text, avg_conf = ocr_service.extract_text_with_details(content)
     except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.warning(f"OCR engine unavailable: {exc}")
+        return OCRResponse(
+            status="engine_unavailable",
+            extracted=None,
+            raw_text="",
+            message="OCR engine is unavailable on the server. Please enter details manually.",
+        )
+    except Exception as exc:
+        logger.error(f"OCR processing failed: {exc}")
+        return OCRResponse(
+            status="failed",
+            extracted=None,
+            raw_text="",
+            message="Failed to process image. Please try again with a clearer picture.",
+        )
 
     extracted = invoice_extractor.extract(raw_text)
 
+    # Document type handling
+    if extracted.document_type == "unreadable":
+        return OCRResponse(
+            status="unreadable",
+            extracted=extracted,
+            raw_text=raw_text,
+            message="Could not detect readable text in this image. Please ensure good lighting and clear focus.",
+        )
+
+    if extracted.document_type == "unsupported":
+        return OCRResponse(
+            status="unsupported",
+            extracted=extracted,
+            raw_text=raw_text,
+            message="This image does not appear to contain an invoice or receipt.",
+        )
+
     is_duplicate = detect_duplicate_invoice(business_id, extracted)
 
-    response_status = "needs_confirmation"
+    response_status = "extracted"
     message = None
 
     if is_duplicate:
         response_status = "possible_duplicate"
         message = "A similar invoice already exists for this business."
-
-    if not extracted.customer_name or not extracted.total_amount:
+    elif not extracted.customer_name or not extracted.total_amount:
         response_status = "needs_confirmation"
-        message = "Some fields could not be extracted confidently. Please review."
+        message = "Some invoice details could not be extracted automatically. Please verify before saving."
+    elif extracted.validation_warnings:
+        response_status = "needs_confirmation"
+        message = "; ".join(extracted.validation_warnings)
+    else:
+        message = "Invoice details successfully extracted."
 
     return OCRResponse(
         status=response_status,
@@ -160,12 +209,25 @@ def confirm_invoice(
     else:
         verify_business_ownership(business_id, current_user)
 
+    customer_clean = payload.customer_name.strip()
+    if not customer_clean:
+        raise HTTPException(
+            status_code=422,
+            detail="Customer or Vendor name is required to confirm invoice.",
+        )
+
+    if payload.amount <= 0:
+        raise HTTPException(
+            status_code=422,
+            detail="Amount must be greater than zero.",
+        )
+
     effective_due_date = payload.due_date or datetime.now(timezone.utc).date()
 
     invoice_create = InvoiceCreate(
         business_id=business_id,
-        customer_name=payload.customer_name,
-        invoice_number=payload.invoice_number,
+        customer_name=customer_clean,
+        invoice_number=payload.invoice_number.strip() if payload.invoice_number else None,
         amount=payload.amount,
         due_date=effective_due_date,
         description=payload.description,
@@ -188,7 +250,7 @@ def confirm_invoice(
         type="income",
         amount=payload.amount,
         category="Sales / Invoice",
-        description=f"Invoice #{payload.invoice_number} - {payload.customer_name}" if payload.invoice_number else (payload.description or f"Sale to {payload.customer_name}"),
+        description=f"Invoice #{payload.invoice_number} - {customer_clean}" if payload.invoice_number else (payload.description or f"Sale to {customer_clean}"),
         date=datetime.now(timezone.utc).date(),
         source="ocr_invoice",
         reference_id=payload.invoice_number,
@@ -196,21 +258,20 @@ def confirm_invoice(
     )
     db.transactions.insert_one(tx_doc)
 
-    # Upsert customer in parties collection
-    if payload.customer_name:
-        db.parties.update_one(
-            {"business_id": payload.business_id, "name": payload.customer_name, "type": "customer"},
-            {
-                "$setOnInsert": {
-                    "business_id": payload.business_id,
-                    "name": payload.customer_name,
-                    "type": "customer",
-                    "created_at": datetime.now(timezone.utc),
-                },
-                "$inc": {"total_sales": payload.amount, "balance": payload.amount},
+    # Upsert customer in parties collection safely
+    db.parties.update_one(
+        {"business_id": business_id, "name": customer_clean, "type": "customer"},
+        {
+            "$setOnInsert": {
+                "business_id": business_id,
+                "name": customer_clean,
+                "type": "customer",
+                "created_at": datetime.now(timezone.utc),
             },
-            upsert=True,
-        )
+            "$inc": {"total_sales": payload.amount, "balance": payload.amount},
+        },
+        upsert=True,
+    )
 
     created_invoice = db.invoices.find_one({
         "_id": result.inserted_id
@@ -228,31 +289,59 @@ async def extract_payment(
 ):
     verify_business_ownership(business_id, current_user)
 
-    if not file.content_type or not file.content_type.startswith("image/"):
+    if not file.content_type or not (
+        file.content_type.startswith("image/") or file.content_type == "application/octet-stream"
+    ):
         raise HTTPException(
             status_code=400,
-            detail="File must be an image",
+            detail="File must be a supported image format",
         )
 
     content = await file.read()
 
     try:
-        ocr_service.validate_file(file.filename or "upload", content, file.content_type or "application/octet-stream")
+        ocr_service.validate_file(file.filename or "upload", content, file.content_type or "image/jpeg")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     try:
-        raw_text = ocr_service.extract_text(content)
+        raw_text, _ = ocr_service.extract_text_with_details(content)
     except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.warning(f"OCR engine unavailable: {exc}")
+        return PaymentResponse(
+            status="engine_unavailable",
+            payment=None,
+            message="OCR engine is unavailable on the server.",
+        )
+    except Exception as exc:
+        logger.error(f"OCR execution failed: {exc}")
+        return PaymentResponse(
+            status="failed",
+            payment=None,
+            message="Failed to process image.",
+        )
 
     extracted = payment_extractor.extract(raw_text)
+
+    if extracted.document_type == "unreadable":
+        return PaymentResponse(
+            status="unreadable",
+            payment=extracted,
+            message="Could not detect readable text in this image.",
+        )
+
+    if extracted.document_type == "unsupported":
+        return PaymentResponse(
+            status="unsupported",
+            payment=extracted,
+            message="This image does not appear to be a payment screenshot.",
+        )
 
     if not extracted.amount or extracted.amount <= 0:
         return PaymentResponse(
             status="needs_confirmation",
             payment=extracted,
-            message="Could not extract payment amount. Please review.",
+            message="Could not extract payment amount. Please review and enter amount manually.",
         )
 
     if extracted.payment_status in {"failed", "pending"}:
@@ -300,11 +389,11 @@ async def extract_payment(
         )
 
     return PaymentResponse(
-        status="needs_confirmation",
+        status="extracted",
         payment=extracted,
         matched_invoice=match_result.invoice,
         after_payment=match_result.after_payment,
-        message="Payment extracted. Please confirm to record.",
+        message="Payment extracted successfully. Please confirm to record.",
     )
 
 
@@ -314,6 +403,9 @@ def confirm_payment(
     current_user=Depends(get_current_user),
 ):
     verify_business_ownership(payload.business_id, current_user)
+
+    if payload.amount <= 0:
+        raise HTTPException(status_code=422, detail="Amount must be greater than zero.")
 
     invoice_object_id = validate_object_id(payload.invoice_id, "invoice_id") if payload.invoice_id else None
 
