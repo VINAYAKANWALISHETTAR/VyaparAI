@@ -385,6 +385,29 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 .arch-box h4{margin:0 0 8px;font:700 .9375rem var(--f-display);color:var(--ink)}
 .arch-box p{font-size:.875rem;color:var(--slate);margin:0}
 .arch-box .tag{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--paper);color:var(--green);border:1px solid var(--green);margin-top:8px}
+
+/* codebase explorer */
+.codebase{border-block:1px solid var(--rule);position:relative;overflow:hidden}
+.codebase::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent);pointer-events:none}
+.code-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s7);position:relative;z-index:1;align-items:center}
+@media(min-width:900px){.code-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:var(--s8)}}
+.code-visual{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:20px;font-family:var(--f-code);font-size:.8125rem;line-height:1.6;color:var(--slate);overflow:hidden;position:relative}
+.code-visual::before{content:"";position:absolute;top:0;left:0;right:0;height:32px;background:var(--paper);border-bottom:1px solid var(--rule);border-radius:12px 12px 0 0}
+.code-dots{position:absolute;top:10px;left:14px;display:flex;gap:7px}
+.code-dots span{width:11px;height:11px;border-radius:50%;background:var(--rule)}
+.code-dots span:nth-child(1){background:#FF5F57}
+.code-dots span:nth-child(2){background:#FFBD2E}
+.code-dots span:nth-child(3){background:#28CA42}
+.code-visual pre{margin:0;padding-top:28px;overflow-x:auto;color:var(--ink)}
+.code-visual .kw{color:var(--accent2)}
+.code-visual .fn{color:var(--green)}
+.code-visual .str{color:var(--red)}
+.code-visual .cm{color:var(--slate);font-style:italic}
+.code-stat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:var(--s5)}
+.code-stat b{display:block;font:800 1.5rem var(--f-display);color:var(--ink);line-height:1.1}
+.code-stat span{font-size:.8125rem;color:var(--slate)}
+@media(min-width:600px){.code-stat{grid-template-columns:repeat(4,1fr)}}
+.code-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:var(--s6)}
 </style>
 </head>
 <body>
@@ -403,6 +426,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
       <a href="#ask">Ask demo</a>
       <a href="#voice">Voice</a>
       <a href="#trust">Trust</a>
+      <a href="#codebase">Codebase</a>
       <a href="#download">Download</a>
     </nav>
     <div class="nav-right">
@@ -420,6 +444,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
       <a href="#ask">Ask demo</a>
       <a href="#voice">Voice</a>
       <a href="#trust">Trust</a>
+      <a href="#codebase">Codebase</a>
       <a href="#download">Download</a>
     </div>
   </div>
@@ -635,6 +660,51 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   </div>
 </section>
 
+<!-- CODEBASE -->
+<section class="codebase" id="codebase" aria-labelledby="cTitle">
+  <div class="wrap code-grid">
+    <div>
+      <p class="section-label">Open Architecture</p>
+      <h2 id="cTitle" style="font-size:clamp(1.7rem,4.2vw,2.75rem);line-height:1.08;margin-bottom:var(--s4)">Built with discipline. Open for review.</h2>
+      <p class="lead" style="margin-bottom:var(--s5)">VyaparAI is not a wrapper around an LLM prompt. It is a layered system: Flutter on the device, FastAPI in the middle, deterministic Python services for every rupee, and MongoDB Atlas for data. If you evaluate AI-assisted fintech, the codebase is the evidence.</p>
+      <div class="code-stat">
+        <div><b>FastAPI</b><span>REST API with JWT, CORS, Swagger</span></div>
+        <div><b>Riverpod</b><span>Flutter state management</span></div>
+        <div><b>PyTesseract</b><span>OCR for invoices and payments</span></div>
+        <div><b>MongoDB Atlas</b><span>Multi-tenant, indexed data layer</span></div>
+      </div>
+      <div class="code-cta">
+        <a class="btn btn-accent" href="https://github.com/VINAYAKANWALISHETTAR/VyaparAI" target="_blank" rel="noopener noreferrer" aria-label="Review the VyaparAI codebase on GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;flex:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          Review the codebase
+        </a>
+        <a class="btn btn-ghost" href="#how" style="color:var(--ink);border-color:var(--ink)">See how it works</a>
+      </div>
+    </div>
+    <div class="code-visual" aria-label="Sample code structure from the VyaparAI backend">
+      <div class="code-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <pre><code><span class="cm"># Financial engine — deterministic, always</span>
+<span class="kw">def</span> <span class="fn">get_today_profit</span>(business_id, user_id):
+    income = <span class="fn">sum_incomes</span>(business_id, <span class="str">"today"</span>)
+    expenses = <span class="fn">sum_expenses</span>(business_id, <span class="str">"today"</span>)
+    <span class="kw">return</span> income - expenses
+
+<span class="cm"># Copilot — intent classification, no money math</span>
+<span class="kw">def</span> <span class="fn">classify_intent</span>(message: str) -> Intent:
+    <span class="cm">"""Rule-based classification."""</span>
+    ...
+
+<span class="cm"># Invoice extraction — OCR + validation</span>
+<span class="kw">def</span> <span class="fn">extract_invoice_fields</span>(text: str):
+    <span class="kw">return</span> {
+        <span class="str">"invoice_number"</span>: regex(...),
+        <span class="str">"customer_name"</span>: regex(...),
+        <span class="str">"total"</span>: regex(...),
+    }</code></pre>
+    </div>
+  </div>
+</section>
+
 <div class="band"><div class="wrap">
   <h2>Try VyaparAI on your Android phone.</h2>
   <a class="btn btn-accent" href="#download" data-apk aria-label="Download VyaparAI APK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>Download APK</a>
@@ -746,7 +816,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <div class="foot">
       <div class="full"><a class="brand" href="#top"><img src="VyaparAI_logo.png" alt="VyaparAI" width="34" height="34">VyaparAI</a>
         <p class="caption" style="margin-top:12px;max-width:34ch">AI financial copilot for small businesses. Built with FastAPI, MongoDB Atlas and Flutter.</p></div>
-      <div><h3>Product</h3><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
+      <div><h3>Product</h3><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li><li><a href="#codebase">Codebase</a></li></ul></div>
       <div><h3>Get the app</h3><ul><li><a href="#download">Download</a></li><li><a href="#download">Installation</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h3>Contact</h3><ul id="contactList"><li><span class="caption">Contact details will appear here.</span></li></ul></div>
     </div>
