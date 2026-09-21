@@ -5,50 +5,57 @@ class VyaparAiRibbonLogo extends StatelessWidget {
     super.key,
     this.size = 38.0,
     this.fontSize = 20.0,
+    this.showWordmark = true,
     this.showTagline = false,
   });
 
   final double size;
   final double fontSize;
+  final bool showWordmark;
   final bool showTagline;
 
   @override
   Widget build(BuildContext context) {
+    final logoWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.22),
+      child: Image.asset(
+        'assets/images/VyaparAI_logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+              ),
+              borderRadius: BorderRadius.circular(size * 0.22),
+            ),
+            child: const Center(
+              child: Text(
+                'V',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    if (!showWordmark) {
+      return logoWidget;
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // User's Updated Logo from assets/images/VyaparAI_logo.png
-        ClipRRect(
-          borderRadius: BorderRadius.circular(size * 0.22),
-          child: Image.asset(
-            'assets/images/VyaparAI_logo.png',
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(size * 0.22),
-                ),
-                child: const Center(
-                  child: Text(
-                    'V',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        logoWidget,
         const SizedBox(width: 10),
         // Wordmark
         Column(

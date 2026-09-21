@@ -77,10 +77,10 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // VyaparAI Ribbon Logo
+            // VyaparAI Logo (Wordmark removed per user request, only logo retained)
             const VyaparAiRibbonLogo(
-              size: 32,
-              fontSize: 18,
+              size: 34,
+              showWordmark: false,
             ),
           ],
         ),
