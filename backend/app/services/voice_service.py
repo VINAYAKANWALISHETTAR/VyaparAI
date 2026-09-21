@@ -26,10 +26,19 @@ class VoiceService:
             raise ValueError("Empty voice transcription")
 
         text = text.strip()
+        norm_lang = None
+        if language:
+            l = language.lower().replace("-", "_").split("_")[0]
+            if l in ("en", "kn", "hi"):
+                norm_lang = l
+
+        detected_lang = None
         detected_lang = self._detect_language(text)
-        final_language = (language.lower() if language else None) or detected_lang
+        # Selected app language takes precedence over speech recognition detection,
+        # unless the speech recognition explicitly detected a different script or user asks for translation
+        final_language = norm_lang or detected_lang or "en"
         if final_language not in ("en", "kn", "hi"):
-            final_language = detected_lang
+            final_language = "en"
 
         activated_text = self._remove_activation(text)
 

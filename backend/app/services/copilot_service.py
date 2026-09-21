@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
 from app.ai_tools.analytics_tools import get_business_summary
@@ -259,8 +259,30 @@ def classify_intent(message: str) -> tuple[str, dict | None]:
     return "unknown", {}
 
 
+def _make_action_button(key: str, route: str, lang: str) -> dict:
+    translations = {
+        "view_details": {"en": "View Details", "kn": "ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ", "hi": "विवरण देखें"},
+        "show_reports": {"en": "Show Reports", "kn": "ವರದಿಗಳನ್ನು ತೋರಿಸಿ", "hi": "रिपोर्ट देखें"},
+        "set_reminder": {"en": "Set Reminder", "kn": "ಜ್ಞಾಪನೆ ಹೊಂದಿಸಿ", "hi": "रिमाइंडर सेट करें"},
+        "check_cash_flow": {"en": "Check Cash Flow", "kn": "ನಗದು ಹರಿವನ್ನು ಪರಿಶೀಲಿಸಿ", "hi": "कैश फ्लो देखें"},
+        "view_all_receivables": {"en": "View All Receivables", "kn": "ಎಲ್ಲಾ ಬಾಕಿಗಳನ್ನು ವೀಕ್ಷಿಸಿ", "hi": "सभी प्राप्य देखें"},
+    }
+    label = translations.get(key, {}).get(lang, translations.get(key, {}).get("en", key))
+    return {"label": label, "route": route}
+
+
 def generate_answer(intent: str, data: dict, message: str, language: str = "en") -> tuple[str, list[dict]]:
     lang = (language or "en").lower()
+    msg_lower = (message or "").lower()
+
+    # Dynamic single-query explicit translation request support
+    if any(q in msg_lower for q in ["translate to hindi", "in hindi", "हिंदी में", "hindi mein"]):
+        lang = "hi"
+    elif any(q in msg_lower for q in ["translate to kannada", "in kannada", "ಕನ್ನಡದಲ್ಲಿ", "ಕನ್ನಡಕ್ಕೆ"]):
+        lang = "kn"
+    elif any(q in msg_lower for q in ["translate to english", "in english", "अंग्रेजी में", "ಆಂಗ್ಲ"]):
+        lang = "en"
+
     action_buttons = []
 
     if intent == "greeting":
@@ -300,49 +322,51 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
         today_expense = data.get("today_expenses", amt if ttype == "expense" else 0.0)
 
         action_buttons = [
-            {"label": "View Details", "route": "/app/transactions"},
-            {"label": "Show Reports", "route": "/app/reports"},
+            _make_action_button("view_details", "/app/transactions", lang),
+            _make_action_button("show_reports", "/app/reports", lang),
         ]
 
         if lang == "kn":
             if ttype == "income":
                 return (
-                    f"₹{amt:,.0f} ಆದಾಯ ದಾಖಲಿಸಲಾಗಿದೆ. ಇಂದಿನ ಒಟ್ಟು ಮಾರಾಟ ₹{today_income:,.0f}.",
+                    f"₹{amt:,.0f} ಆದಾಯ ದಾಖಲಿಸಲಾಗಿದೆ.",
                     action_buttons,
                 )
             else:
                 return (
-                    f"₹{amt:,.0f} ವೆಚ್ಚ ದಾಖಲಿಸಲಾಗಿದೆ. ಇಂದಿನ ಒಟ್ಟು ವೆಚ್ಚ ₹{today_expense:,.0f}.",
+                    f"₹{amt:,.0f} ವೆಚ್ಚ ದಾಖಲಿಸಲಾಗಿದೆ.",
                     action_buttons,
                 )
         elif lang == "hi":
             if ttype == "income":
                 return (
-                    f"₹{amt:,.0f} की आय दर्ज की गई। आज का कुल राजस्व ₹{today_income:,.0f} है।",
+                    f"₹{amt:,.0f} की आय दर्ज की गई।",
                     action_buttons,
                 )
             else:
                 return (
-                    f"₹{amt:,.0f} का खर्च दर्ज किया गया। आज का कुल खर्च ₹{today_expense:,.0f} है।",
+                    f"₹{amt:,.0f} का खर्च दर्ज किया गया।",
                     action_buttons,
                 )
 
         if ttype == "income":
+            detail = f" ({desc})" if desc else ""
             return (
-                f"Recorded sale of ₹{amt:,.0f} ({desc}). Today's total sales are ₹{today_income:,.0f}.",
+                f"Recorded sale of ₹{amt:,.0f}{detail}.",
                 action_buttons,
             )
         else:
+            detail = f" ({desc})" if desc else ""
             return (
-                f"Recorded expense of ₹{amt:,.0f} ({desc}). Today's total expenses are ₹{today_expense:,.0f}.",
+                f"Recorded expense of ₹{amt:,.0f}{detail}.",
                 action_buttons,
             )
 
     if intent == "get_today_profit":
         prof = data.get("profit", 0.0)
         action_buttons = [
-            {"label": "Show Reports", "route": "/app/reports"},
-            {"label": "View Details", "route": "/app/transactions"},
+            _make_action_button("show_reports", "/app/reports", lang),
+            _make_action_button("view_details", "/app/transactions", lang),
         ]
         if lang == "kn":
             return f"ಇಂದು ನಿಮ್ಮ ದಾಖಲಾದ ನಿವ್ವಳ ಲಾಭ ₹{prof:,.0f}.", action_buttons
@@ -352,7 +376,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
 
     if intent == "get_today_income":
         inc = data.get("total_income", 0.0)
-        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        action_buttons = [_make_action_button("view_details", "/app/transactions", lang)]
         if lang == "kn":
             return f"ಇಂದು ನಿಮ್ಮ ಒಟ್ಟು ಆದಾಯ/ಮಾರಾಟ ₹{inc:,.0f}.", action_buttons
         elif lang == "hi":
@@ -361,7 +385,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
 
     if intent == "get_today_expenses":
         exp = data.get("total_expenses", 0.0)
-        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        action_buttons = [_make_action_button("view_details", "/app/transactions", lang)]
         if lang == "kn":
             return f"ಇಂದು ನಿಮ್ಮ ಒಟ್ಟು ವೆಚ್ಚ ₹{exp:,.0f}.", action_buttons
         elif lang == "hi":
@@ -370,7 +394,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
 
     if intent == "get_cash_position":
         cash = data.get("recorded_cash_position", 0.0)
-        action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        action_buttons = [_make_action_button("check_cash_flow", "/app/cash-flow", lang)]
         if lang == "kn":
             return f"ನಿಮ್ಮ ದಾಖಲಾದ ನಿವ್ವಳ ನಗದು ಸ್ಥಿತಿ ₹{cash:,.0f} ಆಗಿದೆ.", action_buttons
         elif lang == "hi":
@@ -380,7 +404,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     if intent == "get_cash_flow_forecast":
         bal = data.get("projected_balance", 0.0)
         risk = data.get("risk_indicator", "low")
-        action_buttons = [{"label": "Check Cash Flow", "route": "/app/cash-flow"}]
+        action_buttons = [_make_action_button("check_cash_flow", "/app/cash-flow", lang)]
         if lang == "kn":
             return f"ನಿಮ್ಮ 30 ದಿನಗಳ ಅಂದಾಜು ನಗದು ಬಾಕಿ ₹{bal:,.0f} ಆಗಿದೆ ({risk} ಅಪಾಯ).", action_buttons
         elif lang == "hi":
@@ -390,7 +414,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     if intent == "get_receivables":
         invoices = data.get("invoices", [])
         total = data.get("total_receivables", 0.0)
-        action_buttons = [{"label": "View All Receivables", "route": "/app/customers"}]
+        action_buttons = [_make_action_button("view_all_receivables", "/app/customers", lang)]
 
         cust_totals = {}
         for inv in invoices:
@@ -429,8 +453,8 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     if intent == "get_overdue_receivables":
         od = data.get("overdue_amount", 0.0)
         action_buttons = [
-            {"label": "View All Receivables", "route": "/app/customers"},
-            {"label": "Set Reminder", "route": "/app/reminders"},
+            _make_action_button("view_all_receivables", "/app/customers", lang),
+            _make_action_button("set_reminder", "/app/reminders", lang),
         ]
         if lang == "kn":
             return f"ನೀವು ವಸೂಲಿ ಮಾಡಬೇಕಾದ ₹{od:,.0f} ಮಿತಿಮೀರಿದ ಬಾಕಿ ಹಣವಿದೆ.", action_buttons
@@ -441,8 +465,8 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     if intent in ("get_liabilities", "get_upcoming_liabilities"):
         total = data.get("total_liabilities", data.get("upcoming_amount", 0.0))
         action_buttons = [
-            {"label": "Set Reminder", "route": "/app/reminders"},
-            {"label": "Check Cash Flow", "route": "/app/cash-flow"},
+            _make_action_button("set_reminder", "/app/reminders", lang),
+            _make_action_button("check_cash_flow", "/app/cash-flow", lang),
         ]
         if lang == "kn":
             return f"ನೀವು ಪಾವತಿಸಬೇಕಾದ ಮುಂಬರುವ ಬಾಧ್ಯತೆಗಳು ₹{total:,.0f}.", action_buttons
@@ -457,10 +481,10 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
         rec = data.get("receivables", {}).get("total_receivables", 0.0)
         rec_count = len(data.get("receivables", {}).get("invoices", []))
         action_buttons = [
-            {"label": "View Details", "route": "/app/transactions"},
-            {"label": "Show Reports", "route": "/app/reports"},
-            {"label": "Set Reminder", "route": "/app/reminders"},
-            {"label": "Check Cash Flow", "route": "/app/cash-flow"},
+            _make_action_button("view_details", "/app/transactions", lang),
+            _make_action_button("show_reports", "/app/reports", lang),
+            _make_action_button("set_reminder", "/app/reminders", lang),
+            _make_action_button("check_cash_flow", "/app/cash-flow", lang),
         ]
         if lang == "kn":
             return (
@@ -483,7 +507,7 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
 
     if intent == "get_recent_transactions":
         txns = data.get("transactions", [])
-        action_buttons = [{"label": "View Details", "route": "/app/transactions"}]
+        action_buttons = [_make_action_button("view_details", "/app/transactions", lang)]
         if txns:
             t = txns[0]
             amt = t.get("amount", 0.0)
@@ -506,8 +530,8 @@ def generate_answer(intent: str, data: dict, message: str, language: str = "en")
     prof = float(data.get("today_profit", inc - exp))
     last_txn = data.get("last_transaction")
     action_buttons = [
-        {"label": "View Details", "route": "/app/transactions"},
-        {"label": "Show Reports", "route": "/app/reports"},
+        _make_action_button("view_details", "/app/transactions", lang),
+        _make_action_button("show_reports", "/app/reports", lang),
     ]
     if inc > 0 or exp > 0:
         if lang == "kn":
@@ -614,18 +638,40 @@ class CopilotService:
         desc = kwargs.get("description")
         now = datetime.now(timezone.utc)
 
-        # Create and insert transaction document
-        doc = transaction_document(
-            business_id=business_id,
-            type=ttype,
-            amount=amount,
-            category=category,
-            description=desc,
-            date=now,
-            source="voice",
-            user_id=user_id,
-        )
-        db.transactions.insert_one(doc)
+        # Deduplication for voice / copilot transactions within 5s
+        five_secs_ago = datetime.now(timezone.utc) - timedelta(seconds=5)
+        existing = db.transactions.find_one({
+            "user_id": user_id,
+            "business_id": business_id,
+            "type": ttype,
+            "amount": round(amount, 2),
+            "created_at": {"$gte": five_secs_ago},
+        })
+        if not existing:
+            # Create and insert transaction document
+            doc = transaction_document(
+                business_id=business_id,
+                type=ttype,
+                amount=amount,
+                category=category,
+                description=desc,
+                date=now,
+                source="voice",
+                user_id=user_id,
+            )
+            db.transactions.insert_one(doc)
+            try:
+                from app.services.notification_service import notification_service
+                notification_service.create_notification(
+                    user_id=user_id,
+                    business_id=business_id,
+                    notification_type="transaction_created",
+                    title=f"Voice transaction: ₹{amount:,.0f}",
+                    message=f"{category}: {desc or 'Recorded via voice assistant'}",
+                    data={"amount": amount, "type": ttype},
+                )
+            except Exception:
+                pass
 
         # Compute updated today's summary
         inc_res = get_today_income(business_id, user_id)
