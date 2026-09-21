@@ -3,17 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
+import 'package:vypara_ai/features/customers/data/models/party_model.dart';
+import 'package:vypara_ai/features/customers/providers/parties_provider.dart';
 
 class PersonDetailScreen extends ConsumerStatefulWidget {
   const PersonDetailScreen({
     super.key,
-    required this.name,
-    this.phone = '+91 98765 43210',
-    this.location = 'Bengaluru',
-    this.dueAmount = 24000,
-    this.totalSales = 148300,
+    this.partyId,
+    this.name = '',
+    this.phone = '',
+    this.location = '',
+    this.dueAmount = 0.0,
+    this.totalSales = 0.0,
   });
 
+  final String? partyId;
   final String name;
   final String phone;
   final String location;
@@ -42,6 +47,30 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
+    final partiesState = ref.watch(partiesProvider);
+    PartyModel? party;
+    if (widget.partyId != null && widget.partyId!.isNotEmpty) {
+      party = partiesState.currentList.firstWhere(
+        (p) => p.id == widget.partyId,
+        orElse: () => PartyModel(
+          id: widget.partyId!,
+          name: widget.name,
+          type: 'customer',
+          totalAmount: widget.totalSales,
+          paidAmount: widget.totalSales - widget.dueAmount,
+          outstandingAmount: widget.dueAmount,
+          count: 0,
+          phone: widget.phone,
+        ),
+      );
+    }
+    final displayName = party?.name ?? widget.name;
+    final displayPhone = party?.phone ?? widget.phone;
+    final displayDue = party?.outstandingAmount ?? widget.dueAmount;
+    final displaySales = party?.totalAmount ?? widget.totalSales;
+    final hasDue = displayDue > 0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -52,7 +81,7 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
           onPressed: () => context.pop(),
         ),
         title: Text(
-          widget.name,
+          displayName,
           style: const TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -68,7 +97,7 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Person Header Card (Matches Screen 9)
+            // Person Header Card
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -89,7 +118,7 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                         ),
                         child: Center(
                           child: Text(
-                            widget.name.isNotEmpty ? widget.name.substring(0, 2).toUpperCase() : 'PS',
+                            displayName.isNotEmpty ? displayName.substring(0, 2).toUpperCase() : 'PS',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -107,7 +136,7 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  widget.name,
+                                  displayName,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -117,25 +146,28 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFECFDF5),
+                                    color: hasDue ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(AppRadius.pill),
                                   ),
-                                  child: const Text(
-                                    'Active',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                                  child: Text(
+                                    hasDue ? tr('status_due') : tr('status_settled'),
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: hasDue ? const Color(0xFFD97706) : const Color(0xFF059669)),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              'Customer • ${widget.location}',
+                              Text(
+                                displayPhone.isNotEmpty
+                                    ? '${tr('customer_label')} • $displayPhone'
+                                    : tr('customer_account'),
                               style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                             ),
-                            Text(
-                              widget.phone,
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                            ),
+                            if (displayPhone.isNotEmpty)
+                              Text(
+                                displayPhone,
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                              ),
                           ],
                         ),
                       ),
@@ -147,10 +179,10 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildActionCircle(Icons.call_outlined, 'Call', const Color(0xFF2563EB), () {}),
-                      _buildActionCircle(Icons.chat_bubble_outline_rounded, 'WhatsApp', const Color(0xFF25D366), () {}),
-                      _buildActionCircle(Icons.email_outlined, 'Email', const Color(0xFFEA4335), () {}),
-                      _buildActionCircle(Icons.more_horiz_rounded, 'More', const Color(0xFF64748B), () {}),
+                      _buildActionCircle(Icons.call_outlined, tr('call'), const Color(0xFF2563EB), () {}),
+                      _buildActionCircle(Icons.chat_bubble_outline_rounded, tr('whatsapp'), const Color(0xFF25D366), () {}),
+                      _buildActionCircle(Icons.email_outlined, tr('email'), const Color(0xFFEA4335), () {}),
+                      _buildActionCircle(Icons.more_horiz_rounded, tr('more'), const Color(0xFF64748B), () {}),
                     ],
                   ),
                 ],
@@ -174,10 +206,10 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                 labelColor: Colors.white,
                 unselectedLabelColor: const Color(0xFF64748B),
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                tabs: const [
-                  Tab(text: 'Overview'),
-                  Tab(text: 'Transactions'),
-                  Tab(text: 'Documents'),
+                tabs: [
+                  Tab(text: tr('overview')),
+                  Tab(text: tr('transactions')),
+                  Tab(text: tr('documents')),
                 ],
               ),
             ),
@@ -197,13 +229,13 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Outstanding Due',
-                          style: TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w600),
+                        Text(
+                          tr('outstanding_due'),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '₹ ${widget.dueAmount.toStringAsFixed(0)}',
+                          '₹ ${displayDue.toStringAsFixed(0)}',
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF991B1B)),
                         ),
                       ],
@@ -222,13 +254,13 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Total Sales',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF059669), fontWeight: FontWeight.w600),
+                        Text(
+                          tr('total_sales'),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF059669), fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '₹ ${widget.totalSales.toStringAsFixed(0)}',
+                          '₹ ${displaySales.toStringAsFixed(0)}',
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF065F46)),
                         ),
                       ],
@@ -248,24 +280,26 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Customer Notes',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    tr('customer_notes'),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
-                    'Regular wholesale customer. Prefers WhatsApp communication for invoices. Good volume during festival season.',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.3),
+                    hasDue
+                        ? '${tr('payment_due_of')} ₹ ${displayDue.toStringAsFixed(0)}. ${tr('active_account_pending')}'
+                        : tr('account_settled'),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.3),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 14),
 
-            // AI Summary Card (Matches Screen 9)
+            // AI Summary Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -290,18 +324,20 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen>
                     child: const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AI Summary & Insights',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          tr('ai_summary_insights'),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Buys mainly grocery and household items. Avg. order value ₹ 6,000. Low default risk with consistent payment cycle.',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.3),
+                          hasDue
+                              ? tr('ai_action_reminder')
+                              : tr('ai_healthy_account'),
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.3),
                         ),
                       ],
                     ),

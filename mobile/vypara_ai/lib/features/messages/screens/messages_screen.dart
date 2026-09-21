@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/home/providers/home_provider.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
@@ -36,45 +37,12 @@ class MessagesScreen extends ConsumerStatefulWidget {
 }
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
-  final List<MessageIntegrationItem> _messages = [
-    MessageIntegrationItem(
-      id: 'm1',
-      sender: '+91 98765 43210',
-      preview: 'New order for 50 boxes of rice & cooking oil. Total approx ₹14,500.',
-      time: '10:20 AM',
-      channel: 'whatsapp',
-      detectedAmount: 14500,
-      customerName: 'Priya Stores',
-    ),
-    MessageIntegrationItem(
-      id: 'm2',
-      sender: 'Bank of India (SMS)',
-      preview: 'Rs 12,000 credited to A/C *4829 via UPI Ref 629108392 from Sharma Enterprises.',
-      time: '09:45 AM',
-      channel: 'sms',
-      detectedAmount: 12000,
-      customerName: 'Sharma Enterprises',
-    ),
-    MessageIntegrationItem(
-      id: 'm3',
-      sender: 'Priya Stores (Email)',
-      preview: 'Please share the updated tax invoice for the last delivery on 18th Sep.',
-      time: '08:30 AM',
-      channel: 'email',
-    ),
-    MessageIntegrationItem(
-      id: 'm4',
-      sender: '+91 94823 11094',
-      preview: 'Paid ₹ 5,000 for invoice #INV-1023 via PhonePe.',
-      time: 'Yesterday',
-      channel: 'whatsapp',
-      detectedAmount: 5000,
-      customerName: 'Ramesh Kumar',
-    ),
-  ];
+  final List<MessageIntegrationItem> _messages = [];
+
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -84,9 +52,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E293B), size: 20),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Message Integration',
-          style: TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
+        title: Text(
+          tr('message_integration'),
+          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -95,7 +63,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Auto-Fetch Channels Status (Matches Screen 10)
+            // Auto-Fetch Channels Status
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -107,26 +75,29 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 children: [
                   _buildChannelRow(
                     icon: Icons.chat_bubble_outline_rounded,
-                    name: 'WhatsApp',
-                    sub: 'Fetch business messages & orders',
+                    name: tr('channel_whatsapp'),
+                    sub: tr('channel_whatsapp_sub'),
                     color: const Color(0xFF25D366),
                     isConnected: true,
+                    tr: tr,
                   ),
                   const Divider(color: Color(0xFFF1F5F9), height: 20),
                   _buildChannelRow(
                     icon: Icons.sms_outlined,
-                    name: 'SMS',
-                    sub: 'Read bank & transaction SMS',
+                    name: tr('channel_sms'),
+                    sub: tr('channel_sms_sub'),
                     color: const Color(0xFF3B82F6),
                     isConnected: true,
+                    tr: tr,
                   ),
                   const Divider(color: Color(0xFFF1F5F9), height: 20),
                   _buildChannelRow(
                     icon: Icons.mail_outline_rounded,
-                    name: 'Gmail',
-                    sub: 'Fetch invoices & PO emails',
+                    name: tr('channel_gmail'),
+                    sub: tr('channel_gmail_sub'),
                     color: const Color(0xFFEA4335),
                     isConnected: true,
+                    tr: tr,
                   ),
                 ],
               ),
@@ -137,29 +108,62 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Latest Messages',
-                  style: TextStyle(
+                Text(
+                  tr('latest_messages'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
                   ),
                 ),
                 Text(
-                  '${_messages.length} fetched',
+                  '${_messages.length} ${tr('fetched_count')}',
                   style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
                 ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Message Items List
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _messages.length,
-              separatorBuilder: (ctx, i) => const SizedBox(height: 10),
-              itemBuilder: (ctx, i) {
+            if (_messages.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.mark_chat_unread_outlined, size: 40, color: const Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      tr('no_messages_pending'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      tr('no_messages_desc'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.35),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _messages.length,
+                separatorBuilder: (ctx, i) => const SizedBox(height: 10),
+                itemBuilder: (ctx, i) {
                 final item = _messages[i];
                 return Container(
                   padding: const EdgeInsets.all(16),
@@ -212,7 +216,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'AI Detected: ₹${item.detectedAmount!.toStringAsFixed(0)}',
+                                '${tr('ai_detected')} ₹${item.detectedAmount!.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -233,7 +237,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Recorded ₹${item.detectedAmount!.toStringAsFixed(0)} from message ✓'),
+                                          content: Text('${tr('recorded')} ₹${item.detectedAmount!.toStringAsFixed(0)} ${tr('from_message')} ✓'),
                                           backgroundColor: AppColors.success,
                                         ),
                                       );
@@ -245,20 +249,20 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                       color: AppColors.primary,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Text(
-                                      'Auto-Record',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                                    child: Text(
+                                      tr('auto_record'),
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                                     ),
                                   ),
                                 )
                               else
-                                const Row(
+                                Row(
                                   children: [
-                                    Icon(Icons.check_circle, size: 14, color: Color(0xFF10B981)),
-                                    SizedBox(width: 4),
+                                    Icon(Icons.check_circle, size: 14, color: const Color(0xFF10B981)),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      'Recorded',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                                      tr('recorded'),
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                                     ),
                                   ],
                                 ),
@@ -284,6 +288,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     required String sub,
     required Color color,
     required bool isConnected,
+    required String Function(String) tr,
   }) {
     return Row(
       children: [
@@ -318,9 +323,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             color: const Color(0xFFECFDF5),
             borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
-          child: const Text(
-            'Connected',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+          child: Text(
+            isConnected ? tr('connected') : tr('disconnected'),
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isConnected ? const Color(0xFF059669) : const Color(0xFF64748B)),
           ),
         ),
       ],

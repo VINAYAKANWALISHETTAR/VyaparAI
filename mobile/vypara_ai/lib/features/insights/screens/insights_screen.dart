@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
+import 'package:vypara_ai/features/insights/providers/insights_provider.dart';
 
 class InsightsScreen extends ConsumerStatefulWidget {
   const InsightsScreen({super.key});
@@ -29,6 +31,9 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
+    final state = ref.watch(insightsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -36,145 +41,213 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E293B), size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/app/home');
+            }
+          },
         ),
-        title: const Text(
-          'AI Business Insights',
-          style: TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
+        title: Text(
+          tr('insights'),
+          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          // Filter Tabs (Insights, Risks, Suggestions - Matches Screen 14)
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.primary,
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(insightsProvider.notifier).fetchAll(),
+        color: AppColors.primary,
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF64748B),
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              tabs: const [
-                Tab(text: 'Insights'),
-                Tab(text: 'Risks'),
-                Tab(text: 'Suggestions'),
-              ],
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary,
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor: const Color(0xFF64748B),
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                tabs: [
+                  Tab(text: tr('insights')),
+                  Tab(text: tr('risks')),
+                  Tab(text: tr('suggestions')),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildInsightsTab(),
-                _buildRisksTab(),
-                _buildSuggestionsTab(),
-              ],
+            Expanded(
+              child: state.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildInsightsTab(state),
+                        _buildRisksTab(state),
+                        _buildSuggestionsTab(state),
+                      ],
+                    ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInsightsTab() {
-    return ListView(
+  Widget _buildInsightsTab(InsightsState state) {
+    if (state.insights.isEmpty) {
+      return _buildEmptyTab(
+        icon: Icons.auto_awesome_rounded,
+        title: 'No Trends Detected Yet',
+        description: 'As you record more daily sales and expense transactions, VyaparAI will automatically detect business trends and revenue patterns.',
+      );
+    }
+
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        _buildInsightCard(
-          icon: Icons.trending_up_rounded,
-          iconColor: const Color(0xFF10B981),
-          bgColor: const Color(0xFFECFDF5),
-          title: 'Sales Growth Trending Up',
-          body: 'Sales are 18% higher this month compared to last month. Revenue increased by ₹ 24,850.',
-          tag: 'Positive Trend',
-          tagColor: const Color(0xFF10B981),
-        ),
-        const SizedBox(height: 12),
-        _buildInsightCard(
-          icon: Icons.star_rounded,
-          iconColor: const Color(0xFF2563EB),
-          bgColor: const Color(0xFFEFF6FF),
-          title: 'Top Customer Contribution',
-          body: 'Priya Stores contributes 28% of total monthly sales (₹ 48,200). Highest repeat order rate.',
-          tag: 'Key Customer',
-          tagColor: const Color(0xFF2563EB),
-        ),
-        const SizedBox(height: 12),
-        _buildInsightCard(
-          icon: Icons.receipt_long_rounded,
-          iconColor: const Color(0xFF7C3AED),
-          bgColor: const Color(0xFFF5F3FF),
-          title: 'GST Input Tax Credit',
-          body: 'You may be eligible for GST input tax credit of ₹ 4,200 on recent purchase invoices.',
-          tag: 'Tax Benefit',
-          tagColor: const Color(0xFF7C3AED),
-        ),
-      ],
+      itemCount: state.insights.length,
+      itemBuilder: (context, index) {
+        final item = state.insights[index];
+        final isHigh = item.priority.toLowerCase() == 'high';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: _buildInsightCard(
+            icon: isHigh ? Icons.trending_up_rounded : Icons.insights_rounded,
+            iconColor: isHigh ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+            bgColor: isHigh ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+            title: item.title,
+            body: item.description,
+            tag: item.priority.toUpperCase(),
+            tagColor: isHigh ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildRisksTab() {
-    return ListView(
+  Widget _buildRisksTab(InsightsState state) {
+    if (state.anomalies.isEmpty) {
+      return _buildEmptyTab(
+        icon: Icons.shield_outlined,
+        title: 'All Systems Normal',
+        description: 'No financial anomalies or risk factors detected in your recent records. Your transactions and cash flow are in good health.',
+      );
+    }
+
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        _buildInsightCard(
-          icon: Icons.warning_amber_rounded,
-          iconColor: const Color(0xFFEF4444),
-          bgColor: const Color(0xFFFEF2F2),
-          title: '3 Overdue Payments',
-          body: 'Ramesh Traders and 2 other clients have payments overdue past 15 days. Total overdue: ₹ 24,000.',
-          tag: 'High Priority',
-          tagColor: const Color(0xFFEF4444),
-        ),
-        const SizedBox(height: 12),
-        _buildInsightCard(
-          icon: Icons.account_balance_wallet_outlined,
-          iconColor: const Color(0xFFF59E0B),
-          bgColor: const Color(0xFFFFFBEB),
-          title: 'Cash Flow Dip Expected',
-          body: 'Upcoming supplier payouts of ₹ 23,350 scheduled next week may temporarily decrease liquidity.',
-          tag: 'Liquidity Alert',
-          tagColor: const Color(0xFFF59E0B),
-        ),
-      ],
+      itemCount: state.anomalies.length,
+      itemBuilder: (context, index) {
+        final item = state.anomalies[index];
+        final isCritical = item.severity.toLowerCase() == 'high';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: _buildInsightCard(
+            icon: Icons.warning_amber_rounded,
+            iconColor: isCritical ? const Color(0xFFEF4444) : const Color(0xFFF59E0B),
+            bgColor: isCritical ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB),
+            title: item.type.replaceAll('_', ' ').toUpperCase(),
+            body: item.description,
+            tag: item.severity.toUpperCase(),
+            tagColor: isCritical ? const Color(0xFFEF4444) : const Color(0xFFF59E0B),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSuggestionsTab() {
-    return ListView(
+  Widget _buildSuggestionsTab(InsightsState state) {
+    // Generate context-aware recommendations based on real anomaly/insight counts
+    final suggestions = <Map<String, String>>[];
+
+    if (state.anomalies.isNotEmpty) {
+      suggestions.add({
+        'title': 'Resolve Flagged Transactions',
+        'body': 'You have ${state.anomalies.length} item(s) flagged for review. Checking them ensures your books remain accurate.',
+        'tag': 'High Priority',
+        'priority': 'high',
+      });
+    }
+
+    suggestions.add({
+      'title': 'Daily Transaction Reconciliation',
+      'body': 'Record all customer payments and expense receipts daily to keep cash flow forecasts precise.',
+      'tag': 'Best Practice',
+      'priority': 'normal',
+    });
+
+    suggestions.add({
+      'title': 'Automate Due Payment Reminders',
+      'body': 'Set timely reminders for overdue customer invoices to speed up cash collections.',
+      'tag': 'Receivables',
+      'priority': 'normal',
+    });
+
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        _buildInsightCard(
-          icon: Icons.lightbulb_outline_rounded,
-          iconColor: const Color(0xFF0284C7),
-          bgColor: const Color(0xFFF0F9FF),
-          title: 'Optimize Raw Material Costs',
-          body: 'Consider negotiating raw material costs with suppliers. Recent procurement is 5% higher than market average.',
-          tag: 'Cost Savings',
-          tagColor: const Color(0xFF0284C7),
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        final s = suggestions[index];
+        final isHigh = s['priority'] == 'high';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: _buildInsightCard(
+            icon: Icons.lightbulb_outline_rounded,
+            iconColor: isHigh ? const Color(0xFFEF4444) : const Color(0xFF0284C7),
+            bgColor: isHigh ? const Color(0xFFFEF2F2) : const Color(0xFFF0F9FF),
+            title: s['title']!,
+            body: s['body']!,
+            tag: s['tag']!,
+            tagColor: isHigh ? const Color(0xFFEF4444) : const Color(0xFF0284C7),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyTab({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFDBEAFE)),
+              ),
+              child: Icon(icon, size: 48, color: AppColors.primary),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.4),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        _buildInsightCard(
-          icon: Icons.alarm_rounded,
-          iconColor: const Color(0xFF059669),
-          bgColor: const Color(0xFFECFDF5),
-          title: 'Send Automated Reminders',
-          body: 'Sending 1-tap WhatsApp reminders on the due date improves collection speed by 42%.',
-          tag: 'Action Recommended',
-          tagColor: const Color(0xFF059669),
-        ),
-      ],
+      ),
     );
   }
 
@@ -207,27 +280,34 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      shape: BoxShape.circle,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: iconColor, size: 20),
                     ),
-                    child: Icon(icon, color: iconColor, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
