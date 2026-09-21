@@ -48,7 +48,7 @@ class AppBottomNav extends ConsumerWidget {
                       icon: isHome ? Icons.home_rounded : Icons.home_outlined,
                       label: 'Home',
                       isSelected: isHome,
-                      showIndicatorDot: true,
+                      showIndicatorDot: isHome,
                       onTap: () => context.go('/app/home'),
                     ),
                     // Transactions
@@ -56,7 +56,7 @@ class AppBottomNav extends ConsumerWidget {
                       icon: Icons.receipt_long_rounded,
                       label: 'Transactions',
                       isSelected: isTransactions,
-                      showIndicatorDot: false,
+                      showIndicatorDot: isTransactions,
                       onTap: () => context.go('/app/transactions'),
                     ),
                     // Gap for Center Elevated AI Mic Button
@@ -66,7 +66,7 @@ class AppBottomNav extends ConsumerWidget {
                       icon: Icons.bar_chart_rounded,
                       label: 'Reports',
                       isSelected: isReports,
-                      showIndicatorDot: false,
+                      showIndicatorDot: isReports,
                       onTap: () => context.go('/app/reports'),
                     ),
                     // Settings
@@ -74,7 +74,7 @@ class AppBottomNav extends ConsumerWidget {
                       icon: Icons.settings_rounded,
                       label: 'Settings',
                       isSelected: isSettings,
-                      showIndicatorDot: false,
+                      showIndicatorDot: isSettings,
                       onTap: () => context.go('/app/settings'),
                     ),
                   ],

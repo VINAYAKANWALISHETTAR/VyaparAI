@@ -27,6 +27,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     final tr = ref.watch(appTranslationsProvider);
     final location = GoRouterState.of(context).uri.path;
     final isHome = location == '/app/home' || location == '/';
+    final isTransactions = location == '/app/transactions' || location == '/app/records';
+    final showBrandedHeader = isHome || isTransactions;
     final auth = ref.watch(authProvider);
     final displayName = (auth.user?.name.isNotEmpty == true)
         ? auth.user!.name.split(' ').first
@@ -34,7 +36,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
 
     final canPop = Navigator.canPop(context);
 
-    if (isHome) {
+    if (showBrandedHeader) {
       return AppBar(
         backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,

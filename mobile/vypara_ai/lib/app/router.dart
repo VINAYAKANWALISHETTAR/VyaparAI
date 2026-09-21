@@ -10,7 +10,6 @@ import 'package:vypara_ai/features/customers/screens/customers_screen.dart';
 import 'package:vypara_ai/features/home/screens/home_screen.dart';
 import 'package:vypara_ai/features/invoices/screens/invoices_screen.dart';
 import 'package:vypara_ai/features/notifications/screens/notifications_screen.dart';
-import 'package:vypara_ai/features/records/screens/records_screen.dart';
 import 'package:vypara_ai/features/reminders/screens/reminders_screen.dart';
 import 'package:vypara_ai/features/reports/screens/reports_screen.dart';
 import 'package:vypara_ai/features/settings/screens/settings_screen.dart';
@@ -59,6 +58,20 @@ final router = GoRouter(
           builder: (context, state) => const HomeScreenPlaceholder(),
         ),
         GoRoute(
+          path: '/app/transactions',
+          builder: (context, state) => const TransactionsScreenPlaceholder(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) => const TransactionsScreenPlaceholder(),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/app/records',
+          builder: (context, state) => const TransactionsScreenPlaceholder(),
+        ),
+        GoRoute(
           path: '/app/reports',
           builder: (context, state) => const ReportsScreenPlaceholder(),
         ),
@@ -67,24 +80,8 @@ final router = GoRouter(
           builder: (context, state) => const AIScreenPlaceholder(),
         ),
         GoRoute(
-          path: '/app/records',
-          builder: (context, state) => const RecordsScreenPlaceholder(),
-        ),
-        GoRoute(
           path: '/app/settings',
           builder: (context, state) => const SettingsScreenPlaceholder(),
-        ),
-      ],
-    ),
-
-    // Standalone Feature Routes
-    GoRoute(
-      path: '/app/transactions',
-      builder: (context, state) => const TransactionsScreenPlaceholder(),
-      routes: [
-        GoRoute(
-          path: ':id',
-          builder: (context, state) => const TransactionsScreenPlaceholder(),
         ),
       ],
     ),
