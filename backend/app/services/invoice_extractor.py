@@ -323,8 +323,8 @@ class InvoiceExtractor:
         return seller_name, buyer_name
 
     def _clean_party_name(self, name: str) -> Optional[str]:
-        # Strip phone numbers, GST numbers, addresses that might leak into the capture
-        name = re.sub(r"(?i)\b(?:gstin|gst|pan|ph|phone|mob|mobile|tel|address)\b.*", "", name)
+        # Strip phone numbers, GST numbers, addresses, and trailing invoice labels that might leak into the capture
+        name = re.sub(r"(?i)\b(?:gstin|gst|pan|ph|phone|mob|mobile|tel|address|invoice|inv\s*no|bill\s*no)\b.*", "", name)
         name = re.sub(r"\b\d{10}\b", "", name)  # 10 digit phone
         name = re.sub(r"[^A-Za-z0-9\s\.\,\&\-]", "", name).strip(" .,-")
         name = re.sub(r"\s+", " ", name)
