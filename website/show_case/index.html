@@ -273,19 +273,7 @@ section{padding-block:var(--s8)}
 .v-facts li{padding:12px 0;border-bottom:1px solid var(--rule)}
 .v-facts b{color:var(--ink);font-weight:600}
 
-/* helps */
-.helps-t{border-top:2px solid var(--ink)}
-.hrow{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding:20px 0;border-bottom:1px solid var(--rule)}
-.hrow .b{color:var(--slate)}
-.hrow .n{color:var(--ink);font-weight:600}
-.hrow small{display:block;font-size:.75rem;font-weight:600;color:var(--slate);margin-bottom:2px}
-@media(min-width:800px){.hrow{grid-template-columns:1fr 1fr;gap:48px}}
-.for{margin-top:var(--s6);max-width:60ch}
-.band{background:var(--surface);border-block:1px solid var(--rule);padding-block:var(--s6)}
-.band .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
-.band h2{font-size:clamp(1.35rem,3vw,1.9rem)}
-
-/* keeps watch */
+/* watch */
 .watch{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
 @media(min-width:900px){.watch{grid-template-columns:1.2fr 1fr;grid-template-areas:"a b" "a c"}.watch .w1{grid-area:a}.watch .w2{grid-area:b}.watch .w3{grid-area:c}}
 
@@ -379,12 +367,6 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 .stat b{display:block;font:800 1.5rem var(--f-display);color:var(--ink);line-height:1.1}
 .stat span{font-size:.8125rem;color:var(--slate)}
 @media(min-width:600px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
-.arch{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
-@media(min-width:900px){.arch{grid-template-columns:1fr 1fr}}
-.arch-box{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:20px}
-.arch-box h4{margin:0 0 8px;font:700 .9375rem var(--f-display);color:var(--ink)}
-.arch-box p{font-size:.875rem;color:var(--slate);margin:0}
-.arch-box .tag{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--paper);color:var(--green);border:1px solid var(--green);margin-top:8px}
 
 /* codebase explorer */
 .codebase{border-block:1px solid var(--rule);position:relative;overflow:hidden}
@@ -408,6 +390,16 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 .code-stat span{font-size:.8125rem;color:var(--slate)}
 @media(min-width:600px){.code-stat{grid-template-columns:repeat(4,1fr)}}
 .code-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:var(--s6)}
+
+/* tech stack */
+.stack{border-block:1px solid var(--rule);background:var(--surface)}
+.stack-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s6)}
+@media(min-width:900px){.stack-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s7)}}
+.stack-item{display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;padding:18px 0;border-bottom:1px solid var(--rule)}
+.stack-item:last-child{border-bottom:0}
+.stack-icon{width:48px;height:48px;border-radius:10px;background:var(--paper);border:1px solid var(--rule);display:grid;place-items:center;font-size:1.5rem}
+.stack-item b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+.stack-item span{font-size:.875rem;color:var(--slate)}
 </style>
 </head>
 <body>
@@ -420,13 +412,13 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
       VyaparAI
     </a>
     <nav class="nav-links" aria-label="Primary">
+      <a href="#codebase">Codebase</a>
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#ask">Ask demo</a>
       <a href="#voice">Voice</a>
       <a href="#trust">Trust</a>
-      <a href="#codebase">Codebase</a>
       <a href="#download">Download</a>
     </nav>
     <div class="nav-right">
@@ -438,13 +430,13 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   </div>
   <div class="menu-panel" id="menuPanel">
     <div class="wrap">
+      <a href="#codebase">Codebase</a>
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#ask">Ask demo</a>
       <a href="#voice">Voice</a>
       <a href="#trust">Trust</a>
-      <a href="#codebase">Codebase</a>
       <a href="#download">Download</a>
     </div>
   </div>
@@ -462,7 +454,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
         <a class="btn btn-accent" href="#download" data-apk aria-label="Download VyaparAI APK">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>Download APK
         </a>
-        <a class="btn btn-ghost" href="#how">See how it works</a>
+        <a class="btn btn-ghost" href="#codebase">Review the code</a>
       </div>
       <p class="caption hero-note">Purpose-built for small merchants, freelancers and informal businesses in India. Android app. English, Hindi and Kannada.</p>
     </div>
@@ -495,6 +487,51 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   </div>
 </div>
 
+<!-- CODEBASE -->
+<section class="codebase" id="codebase" aria-labelledby="cTitle">
+  <div class="wrap code-grid">
+    <div>
+      <p class="section-label">Open Architecture</p>
+      <h2 id="cTitle" style="font-size:clamp(1.7rem,4.2vw,2.75rem);line-height:1.08;margin-bottom:var(--s4)">Built with discipline. Open for review.</h2>
+      <p class="lead" style="margin-bottom:var(--s5)">VyaparAI is not a wrapper around an LLM prompt. It is a layered system: Flutter on the device, FastAPI in the middle, deterministic Python services for every rupee, and MongoDB Atlas for data. If you evaluate AI-assisted fintech, the codebase is the evidence.</p>
+      <div class="code-stat">
+        <div><b>FastAPI</b><span>REST API with JWT, CORS, Swagger</span></div>
+        <div><b>Riverpod</b><span>Flutter state management</span></div>
+        <div><b>PyTesseract</b><span>OCR for invoices and payments</span></div>
+        <div><b>MongoDB Atlas</b><span>Multi-tenant, indexed data layer</span></div>
+      </div>
+      <div class="code-cta">
+        <a class="btn btn-accent" href="https://github.com/VINAYAKANWALISHETTAR/VyaparAI" target="_blank" rel="noopener noreferrer" aria-label="Review the VyaparAI codebase on GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;flex:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          Review the codebase
+        </a>
+        <a class="btn btn-ghost" href="#how" style="color:var(--ink);border-color:var(--ink)">See how it works</a>
+      </div>
+    </div>
+    <div class="code-visual" aria-label="Sample code structure from the VyaparAI backend">
+      <div class="code-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <pre><code><span class="cm"># Financial engine — deterministic, always</span>
+<span class="kw">def</span> <span class="fn">get_today_profit</span>(business_id, user_id):
+    income = <span class="fn">sum_incomes</span>(business_id, <span class="str">"today"</span>)
+    expenses = <span class="fn">sum_expenses</span>(business_id, <span class="str">"today"</span>)
+    <span class="kw">return</span> income - expenses
+
+<span class="cm"># Copilot — intent classification, no money math</span>
+<span class="kw">def</span> <span class="fn">classify_intent</span>(message: str) -> Intent:
+    <span class="cm">"""Rule-based classification."""</span>
+    ...
+
+<span class="cm"># Invoice extraction — OCR + validation</span>
+<span class="kw">def</span> <span class="fn">extract_invoice_fields</span>(text: str):
+    <span class="kw">return</span> {
+        <span class="str">"invoice_number"</span>: regex(...),
+        <span class="str">"customer_name"</span>: regex(...),
+        <span class="str">"total"</span>: regex(...),
+    }</code></pre>
+    </div>
+  </div>
+</section>
+
 <!-- PROBLEM -->
 <section class="problem" id="problem" aria-labelledby="pTitle">
   <div class="wrap">
@@ -523,6 +560,22 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
       <div class="flow-side" id="flowSide"></div>
     </div>
     <div class="rule-note"><b>AI reads and explains. The backend decides and calculates.</b> A scan is only saved after you confirm it, and every rupee figure comes from the financial engine, not from a language model's guess. Financial calculations are deterministic — no LLM ever computes your money.</div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="stack" id="stack" aria-labelledby="stTitle">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="stTitle">Tech stack</h2>
+    <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit.</p></div>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="stack-icon">📱</div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🔌</div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🧮</div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🗄️</div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🤖</div><div><b>Rule-based AI</b><span>Intent classification, payment matching, anomaly detection, and insights are all rule-based. The LLM only classifies intent and phrases answers.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🌐</div><div><b>FastAPI + Web</b><span>This showcase page is a single static HTML file with vanilla JS, CSS variables, and responsive design. No build step, no framework lock-in.</span></div></div>
+    </div>
   </div>
 </section>
 
@@ -609,126 +662,6 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   </div>
 </section>
 
-<!-- HELPS -->
-<section aria-labelledby="hlTitle">
-  <div class="wrap">
-    <div class="sec-head"><h2 id="hlTitle">What changes for the person running the shop</h2></div>
-    <div class="helps-t">
-      <div class="hrow"><div class="b"><small>Before</small>Finding out who hasn't paid means digging through chats and the bahi-khata.</div><div class="n"><small>With VyaparAI</small>Ask once and see each customer's outstanding amount, how overdue it is, and what to do next.</div></div>
-      <div class="hrow"><div class="b"><small>Before</small>UPI payments sit in screenshots, unmatched to any bill.</div><div class="n"><small>With VyaparAI</small>A screenshot is read and matched to the right invoice. Part payments update the balance automatically.</div></div>
-      <div class="hrow"><div class="b"><small>Before</small>A cash shortage is discovered the day a payment is due.</div><div class="n"><small>With VyaparAI</small>A forecast adds your recorded cash and expected payments, then subtracts what's due — days ahead.</div></div>
-      <div class="hrow"><div class="b"><small>Before</small>A duplicate invoice or an oversized expense slips by.</div><div class="n"><small>With VyaparAI</small>Duplicates, overpayments and unusually large expenses are flagged for your review.</div></div>
-      <div class="hrow"><div class="b"><small>Before</small>Starting the day means checking five places.</div><div class="n"><small>With VyaparAI</small>A morning briefing summarises your position and pending items in one go.</div></div>
-    </div>
-    <p class="for lead">VyaparAI is designed for small merchants and informal business owners who already have the information, but not the time or the accounting background to put it together. The backend is built with FastAPI, the database is MongoDB Atlas, and every financial calculation runs in deterministic Python code — never inside a language model.</p>
-  </div>
-</section>
-
-<!-- ARCHITECTURE SNIPPET -->
-<section style="background:var(--surface);border-block:1px solid var(--rule)" aria-labelledby="archTitle">
-  <div class="wrap">
-    <div class="sec-head"><h2 id="archTitle">Built like a ledger, not a chatbot</h2>
-    <p class="lead">The architecture mirrors how a real accounts desk works: capture, validate, compute, watch, answer. AI extracts and explains. Code decides and calculates.</p></div>
-    <div class="arch">
-      <div class="arch-box">
-        <h4>📱 Mobile App — Flutter</h4>
-        <p>Camera, gallery upload, voice recording, chat interface, dashboard, records list, settings. Riverpod state management, GoRouter, Dio HTTP. Never duplicates financial logic on the device.</p>
-        <span class="tag">Frontend</span>
-      </div>
-      <div class="arch-box">
-        <h4>🔌 FastAPI Backend</h4>
-        <p>REST API with JWT authentication, bcrypt password hashing, CORS, Swagger docs. Routers → Services → Tools → MongoDB. Every protected endpoint validates the business owner.</p>
-        <span class="tag">API Layer</span>
-      </div>
-      <div class="arch-box">
-        <h4>🧠 Financial Engine</h4>
-        <p>Deterministic Python services for income, expenses, profit, receivables, liabilities, cash position, cash-flow forecast, receivable aging, anomaly detection and insights. Plain arithmetic, always.</p>
-        <span class="tag">Source of Truth</span>
-      </div>
-      <div class="arch-box">
-        <h4>🗄️ MongoDB Atlas</h4>
-        <p>Users, businesses, invoices, transactions, reminders, notifications. Indexed for performance. Multi-tenant by design — every query is scoped to the signed-in owner's business.</p>
-        <span class="tag">Data Layer</span>
-      </div>
-    </div>
-    <div class="stat-grid" style="margin-top:var(--s6)">
-      <div class="stat"><b>18+</b><span>Backend API endpoints</span></div>
-      <div class="stat"><b>6</b><span>AI tools for copilot</span></div>
-      <div class="stat"><b>3</b><span>Languages supported</span></div>
-      <div class="stat"><b>0</b><span>LLM-calculated rupees</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- CODEBASE -->
-<section class="codebase" id="codebase" aria-labelledby="cTitle">
-  <div class="wrap code-grid">
-    <div>
-      <p class="section-label">Open Architecture</p>
-      <h2 id="cTitle" style="font-size:clamp(1.7rem,4.2vw,2.75rem);line-height:1.08;margin-bottom:var(--s4)">Built with discipline. Open for review.</h2>
-      <p class="lead" style="margin-bottom:var(--s5)">VyaparAI is not a wrapper around an LLM prompt. It is a layered system: Flutter on the device, FastAPI in the middle, deterministic Python services for every rupee, and MongoDB Atlas for data. If you evaluate AI-assisted fintech, the codebase is the evidence.</p>
-      <div class="code-stat">
-        <div><b>FastAPI</b><span>REST API with JWT, CORS, Swagger</span></div>
-        <div><b>Riverpod</b><span>Flutter state management</span></div>
-        <div><b>PyTesseract</b><span>OCR for invoices and payments</span></div>
-        <div><b>MongoDB Atlas</b><span>Multi-tenant, indexed data layer</span></div>
-      </div>
-      <div class="code-cta">
-        <a class="btn btn-accent" href="https://github.com/VINAYAKANWALISHETTAR/VyaparAI" target="_blank" rel="noopener noreferrer" aria-label="Review the VyaparAI codebase on GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;flex:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-          Review the codebase
-        </a>
-        <a class="btn btn-ghost" href="#how" style="color:var(--ink);border-color:var(--ink)">See how it works</a>
-      </div>
-    </div>
-    <div class="code-visual" aria-label="Sample code structure from the VyaparAI backend">
-      <div class="code-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-      <pre><code><span class="cm"># Financial engine — deterministic, always</span>
-<span class="kw">def</span> <span class="fn">get_today_profit</span>(business_id, user_id):
-    income = <span class="fn">sum_incomes</span>(business_id, <span class="str">"today"</span>)
-    expenses = <span class="fn">sum_expenses</span>(business_id, <span class="str">"today"</span>)
-    <span class="kw">return</span> income - expenses
-
-<span class="cm"># Copilot — intent classification, no money math</span>
-<span class="kw">def</span> <span class="fn">classify_intent</span>(message: str) -> Intent:
-    <span class="cm">"""Rule-based classification."""</span>
-    ...
-
-<span class="cm"># Invoice extraction — OCR + validation</span>
-<span class="kw">def</span> <span class="fn">extract_invoice_fields</span>(text: str):
-    <span class="kw">return</span> {
-        <span class="str">"invoice_number"</span>: regex(...),
-        <span class="str">"customer_name"</span>: regex(...),
-        <span class="str">"total"</span>: regex(...),
-    }</code></pre>
-    </div>
-  </div>
-</section>
-
-<div class="band"><div class="wrap">
-  <h2>Try VyaparAI on your Android phone.</h2>
-  <a class="btn btn-accent" href="#download" data-apk aria-label="Download VyaparAI APK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>Download APK</a>
-</div></div>
-
-<!-- GALLERY (rendered only when screenshots are configured) -->
-<section id="screens" aria-labelledby="sTitle" hidden>
-  <div class="wrap">
-    <div class="sec-head"><h2 id="sTitle">Inside VyaparAI</h2><p class="lead">Real screens from the app. Select one to enlarge it.</p></div>
-    <div class="shots" id="shots" role="list"></div>
-  </div>
-</section>
-<dialog id="shotDlg" aria-label="Screenshot preview dialog">
-  <div class="dlg">
-    <img id="dlgImg" alt="" width="360" height="780">
-    <div class="dlg-bar">
-      <button id="dPrev" aria-label="Previous screenshot">Prev</button>
-      <span id="dCount" class="caption" style="color:#fff" aria-live="polite"></span>
-      <button id="dNext" aria-label="Next screenshot">Next</button>
-      <button id="dClose" aria-label="Close preview">Close</button>
-    </div>
-  </div>
-</dialog>
-
 <!-- TRUST -->
 <section id="trust" aria-labelledby="tTitle">
   <div class="wrap">
@@ -755,6 +688,11 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     </div>
   </div>
 </section>
+
+<div class="band"><div class="wrap">
+  <h2>Try VyaparAI on your Android phone.</h2>
+  <a class="btn btn-accent" href="#download" data-apk aria-label="Download VyaparAI APK"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>Download APK</a>
+</div></div>
 
 <!-- DOWNLOAD -->
 <section class="dl" id="download" aria-labelledby="dTitle">
@@ -816,7 +754,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <div class="foot">
       <div class="full"><a class="brand" href="#top"><img src="VyaparAI_logo.png" alt="VyaparAI" width="34" height="34">VyaparAI</a>
         <p class="caption" style="margin-top:12px;max-width:34ch">AI financial copilot for small businesses. Built with FastAPI, MongoDB Atlas and Flutter.</p></div>
-      <div><h3>Product</h3><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li><li><a href="#codebase">Codebase</a></li></ul></div>
+      <div><h3>Product</h3><ul><li><a href="#codebase">Codebase</a></li><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
       <div><h3>Get the app</h3><ul><li><a href="#download">Download</a></li><li><a href="#download">Installation</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h3>Contact</h3><ul id="contactList"><li><span class="caption">Contact details will appear here.</span></li></ul></div>
     </div>
@@ -831,16 +769,16 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 /* ============ SINGLE SOURCE OF TRUTH ============ */
 const CONFIG = {
   name: "VyaparAI",
-  shareUrl: "",              // optional: public URL of this page. Falls back to the current address.
+  shareUrl: "",
   apk: {
-    url: "",                 // e.g. "https://your-host/vyaparai.apk". Empty = APK not published yet.
-    version: "",             // e.g. "1.0.0"
-    size: "",                // e.g. "24 MB"
-    releaseDate: "",         // e.g. "2026-10-01"
-    minAndroid: ""           // e.g. "Android 8.0 or later"
+    url: "",
+    version: "",
+    size: "",
+    releaseDate: "",
+    minAndroid: ""
   },
-  supportEmail: "",          // shows in the footer when set
-  screens: []                // [{ src, alt, width, height }] real app screenshots. Empty = gallery hidden.
+  supportEmail: "",
+  screens: []
 };
 
 /* ============ helpers ============ */
@@ -1049,9 +987,9 @@ $('#shareBtn').addEventListener('click',async()=>{
   catch(e){box.innerHTML='<div class="ph">QR code unavailable. Use the download button.</div>';cap.textContent=''}
 })();
 
-/* ============ gallery (only with real screenshots) ============ */
+/* ============ gallery ============ */
 if(CONFIG.screens.length){
-  $('#screens').hidden=false;const shots=$('#shots'),dlg=$('#shotDlg');let si=0;
+  const shots=$('#shots'),dlg=$('#shotDlg');let si=0;
   CONFIG.screens.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','listitem');b.setAttribute('aria-label','Open screenshot '+(i+1)+' of '+CONFIG.screens.length+': '+s.alt);
     b.innerHTML=`<img src="${s.src}" alt="${s.alt}" width="${s.width||360}" height="${s.height||780}" loading="lazy" decoding="async">`;
     const im=b.querySelector('img');im.onerror=()=>{b.hidden=true};b.addEventListener('click',()=>{si=i;show();dlg.showModal?dlg.showModal():dlg.setAttribute('open','')});shots.appendChild(b)});
