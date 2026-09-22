@@ -665,35 +665,39 @@ class _CustomersScreenPlaceholderState
 
                               if (isCustomer && hasDue) ...[
                                 const Divider(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () => _showReminderPreview(context, party),
-                                      icon: const Icon(Icons.notifications_active_outlined, size: 14),
-                                      label: Text(tr('remind'), style: const TextStyle(fontSize: 12)),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: AppColors.primary,
-                                        side: const BorderSide(color: AppColors.primary),
-                                        shape: const StadiumBorder(),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                        visualDensity: VisualDensity.compact,
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Wrap(
+                                    alignment: WrapAlignment.end,
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: [
+                                      OutlinedButton.icon(
+                                        onPressed: () => _showReminderPreview(context, party),
+                                        icon: const Icon(Icons.notifications_active_outlined, size: 14),
+                                        label: Text(tr('remind'), style: const TextStyle(fontSize: 12)),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: AppColors.primary,
+                                          side: const BorderSide(color: AppColors.primary),
+                                          shape: const StadiumBorder(),
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    ElevatedButton.icon(
-                                      onPressed: () => _showRecordPaymentModal(context, party),
-                                      icon: const Icon(Icons.check_circle_outline, size: 14),
-                                      label: Text(tr('payment'), style: const TextStyle(fontSize: 12)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF0F764F),
-                                        foregroundColor: Colors.white,
-                                        shape: const StadiumBorder(),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                        visualDensity: VisualDensity.compact,
+                                      ElevatedButton.icon(
+                                        onPressed: () => _showRecordPaymentModal(context, party),
+                                        icon: const Icon(Icons.check_circle_outline, size: 14),
+                                        label: Text(tr('payment'), style: const TextStyle(fontSize: 12)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF0F764F),
+                                          foregroundColor: Colors.white,
+                                          shape: const StadiumBorder(),
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ],

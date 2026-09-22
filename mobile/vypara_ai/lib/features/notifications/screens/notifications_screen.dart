@@ -146,27 +146,31 @@ class _NotificationsScreenPlaceholderState
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                _buildTab(
-                  label: tr('all_notifications'),
-                  isSelected: _selectedTabIndex == 0,
-                  count: state.notifications.length,
-                  onTap: () {
-                    setState(() => _selectedTabIndex = 0);
-                  },
-                ),
-                const SizedBox(width: 10),
-                _buildTab(
-                  label: tr('unread_notifications'),
-                  isSelected: _selectedTabIndex == 1,
-                  count: state.unreadCount,
-                  isAlert: state.unreadCount > 0,
-                  onTap: () {
-                    setState(() => _selectedTabIndex = 1);
-                  },
-                ),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildTab(
+                    label: tr('all_notifications'),
+                    isSelected: _selectedTabIndex == 0,
+                    count: state.notifications.length,
+                    onTap: () {
+                      setState(() => _selectedTabIndex = 0);
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  _buildTab(
+                    label: tr('unread_notifications'),
+                    isSelected: _selectedTabIndex == 1,
+                    count: state.unreadCount,
+                    isAlert: state.unreadCount > 0,
+                    onTap: () {
+                      setState(() => _selectedTabIndex = 1);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),

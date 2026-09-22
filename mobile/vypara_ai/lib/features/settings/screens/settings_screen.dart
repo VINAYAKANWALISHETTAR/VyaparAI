@@ -216,12 +216,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
               ),
             ),
             if (trailingText != null)
-              Text(
-                trailingText,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
+              Flexible(
+                child: Text(
+                  trailingText,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             if (trailingBadge != null)

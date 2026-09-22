@@ -66,6 +66,7 @@ class VoiceProvider extends Notifier<VoiceState> {
   bool _speechAvailable = false;
   bool _ttsInitialized = false;
   bool _isProcessingQuery = false;
+  bool _hasSpokenForCurrentResponse = false;
   String _lastProcessedText = '';
   DateTime? _lastProcessedAt;
 
@@ -99,7 +100,7 @@ class VoiceProvider extends Notifier<VoiceState> {
       });
       _tts.setCompletionHandler(() {
         state = state.copyWith(isSpeaking: false);
-        // Only restart standby wake-word listening if user has kept it enabled and is currently IDLE (not looking at a completed answer)
+        // Only restart standby wake-word listening if user kept it enabled, bot is idle, not processing and not speaking
         if (state.isWakeWordListening && state.status == VoiceStatus.idle && !_isProcessingQuery) {
           Future.delayed(const Duration(milliseconds: 800), () {
             if (state.isWakeWordListening && state.status == VoiceStatus.idle && !_isProcessingQuery && !state.isSpeaking) {
@@ -125,6 +126,7 @@ class VoiceProvider extends Notifier<VoiceState> {
     final lang = ref.read(languageProvider);
     final greeting = AppTranslations.get('voice_greeting_speech', lang.code);
     _initTts(lang);
+    await _speech.stop().catchError((_) {});
     await _tts.stop();
     final ttsCode = lang.speechLocale.replaceAll('_', '-');
     await _tts.setLanguage(ttsCode).catchError((_) {
@@ -143,10 +145,16 @@ class VoiceProvider extends Notifier<VoiceState> {
   Future<void> speakCurrentResponse() async {
     final text = state.response;
     if (text == null || text.isEmpty) return;
+    if (state.isSpeaking) return;
+
+    // Immediately stop speech recognizer so the mic cannot pick up the TTS output
+    await _speech.stop().catchError((_) {});
+
     final lang = ref.read(languageProvider);
     _initTts(lang);
     await _tts.stop();
     await _tts.setLanguage(lang.speechLocale.replaceAll('_', '-')).catchError((_) {});
+    _hasSpokenForCurrentResponse = true;
     await _tts.speak(text);
   }
 
@@ -165,7 +173,8 @@ class VoiceProvider extends Notifier<VoiceState> {
   }
 
   Future<void> startListening() async {
-    if (_isProcessingQuery) return;
+    // If bot is currently speaking or processing, NEVER start listening to prevent acoustic feedback
+    if (_isProcessingQuery || state.isSpeaking) return;
     await stopSpeaking();
     state = state.copyWith(status: VoiceStatus.requestingPermission, error: null);
 
@@ -179,7 +188,7 @@ class VoiceProvider extends Notifier<VoiceState> {
               errorMsg.contains('busy') ||
               errorMsg.contains('client');
 
-          if (state.isWakeWordListening && isTransient && !_isProcessingQuery) {
+          if (state.isWakeWordListening && isTransient && !_isProcessingQuery && !state.isSpeaking) {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (state.isWakeWordListening && state.status == VoiceStatus.idle && !_isProcessingQuery && !state.isSpeaking) {
                 startListening();
@@ -208,45 +217,48 @@ class VoiceProvider extends Notifier<VoiceState> {
     state = state.copyWith(status: VoiceStatus.listening, transcript: '');
     await _speech.listen(
       onResult: (result) {
-        if (_isProcessingQuery) return;
+        if (_isProcessingQuery || state.isSpeaking) return;
         final words = result.recognizedWords.trim();
         if (words.isEmpty) return;
         state = state.copyWith(transcript: words);
         
-        // Check for wake word trigger
-        final lower = words.toLowerCase().trim();
-        for (final wake in _wakeWords) {
-          if (lower.startsWith(wake) || lower.contains(wake)) {
-            final queryPart = lower.replaceAll(wake, '').trim();
-            if (queryPart.isEmpty && result.finalResult) {
-              speakGreeting();
-              return;
-            } else if (queryPart.isNotEmpty && result.finalResult) {
-              _processQuery(queryPart);
-              return;
+        // Only trigger query processing when finalResult is delivered by the speech engine
+        if (result.finalResult) {
+          final lower = words.toLowerCase().trim();
+          bool wakeHandled = false;
+          for (final wake in _wakeWords) {
+            if (lower.startsWith(wake) || lower.contains(wake)) {
+              wakeHandled = true;
+              final queryPart = lower.replaceAll(wake, '').trim();
+              if (queryPart.isEmpty) {
+                speakGreeting();
+              } else {
+                _processQuery(queryPart);
+              }
+              break;
             }
           }
-        }
 
-        if (result.finalResult) {
-          _processQuery(words);
+          if (!wakeHandled) {
+            _processQuery(words);
+          }
         }
       },
       listenOptions: SpeechListenOptions(
         listenFor: const Duration(seconds: 25),
-        pauseFor: const Duration(seconds: 4),
+        pauseFor: const Duration(seconds: 3),
         localeId: lang.speechLocale,
       ),
     );
   }
 
   void _onStatus(String status) {
-    if (_isProcessingQuery) return;
+    if (_isProcessingQuery || state.isSpeaking) return;
     if (status == 'done' || status == 'notListening') {
       final transcript = state.transcript.trim();
-      if (transcript.isNotEmpty && state.status == VoiceStatus.listening && !_isProcessingQuery) {
+      if (transcript.isNotEmpty && state.status == VoiceStatus.listening && !_isProcessingQuery && !state.isSpeaking) {
         _processQuery(transcript);
-      } else if (state.isWakeWordListening && state.status == VoiceStatus.idle) {
+      } else if (state.isWakeWordListening && state.status == VoiceStatus.idle && !state.isSpeaking) {
         Future.delayed(const Duration(milliseconds: 600), () {
           if (state.isWakeWordListening && state.status == VoiceStatus.idle && !_isProcessingQuery && !state.isSpeaking) {
             startListening();
@@ -273,18 +285,19 @@ class VoiceProvider extends Notifier<VoiceState> {
     final clean = text.trim();
     if (clean.isEmpty) return;
 
-    // Concurrency and duplicate query lock
-    if (_isProcessingQuery) return;
+    // Strict concurrency and 8-second duplicate query lock
+    if (_isProcessingQuery || state.isSpeaking) return;
     final now = DateTime.now();
     if (clean.toLowerCase() == _lastProcessedText.toLowerCase() &&
         _lastProcessedAt != null &&
-        now.difference(_lastProcessedAt!) < const Duration(seconds: 4)) {
+        now.difference(_lastProcessedAt!) < const Duration(seconds: 8)) {
       return;
     }
 
     _isProcessingQuery = true;
     _lastProcessedText = clean;
     _lastProcessedAt = now;
+    _hasSpokenForCurrentResponse = false;
 
     // Transition state immediately so no duplicate triggers occur
     state = state.copyWith(status: VoiceStatus.processing, transcript: clean);
@@ -344,8 +357,9 @@ class VoiceProvider extends Notifier<VoiceState> {
       }
 
       // Auto speak aloud the assistant response EXACTLY ONCE
-      await stopSpeaking();
-      await speakCurrentResponse();
+      if (!_hasSpokenForCurrentResponse) {
+        await speakCurrentResponse();
+      }
 
       // Send real-time high-priority heads-up notification (wakes up lock screen / closed phone)
       NotificationService().showVoiceWakeupAlert(
@@ -377,6 +391,7 @@ class VoiceProvider extends Notifier<VoiceState> {
     _speech.stop();
     stopSpeaking();
     _isProcessingQuery = false;
+    _hasSpokenForCurrentResponse = false;
     state = const VoiceState();
   }
 }

@@ -184,6 +184,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         if (subtitle != null)
@@ -193,6 +194,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
               fontSize: 11,
               color: AppColors.textSecondary,
             ),
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
       ],

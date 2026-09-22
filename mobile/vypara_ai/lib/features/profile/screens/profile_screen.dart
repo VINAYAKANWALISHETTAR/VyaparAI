@@ -38,6 +38,8 @@ class ProfileScreen extends ConsumerWidget {
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E293B),
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         leading: Navigator.canPop(context)
             ? IconButton(
@@ -247,22 +249,25 @@ class ProfileScreen extends ConsumerWidget {
             child: isBadge
                 ? Align(
                     alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF86EFAC)),
-                      ),
-                      child: Text(
-                        value,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF15803D),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF86EFAC)),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          value,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF15803D),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                   )

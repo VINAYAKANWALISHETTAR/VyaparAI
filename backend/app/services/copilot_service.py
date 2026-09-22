@@ -638,14 +638,14 @@ class CopilotService:
         desc = kwargs.get("description")
         now = datetime.now(timezone.utc)
 
-        # Deduplication for voice / copilot transactions within 15s
-        fifteen_secs_ago = datetime.now(timezone.utc) - timedelta(seconds=15)
+        # Deduplication for voice / copilot transactions within 20s
+        twenty_secs_ago = datetime.now(timezone.utc) - timedelta(seconds=20)
         existing = db.transactions.find_one({
             "user_id": user_id,
             "business_id": business_id,
             "type": ttype,
-            "amount": round(amount, 2),
-            "created_at": {"$gte": fifteen_secs_ago},
+            "amount": {"$gte": round(amount - 0.01, 2), "$lte": round(amount + 0.01, 2)},
+            "created_at": {"$gte": twenty_secs_ago},
         })
         if not existing:
             # Create and insert transaction document

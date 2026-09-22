@@ -1131,39 +1131,47 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           // 1. Upload Document
-          _buildQuickActionItem(
-            icon: Icons.description_rounded,
-            iconBg: const Color(0xFFEFF6FF),
-            iconColor: const Color(0xFF2563EB),
-            title: tr('upload_btn'),
-            onTap: () => context.push('/app/upload'),
+          Expanded(
+            child: _buildQuickActionItem(
+              icon: Icons.description_rounded,
+              iconBg: const Color(0xFFEFF6FF),
+              iconColor: const Color(0xFF2563EB),
+              title: tr('upload_btn'),
+              onTap: () => context.push('/app/upload'),
+            ),
           ),
 
           // 2. Ask AI
-          _buildQuickActionItem(
-            icon: Icons.auto_awesome_rounded,
-            iconBg: const Color(0xFFF5F3FF),
-            iconColor: const Color(0xFF8B5CF6),
-            title: tr('ask_ai'),
-            onTap: () => context.push('/app/voice'),
+          Expanded(
+            child: _buildQuickActionItem(
+              icon: Icons.auto_awesome_rounded,
+              iconBg: const Color(0xFFF5F3FF),
+              iconColor: const Color(0xFF8B5CF6),
+              title: tr('ask_ai'),
+              onTap: () => context.push('/app/voice'),
+            ),
           ),
 
           // 3. Add Transaction
-          _buildQuickActionItem(
-            icon: Icons.add_circle_outline_rounded,
-            iconBg: const Color(0xFFECFDF5),
-            iconColor: const Color(0xFF10B981),
-            title: tr('add_sale'),
-            onTap: () => _openAddTransactionSheet(context, ref, initialType: 'Income'),
+          Expanded(
+            child: _buildQuickActionItem(
+              icon: Icons.add_circle_outline_rounded,
+              iconBg: const Color(0xFFECFDF5),
+              iconColor: const Color(0xFF10B981),
+              title: tr('add_sale'),
+              onTap: () => _openAddTransactionSheet(context, ref, initialType: 'Income'),
+            ),
           ),
 
           // 4. Scan with Camera
-          _buildQuickActionItem(
-            icon: Icons.camera_alt_rounded,
-            iconBg: const Color(0xFFF0F9FF),
-            iconColor: const Color(0xFF0284C7),
-            title: tr('camera'),
-            onTap: () => context.push('/app/scan'),
+          Expanded(
+            child: _buildQuickActionItem(
+              icon: Icons.camera_alt_rounded,
+              iconBg: const Color(0xFFF0F9FF),
+              iconColor: const Color(0xFF0284C7),
+              title: tr('camera'),
+              onTap: () => context.push('/app/scan'),
+            ),
           ),
         ],
       ),

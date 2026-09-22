@@ -403,17 +403,25 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today_outlined, size: 13, color: Colors.grey.shade500),
-                    const SizedBox(width: 4),
-                    Text(
-                      dateStr,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-                  ],
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.calendar_today_outlined, size: 13, color: Colors.grey.shade500),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          dateStr,
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (invoice.status != 'paid') ...[
                       TextButton(
@@ -428,7 +436,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                     ],
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert, size: 20, color: Color(0xFF64748B)),
