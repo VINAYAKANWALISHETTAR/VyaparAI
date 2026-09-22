@@ -35,17 +35,17 @@ Camera / Screenshot / Voice / Document
             ↓
        OCR / Speech AI
             ↓
-      Structured Extraction
+     Structured Extraction
             ↓
-       Validation Engine
+        Validation Engine
             ↓
-      Financial Database
+       Financial Database
             ↓
-      Financial Intelligence
+       Financial Intelligence
             ↓
-         AI Copilot
+          AI Copilot
             ↓
-    Answer / Insight / Action
+     Answer / Insight / Action
 ```
 
 ---
@@ -61,7 +61,7 @@ Camera / Screenshot / Voice / Document
 - **Manual entry** — direct transaction creation
 
 ### AI Understanding
-- **OCR engine** — Tesseract-based with preprocessing pipeline
+- **OCR engine** — PyTesseract + RapidOCR with preprocessing pipeline
 - **Invoice extraction** — invoice number, customer, dates, amounts, tax
 - **Payment extraction** — amount, sender/receiver, reference, status, direction
 - **Duplicate detection** — prevent duplicate invoices and payments
@@ -83,16 +83,27 @@ Camera / Screenshot / Voice / Document
 - **Duplicate prevention** — block duplicate payment references
 
 ### Financial Intelligence
-- **Real-time summaries** — income, expenses, net cash flow
+- **Real-time summaries** — income, expenses, net cash flow for today/week/month
 - **Transaction filtering** — by type, category, date range, source
 - **Payment status tracking** — unpaid, partially paid, paid, overdue
 - **Business metrics** — per-business financial aggregation
+- **Cash-flow forecast** — projected balance with risk indicator
+- **Receivable aging** — 0-30, 31-60, 61-90, 90+ day buckets
+- **Anomaly detection** — duplicate invoices, overpayments, unusual expenses
+- **Insights engine** — rule-based insights on revenue, expenses, receivables, cash flow
+- **PDF reports** — ReportLab-generated downloadable statements
 
-### Architecture
-- **Modular design** — models, schemas, services, APIs separated
-- **Reusable services** — OCR, extraction, matching, processing
-- **Type-safe** — Pydantic validation throughout
-- **Secure** — JWT auth, business ownership verification, input validation
+### AI Copilot & Voice
+- **Text Q&A** — ask about profit, income, expenses, cash position, receivables, liabilities, invoices, customer balances
+- **Voice assistant** — "Hey VyaparAI" wake phrase, trilingual support
+- **Morning briefing** — spoken-style financial summary with notifications
+- **Intent classification** — rule-based + Google Gemini NLP
+- **Trilingual UI** — English, Hindi, Kannada with 100% parity
+
+### Notifications & Reminders
+- **Smart reminders** — scheduled follow-ups with sound alerts
+- **Notification center** — reactive notification drawer
+- **Morning briefing** — combined financial summary + notifications
 
 ---
 
@@ -100,13 +111,19 @@ Camera / Screenshot / Voice / Document
 
 | Layer | Technology |
 |-------|-----------|
-| **Framework** | FastAPI |
+| **Mobile Framework** | Flutter 3.44 |
+| **Mobile State** | Riverpod + GoRouter |
+| **Mobile Networking** | Dio |
+| **Mobile Voice** | speech_to_text + flutter_tts |
+| **Mobile Alerts** | flutter_local_notifications |
+| **Backend Framework** | FastAPI |
+| **Backend AI** | Google Gemini + custom NLP |
+| **OCR** | PyTesseract + RapidOCR (ONNX Runtime) |
+| **PDF Generation** | ReportLab |
 | **Database** | MongoDB Atlas |
-| **ODM** | PyMongo |
 | **Authentication** | JWT + bcrypt |
 | **Validation** | Pydantic |
-| **OCR** | Tesseract + Pillow |
-| **Language** | Python 3.10+ |
+| **Language** | Python 3.10+ / Dart 3.12 |
 | **Server** | Uvicorn |
 
 ---
@@ -117,32 +134,71 @@ Camera / Screenshot / Voice / Document
 backend/
 └── app/
     ├── api/
-    │   ├── auth.py              # Authentication endpoints
-    │   ├── users.py             # User management
-    │   ├── businesses.py        # Business CRUD
-    │   ├── invoices.py          # Invoice management + payments
-    │   ├── transactions.py      # Transaction management
-    │   └── ocr.py               # OCR endpoints (invoice + payment)
+    │   ├── auth.py                # Authentication endpoints
+    │   ├── users.py               # User management
+    │   ├── businesses.py          # Business CRUD
+    │   ├── invoices.py            # Invoice management + payments
+    │   ├── transactions.py        # Transaction management
+    │   ├── ocr.py                 # OCR endpoints (invoice + payment)
+    │   ├── financials.py          # Financial summaries, reports, PDF
+    │   ├── copilot.py             # AI chat endpoint
+    │   ├── voice.py               # Voice query endpoint
+    │   ├── reminders.py           # Reminders CRUD + morning briefing
+    │   └── notifications.py       # Notifications CRUD
     ├── core/
-    │   └── security.py          # JWT utilities
+    │   └── security.py            # JWT utilities
     ├── database/
-    │   ├── mongodb.py           # MongoDB connection
-    │   └── indexes.py           # Database indexes
-    ├── models/
-    │   ├── user.py              # User document builder
-    │   ├── business.py          # Business document builder
-    │   ├── invoice.py           # Invoice document builder
-    │   └── transaction.py       # Transaction document builder
-    ├── schemas/
-    │   ├── invoice.py           # Invoice Pydantic schemas
-    │   └── ocr.py               # OCR/Payment schemas
-    ├── services/
-    │   ├── ocr_service.py       # OCR abstraction
-    │   ├── invoice_extractor.py # Invoice field extraction
-    │   ├── payment_extractor.py # Payment field extraction
-    │   ├── invoice_matching.py  # Invoice-payment matching
-    │   └── payment_processing.py# Payment recording logic
-    └── main.py                  # FastAPI application
+    │   ├── mongodb.py             # MongoDB connection
+    │   ├── indexes.py             # Database indexes
+    │   └── seed.py                # Default data seeding
+    ├── models/                    # Document builders
+    ├── schemas/                   # Pydantic schemas
+    ├── services/                  # Business logic
+    │   ├── ocr_service.py
+    │   ├── invoice_extractor.py
+    │   ├── payment_extractor.py
+    │   ├── invoice_matching.py
+    │   ├── payment_processing.py
+    │   ├── financial_service.py
+    │   ├── cashflow_service.py
+    │   ├── reconciliation_service.py
+    │   ├── anomaly_service.py
+    │   ├── insight_service.py
+    │   ├── copilot_service.py
+    │   ├── voice_service.py
+    │   ├── reminder_service.py
+    │   ├── notification_service.py
+    │   └── pdf_service.py
+    ├── ai_tools/                  # AI tool definitions
+    └── main.py                    # FastAPI application
+
+mobile/
+└── vypara_ai/
+    └── lib/
+        ├── main.dart
+        ├── app/                  # App shell, routing, theme
+        ├── core/                 # Network, storage, widgets, utils
+        └── features/             # Feature modules
+            ├── auth/             # Login, register, forgot password
+            ├── home/             # Dashboard
+            ├── invoices/         # Invoice list, create, details
+            ├── transactions/     # Transaction list, create
+            ├── records/          # OCR capture, review, confirm
+            ├── voice/            # Voice query screen
+            ├── ai_assistant/     # Copilot chat
+            ├── cash_flow/        # Cash-flow forecast
+            ├── reports/          # Financial reports + PDF download
+            ├── reminders/        # Reminders list, create, edit
+            ├── notifications/    # Notification center
+            ├── insights/         # Insights list
+            ├── customers/        # Customer management
+            ├── suppliers/        # Supplier management
+            ├── profile/          # User profile, business settings
+            └── settings/         # App settings, language
+
+website/
+└── show_case/
+    └── index.html                # Finalized landing page
 ```
 
 ---
@@ -154,6 +210,7 @@ backend/
 - Python 3.10+
 - MongoDB Atlas account
 - Tesseract OCR (optional, simulation mode available)
+- Flutter 3.44+ (for mobile)
 
 ### Installation
 
@@ -214,7 +271,7 @@ Open `http://localhost:8000/docs` for Swagger UI.
 
 ### Authentication
 
-All endpoints except `/auth/login` and `/users/` require JWT:
+All endpoints except `/auth/login`, `/auth/register`, `/users/`, and `/auth/forgot-password` require JWT:
 
 ```
 Authorization: Bearer <access_token>
@@ -224,19 +281,48 @@ Authorization: Bearer <access_token>
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/users/` | Register user |
 | `POST` | `/auth/login` | Login, get JWT |
+| `POST` | `/auth/register` | Register new user |
+| `POST` | `/auth/forgot-password` | Request password reset |
+| `POST` | `/auth/reset-password` | Reset password |
+| `POST` | `/users/` | Create user |
+| `GET` | `/users/me` | Get current user |
 | `POST` | `/businesses/` | Create business |
 | `GET` | `/businesses/` | List user's businesses |
 | `POST` | `/invoices/` | Create invoice |
 | `GET` | `/invoices/` | List invoices |
-| `POST` | `/invoices/{id}/payments` | Record payment |
+| `GET` | `/invoices/{id}` | Get invoice details |
+| `PUT` | `/invoices/{id}` | Update invoice |
+| `PATCH` | `/invoices/{id}/status` | Update invoice status |
+| `DELETE` | `/invoices/{id}` | Delete invoice |
+| `POST` | `/invoices/{id}/payments` | Apply payment to invoice |
 | `POST` | `/transactions/` | Create transaction |
-| `GET` | `/transactions/summary` | Financial summary |
+| `GET` | `/transactions/summary` | Transaction summary |
 | `POST` | `/ocr/invoice` | Extract invoice from image |
 | `POST` | `/ocr/invoice/confirm` | Confirm and save invoice |
 | `POST` | `/ocr/payment` | Extract payment from image |
 | `POST` | `/ocr/payment/confirm` | Confirm and record payment |
+| `GET` | `/financials/income/{period}` | Income for period |
+| `GET` | `/financials/expenses/{period}` | Expenses for period |
+| `GET` | `/financials/profit/{period}` | Profit for period |
+| `GET` | `/financials/report-overview/{period}` | Consolidated report overview |
+| `GET` | `/financials/report-pdf/{period}` | Download PDF statement |
+| `GET` | `/financials/cash-flow` | Cash-flow forecast |
+| `GET` | `/financials/receivables/aging` | Receivable aging buckets |
+| `GET` | `/financials/anomalies` | Unusual items list |
+| `GET` | `/financials/insights` | Rule-based insights |
+| `POST` | `/copilot/chat` | Ask copilot a question |
+| `POST` | `/voice/query` | Voice query endpoint |
+| `GET` | `/reminders/morning-briefing` | Morning briefing |
+| `POST` | `/reminders/` | Create reminder |
+| `GET` | `/reminders/` | List reminders |
+| `GET` | `/reminders/{id}` | Get reminder |
+| `PATCH` | `/reminders/{id}` | Update reminder |
+| `DELETE` | `/reminders/{id}` | Delete reminder |
+| `GET` | `/notifications/` | List notifications |
+| `PATCH` | `/notifications/mark-all-read` | Mark all as read |
+| `PATCH` | `/notifications/{id}/read` | Mark one as read |
+| `DELETE` | `/notifications/{id}` | Delete notification |
 
 ---
 
@@ -283,6 +369,26 @@ curl -X POST "http://localhost:8000/ocr/payment/confirm" \
   }'
 ```
 
+### 4. Ask the Copilot
+
+```bash
+curl -X POST "http://localhost:8000/copilot/chat" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "business_id": "YOUR_BUSINESS_ID",
+    "message": "What is my profit today?"
+  }'
+```
+
+### 5. Download Financial Report PDF
+
+```bash
+curl -X GET "http://localhost:8000/financials/report-pdf/month" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o statement.pdf
+```
+
 ---
 
 ## Testing
@@ -312,6 +418,13 @@ Then use Swagger UI at `http://localhost:8000/docs` to test all endpoints.
 The correct sequence is:
 
 ```text
+Phase 1:  FastAPI Foundation
+Phase 2:  MongoDB Atlas Connection
+Phase 3:  JWT Authentication
+Phase 4:  Invoice Management
+Phase 5:  Transaction Management
+Phase 6:  OCR / Document Intelligence
+Phase 7:  UPI / Payment Screenshot Intelligence
 Phase 8:  Financial Intelligence Foundation
 Phase 9:  Cash-Flow Intelligence
 Phase 10: Reconciliation Intelligence
@@ -323,6 +436,7 @@ Phase 15: Voice Backend
 Phase 16: Reminders + Notifications
 Phase 17: Dashboard + Reports
 Phase 18: Mobile Application
+Phase 19: Website Showcase
 ```
 
 **Key principle:** Build the financial brain before the voice mouth. The voice agent should sit on top of a stable financial intelligence layer.
@@ -333,16 +447,34 @@ Phase 18: Mobile Application
 
 ## Mobile Application
 
-The mobile app will be a separate repository/directory that consumes the backend APIs. Do not start mobile development until the backend financial intelligence milestone is complete.
+The mobile app is a production Flutter application with 18 feature modules. It consumes the backend APIs and provides a native Android experience with trilingual support.
+
+- **Framework:** Flutter 3.44 with Riverpod state management
+- **Navigation:** GoRouter with auth guards
+- **Networking:** Dio with JWT interceptors
+- **Voice:** speech_to_text + flutter_tts
+- **Notifications:** flutter_local_notifications with sound alerts
+- **Files:** file_picker + open_filex + path_provider
+- **Build:** 59 MB release APK, min SDK 21
+
+## Website Showcase
+
+The project includes a finalized showcase website at `website/show_case/index.html`:
+
+- **Finalized landing page** with accurate tech stack and copy
+- **Auto-advancing screenshot carousel** — cycles through app screenshots every 4 seconds
+- **Tech stack section** — correct libraries and services
+- **Download section** — APK download link, QR code, install instructions
+- **Deployed:** View the showcase at the project website
 
 ## AI & Speech Stack
 
-- **LLM:** Hybrid architecture — own AI workflow as product layer; strong API model for reasoning; local/open models where feasible
-- **STT:** Whisper-family transcription for MVP
-- **TTS:** API initially; abstract behind interface for future swapping
+- **LLM:** Hybrid architecture — Google Gemini for NLP intent classification; custom rule-based classification for reliability
+- **STT:** Platform speech recognition via speech_to_text plugin
+- **TTS:** flutter_tts for spoken answers and morning briefing
 - **Languages (MVP):** English + Hindi + Kannada
-- **Anomaly Detection:** Rule/statistical based first; ML later
-- **Reports:** In-app first → PDF second → Excel later
+- **Anomaly Detection:** Rule/statistical based; three checks: duplicate invoices, payment above invoice, expense over 3x category average
+- **Reports:** In-app first → ReportLab PDF → CSV export
 
 ---
 
@@ -356,26 +488,25 @@ The mobile app will be a separate repository/directory that consumes the backend
 - [x] Phase 5: Transaction Management
 - [x] Phase 6: OCR / Document Intelligence
 - [x] Phase 7: UPI / Payment Screenshot Intelligence
-
-### In Progress
-- [ ] Phase 8: Financial Intelligence Foundation
-- [ ] Phase 9: Cash-Flow Intelligence
-- [ ] Phase 10: Reconciliation Intelligence
-- [ ] Phase 11: Anomaly Detection
-- [ ] Phase 12: Insights Engine
-- [ ] Phase 13: AI Tool Layer
-- [ ] Phase 14: AI Copilot (Text Q&A)
-- [ ] Phase 15: Voice Backend
-- [ ] Phase 16: Reminders + Notifications
-- [ ] Phase 17: Dashboard + Reports
-- [ ] Phase 18: Mobile Application
+- [x] Phase 8: Financial Intelligence Foundation
+- [x] Phase 9: Cash-Flow Intelligence
+- [x] Phase 10: Reconciliation Intelligence
+- [x] Phase 11: Anomaly Detection
+- [x] Phase 12: Insights Engine
+- [x] Phase 13: AI Tool Layer
+- [x] Phase 14: AI Copilot (Text Q&A)
+- [x] Phase 15: Voice Backend
+- [x] Phase 16: Reminders + Notifications
+- [x] Phase 17: Dashboard + Reports
+- [x] Phase 18: Mobile Application
+- [x] Phase 19: Website Showcase
 
 ### Future
-- [ ] Regional language expansion (English + Hindi + Kannada for MVP)
-- [ ] PDF/Excel exports
-- [ ] WhatsApp integration
-- [ ] Bank statement parsing
+- [ ] WhatsApp direct bot integration
+- [ ] Multi-GSTIN enterprise consolidation
+- [ ] Cloud accounting integrations (Tally / Zoho sync)
 - [ ] Advanced ML forecasting
+- [ ] Bank statement parsing
 
 ---
 
@@ -398,5 +529,5 @@ For questions or collaboration, reach out through the project repository.
 ---
 
 <p align="center">
-  Built with FastAPI, MongoDB, and PyTesseract
+  Built with FastAPI, MongoDB Atlas, Flutter, and PyTesseract
 </p>
