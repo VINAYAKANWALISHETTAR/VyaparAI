@@ -290,25 +290,9 @@ section{padding-block:var(--s8)}
 .st .lab.g{color:var(--green)}.st .lab.r{color:var(--red)}
 
 /* gallery */
-.shots{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 20px;scrollbar-width:thin}
-.shots button{flex:none;scroll-snap-align:start;border:1px solid var(--rule);background:var(--surface);border-radius:14px;padding:10px;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;text-align:left;width:240px;display:flex;flex-direction:column}
-.shots button:hover{transform:translateY(-4px);border-color:var(--brand);box-shadow:0 14px 30px -8px rgba(35,42,92,.3)}
-.shots img{display:block;width:100%;height:auto;aspect-ratio:9/19.5;object-fit:cover;border-radius:10px;border:1px solid var(--rule)}
-.shot-cap{display:block;margin-top:10px;font:600 .875rem/1.35 var(--f-body);color:var(--ink)}
-.carousel{position:relative;max-width:420px;margin:0 auto;padding:0 48px}
-.carousel-track{position:relative;overflow:hidden;border-radius:16px;background:var(--surface);border:1px solid var(--rule);box-shadow:0 20px 40px -20px rgba(35,42,92,.35)}
-.carousel-slide{display:none;animation:fadeIn .5s ease both}
-.carousel-slide.active{display:block}
-.carousel-slide img{display:block;width:100%;height:auto;aspect-ratio:9/19.5;object-fit:cover;border-radius:12px}
-.carousel-cap{padding:14px 16px 16px;font:600 .9375rem var(--f-body);color:var(--ink);text-align:center;background:var(--surface)}
-.carousel-btn{position:absolute;top:50%;transform:translateY(-50%);min-width:44px;min-height:44px;border-radius:50%;border:1.5px solid var(--rule);background:var(--paper);color:var(--ink);font:700 1.25rem var(--f-body);cursor:pointer;display:grid;place-items:center;transition:background-color .18s,border-color .18s;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-.carousel-btn:hover{background:var(--surface);border-color:var(--brand)}
-.carousel-prev{left:0}
-.carousel-next{right:0}
-.carousel-dots{display:flex;justify-content:center;gap:10px;margin-top:18px}
-.carousel-dots button{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--rule);background:var(--paper);padding:0;cursor:pointer;transition:background-color .2s,border-color .2s,transform .2s}
-.carousel-dots button[aria-current="true"]{background:var(--brand);border-color:var(--brand);transform:scale(1.15)}
-@keyframes fadeIn{from{opacity:0;transform:translate(8px,-4px)}to{opacity:1;transform:none}}
+.shots{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 20px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.shots button{flex:none;scroll-snap-align:start;background:var(--surface);border-radius:12px;padding:0;cursor:pointer;text-align:left;width:calc((100% - 32px) / 3);max-width:340px;display:flex;flex-direction:column;overflow:hidden}
+.shots img{display:block;width:100%;height:auto;aspect-ratio:9/19.5;object-fit:cover;border-radius:12px}
 dialog{border:0;padding:0;background:transparent;max-width:100vw;max-height:100vh;color:#fff}
 dialog::backdrop{background:rgba(10,12,30,.88);backdrop-filter:blur(6px)}
 .dlg{display:grid;gap:14px;justify-items:center;padding:20px;max-width:96vw}
@@ -507,31 +491,11 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 <section class="gallery" id="gallery" aria-labelledby="gTitle">
   <div class="wrap">
     <h2 id="gTitle" style="font-size:clamp(1.7rem,4.2vw,2.75rem);line-height:1.08;margin-bottom:var(--s4)">App screenshots</h2>
-    <div class="carousel" id="carousel" aria-label="VyaparAI app screenshots carousel">
-      <div class="carousel-track" id="carouselTrack"></div>
-      <button class="carousel-btn carousel-prev" id="cPrev" type="button" aria-label="Previous screenshot">‹</button>
-      <button class="carousel-btn carousel-next" id="cNext" type="button" aria-label="Next screenshot">›</button>
-      <div class="carousel-dots" id="cDots" aria-label="Screenshot navigation"></div>
-    </div>
+    <div class="shots" id="shots" role="list" aria-label="VyaparAI app screenshots"></div>
   </div>
 </section>
 
-<dialog id="shotDlg" aria-modal="true" aria-label="Screenshot preview" style="border:0;border-radius:12px;padding:0;max-width:min(480px,95vw);background:transparent;box-shadow:0 24px 48px rgba(0,0,0,.35)">
-  <div style="background:var(--surface);border-radius:12px;overflow:hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--rule)">
-      <span id="dCount" style="font:600 .9375rem var(--f-body);color:var(--ink)"></span>
-      <div style="display:flex;gap:8px">
-        <button id="dPrev" type="button" aria-label="Previous screenshot" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">‹</button>
-        <button id="dNext" type="button" aria-label="Next screenshot" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">›</button>
-        <button id="dClose" type="button" aria-label="Close preview" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">×</button>
-      </div>
-    </div>
-    <div style="padding:16px;text-align:center">
-      <img id="dlgImg" src="" alt="" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-inline:auto">
-      <p id="dlgCap" style="margin-top:10px;font:.8125rem var(--f-body);color:var(--slate)"></p>
-    </div>
-  </div>
-</dialog>
+
 
 <!-- CODEBASE -->
 <section class="codebase" id="codebase" aria-labelledby="cTitle">
@@ -829,21 +793,16 @@ const CONFIG = {
   },
   supportEmail: "vinayakanw@gmail.com",
   screens: [
-    {
-      src: "screenshots/01_home_dashboard.png",
-      alt: "VyaparAI Home Dashboard with real-time financial metrics, quick actions, and AI insights",
-      caption: "Home Dashboard — Live balance, quick actions & AI insights"
-    },
-    {
-      src: "screenshots/02_transactions_ledger.png",
-      alt: "VyaparAI Transactions Ledger with chronological financial audit trail",
-      caption: "Transactions Ledger — Chronological records & auto-matched payments"
-    },
-    {
-      src: "screenshots/03_financial_reports.png",
-      alt: "VyaparAI Financial Reports with periodic analytics, category distribution, and ReportLab PDF download",
-      caption: "Financial Reports — Category analytics & ReportLab PDF download"
-    }
+    { src: "screenshots/1.jpeg", alt: "VyaparAI Screenshot 1", caption: "Screenshot 1" },
+    { src: "screenshots/2.jpeg", alt: "VyaparAI Screenshot 2", caption: "Screenshot 2" },
+    { src: "screenshots/3.jpeg", alt: "VyaparAI Screenshot 3", caption: "Screenshot 3" },
+    { src: "screenshots/4.jpeg", alt: "VyaparAI Screenshot 4", caption: "Screenshot 4" },
+    { src: "screenshots/5.jpeg", alt: "VyaparAI Screenshot 5", caption: "Screenshot 5" },
+    { src: "screenshots/6.jpeg", alt: "VyaparAI Screenshot 6", caption: "Screenshot 6" },
+    { src: "screenshots/7.jpeg", alt: "VyaparAI Screenshot 7", caption: "Screenshot 7" },
+    { src: "screenshots/8.jpeg", alt: "VyaparAI Screenshot 8", caption: "Screenshot 8" },
+    { src: "screenshots/9.jpeg", alt: "VyaparAI Screenshot 9", caption: "Screenshot 9" },
+    { src: "screenshots/10.jpeg", alt: "VyaparAI Screenshot 10", caption: "Screenshot 10" }
   ]
 };
 
@@ -1436,100 +1395,16 @@ $("#shareBtn").addEventListener("click", async () => {
   }
 })();
 
-/* ============ gallery / carousel ============ */
+/* ============ gallery ============ */
 if (CONFIG.screens.length) {
-  const track = $("#carouselTrack"),
-    dots = $("#cDots"),
-    dlg = $("#shotDlg");
-  let ci = 0,
-    timer = null,
-    paused = false;
+  const shots = $("#shots");
   CONFIG.screens.forEach((s, i) => {
-    const slide = document.createElement("div");
-    slide.className = "carousel-slide" + (i === 0 ? " active" : "");
-    slide.innerHTML = `<img src="${s.src}" alt="${s.alt}" loading="lazy" decoding="async"><div class="carousel-cap">${s.caption || s.alt}</div>`;
-    const im = slide.querySelector("img");
-    im.onerror = () => (slide.hidden = true);
-    slide.addEventListener("click", () => {
-      pauseCarousel();
-      openDlg(i);
-    });
-    track.appendChild(slide);
-
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.setAttribute("aria-label", "Go to screenshot " + (i + 1));
-    dot.setAttribute("aria-current", i === 0 ? "true" : "false");
-    dot.addEventListener("click", () => goTo(i));
-    dots.appendChild(dot);
-  });
-  const slides = () => $$("#carouselTrack .carousel-slide"),
-    dotBtns = () => $$("#cDots button");
-
-  function goTo(i) {
-    ci = (i + CONFIG.screens.length) % CONFIG.screens.length;
-    slides().forEach((sl, j) => sl.classList.toggle("active", j === ci));
-    dotBtns().forEach((d, j) => d.setAttribute("aria-current", j === ci ? "true" : "false"));
-  }
-  function next() { goTo(ci + 1); }
-  function prev() { goTo(ci - 1); }
-  function startCarousel() {
-    stopCarousel();
-    timer = setInterval(next, reduce ? 9999999 : 4000);
-  }
-  function stopCarousel() {
-    if (timer) clearInterval(timer);
-    timer = null;
-  }
-  function pauseCarousel() {
-    paused = true;
-    stopCarousel();
-  }
-  function resumeCarousel() {
-    if (!paused) startCarousel();
-  }
-  $("#cNext").addEventListener("click", () => { next(); resumeCarousel(); });
-  $("#cPrev").addEventListener("click", () => { prev(); resumeCarousel(); });
-  const carousel = $("#carousel");
-  carousel.addEventListener("mouseenter", pauseCarousel);
-  carousel.addEventListener("mouseleave", resumeCarousel);
-  carousel.addEventListener("touchstart", pauseCarousel, { passive: true });
-  carousel.addEventListener("touchend", () => setTimeout(resumeCarousel, 2000));
-  startCarousel();
-
-  const show = () => {
-    const s = CONFIG.screens[si];
-    $("#dlgImg").src = s.src;
-    $("#dlgImg").alt = s.alt;
-    if ($("#dlgCap")) $("#dlgCap").textContent = s.caption || s.alt;
-    $("#dCount").textContent = "Screenshot " + (si + 1) + " of " + CONFIG.screens.length;
-  };
-  const go = (d) => {
-    si = (si + d + CONFIG.screens.length) % CONFIG.screens.length;
-    show();
-  };
-  function openDlg(i) {
-    si = i;
-    show();
-    dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "");
-  }
-  $("#dPrev").onclick = () => go(-1);
-  $("#dNext").onclick = () => go(1);
-  $("#dClose").onclick = () => dlg.close();
-  dlg.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") go(-1);
-    if (e.key === "ArrowRight") go(1);
-  });
-  let x0 = null;
-  dlg.addEventListener("touchstart", (e) => (x0 = e.touches[0].clientX), { passive: true });
-  dlg.addEventListener("touchend", (e) => {
-    if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0;
-    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-    x0 = null;
-  });
-  dlg.addEventListener("click", (e) => {
-    if (e.target === dlg) dlg.close();
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("role", "listitem");
+    btn.setAttribute("aria-label", s.alt || ("Screenshot " + (i + 1)));
+    btn.innerHTML = `<img src="${s.src}" alt="${s.alt}" loading="lazy" decoding="async">`;
+    shots.appendChild(btn);
   });
 }
 
