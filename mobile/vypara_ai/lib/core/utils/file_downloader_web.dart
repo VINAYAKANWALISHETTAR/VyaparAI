@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
-void downloadFile(String content, String fileName) {
+Future<String?> downloadFile(String content, String fileName) async {
   final bytes = utf8.encode(content);
   final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
   final url = html.Url.createObjectUrlFromBlob(blob);
@@ -14,4 +14,20 @@ void downloadFile(String content, String fileName) {
   anchor.click();
   html.document.body?.children.remove(anchor);
   html.Url.revokeObjectUrl(url);
+  return null;
+}
+
+Future<String?> downloadBytesFile(List<int> bytes, String fileName) async {
+  final mimeType = fileName.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream';
+  final blob = html.Blob([bytes], mimeType);
+  final url = html.Url.createObjectUrlFromBlob(blob);
+  final anchor = html.document.createElement('a') as html.AnchorElement
+    ..href = url
+    ..style.display = 'none'
+    ..download = fileName;
+  html.document.body?.children.add(anchor);
+  anchor.click();
+  html.document.body?.children.remove(anchor);
+  html.Url.revokeObjectUrl(url);
+  return null;
 }

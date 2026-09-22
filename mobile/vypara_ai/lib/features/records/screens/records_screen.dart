@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
-import 'package:vypara_ai/core/providers/language_provider.dart';
+import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
 enum RecordFilter { all, documents, chats, transactions }
@@ -78,86 +78,66 @@ class _RecordsScreenPlaceholderState
 
   @override
   Widget build(BuildContext context) {
+    final tr = ref.watch(appTranslationsProvider);
     final txState = ref.watch(transactionsProvider);
-    final lang = ref.watch(languageProvider);
-    final isKannada = lang.code == 'KN';
-    final isHindi = lang.code == 'HI';
 
-    // Aggregate records from transactions + activity
+    // Aggregate records from real transactions
     final List<RecordItem> allRecords = [];
 
     for (final tx in txState.transactions) {
       final isIncome = tx.type == 'income';
+      final src = (tx.source ?? '').toLowerCase();
+      final isDoc = src.contains('ocr') || src.contains('doc') || src.contains('invoice');
+      final isChat = src.contains('voice') || src.contains('chat') || src.contains('whatsapp') || src.contains('message');
+
+      final String recType;
+      final IconData icon;
+      final Color iconColor;
+      final Color iconBg;
+      final String status;
+
+      if (isDoc) {
+        recType = 'document';
+        icon = Icons.document_scanner_outlined;
+        iconColor = const Color(0xFF2563EB);
+        iconBg = const Color(0xFFEFF6FF);
+        status = tr('verified');
+      } else if (isChat) {
+        recType = 'chat';
+        icon = Icons.mic_none_outlined;
+        iconColor = const Color(0xFF7C3AED);
+        iconBg = const Color(0xFFF5F3FF);
+        status = tr('recorded');
+      } else {
+        recType = 'transaction';
+        icon = isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+        iconColor = isIncome ? const Color(0xFF0F764F) : const Color(0xFFDC2626);
+        iconBg = isIncome ? const Color(0xFFE8F8F0) : const Color(0xFFFEE2E2);
+        status = isIncome ? tr('completed') : tr('paid');
+      }
+
+      final date = tx.date ?? DateTime.now();
+      final sub = tx.description != null && tx.description!.isNotEmpty
+          ? '${tx.description} • ${_formatTime(date)}'
+          : '${tr('transactions')} • ${_formatTime(date)}';
+
       allRecords.add(
         RecordItem(
           id: tx.id,
           title: tx.category,
-          subtitle: tx.description != null && tx.description!.isNotEmpty
-              ? '${tx.description} • ${_formatTime(tx.date ?? DateTime.now())}'
-              : 'Transaction • ${_formatTime(tx.date ?? DateTime.now())}',
-          type: 'transaction',
-          timestamp: tx.date ?? DateTime.now(),
+          subtitle: sub,
+          type: recType,
+          timestamp: date,
           amount: tx.amount,
-          status: isIncome ? 'Completed' : 'Paid',
-          icon: isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-          iconColor: isIncome ? const Color(0xFF0F764F) : const Color(0xFFDC2626),
-          iconBg: isIncome ? const Color(0xFFE8F8F0) : const Color(0xFFFEE2E2),
+          status: status,
+          icon: icon,
+          iconColor: iconColor,
+          iconBg: iconBg,
         ),
       );
     }
 
-    // Add smart documents & chat history
     final now = DateTime.now();
-    allRecords.addAll([
-      RecordItem(
-        id: 'doc_1',
-        title: 'GST Tax Invoice - Krishna Traders',
-        subtitle: 'Scanned OCR • ${_formatTime(now.subtract(const Duration(minutes: 45)))}',
-        type: 'document',
-        timestamp: now.subtract(const Duration(minutes: 45)),
-        amount: 8450.0,
-        status: 'Processed',
-        icon: Icons.document_scanner_outlined,
-        iconColor: const Color(0xFF2563EB),
-        iconBg: const Color(0xFFEFF6FF),
-      ),
-      RecordItem(
-        id: 'chat_1',
-        title: 'Voice Order - 5x Rice Bags',
-        subtitle: 'Voice Assistant • ${_formatTime(now.subtract(const Duration(hours: 2)))}',
-        type: 'chat',
-        timestamp: now.subtract(const Duration(hours: 2)),
-        amount: 2100.0,
-        status: 'Recorded',
-        icon: Icons.mic_none_outlined,
-        iconColor: const Color(0xFF7C3AED),
-        iconBg: const Color(0xFFF5F3FF),
-      ),
-      RecordItem(
-        id: 'doc_2',
-        title: 'Wholesale Purchase Receipt #882',
-        subtitle: 'Uploaded Doc • Yesterday',
-        type: 'document',
-        timestamp: now.subtract(const Duration(days: 1, hours: 3)),
-        amount: 14200.0,
-        status: 'Verified',
-        icon: Icons.receipt_long_outlined,
-        iconColor: const Color(0xFFD97706),
-        iconBg: const Color(0xFFFEF3C7),
-      ),
-      RecordItem(
-        id: 'chat_2',
-        title: 'WhatsApp Payment Alert - Suresh Gowda',
-        subtitle: 'Message Auto-Detect • Yesterday',
-        type: 'chat',
-        timestamp: now.subtract(const Duration(days: 1, hours: 6)),
-        amount: 5000.0,
-        status: 'Confirmed',
-        icon: Icons.chat_bubble_outline_rounded,
-        iconColor: const Color(0xFF10B981),
-        iconBg: const Color(0xFFECFDF5),
-      ),
-    ]);
 
     // Sort descending by timestamp
     allRecords.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -193,9 +173,6 @@ class _RecordsScreenPlaceholderState
       }
     }
 
-    final titleText = isKannada ? 'ದಾಖಲೆಗಳು ಮತ್ತು ಇತಿಹಾಸ' : (isHindi ? 'रिकॉर्ड्स और इतिहास' : 'Records & History');
-    final searchHint = isKannada ? 'ದಾಖಲೆಗಳು, ಚಾಟ್‌ಗಳನ್ನು ಹುಡುಕಿ...' : (isHindi ? 'रिकॉर्ड्स, संदेश खोजें...' : 'Search records, documents, chats...');
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -208,7 +185,7 @@ class _RecordsScreenPlaceholderState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  titleText,
+                  tr('records_and_history'),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -227,7 +204,7 @@ class _RecordsScreenPlaceholderState
                     controller: _searchController,
                     onChanged: (val) => setState(() => _searchQuery = val.trim()),
                     decoration: InputDecoration(
-                      hintText: searchHint,
+                      hintText: tr('search_records'),
                       hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary, size: 20),
                       border: InputBorder.none,
@@ -240,15 +217,16 @@ class _RecordsScreenPlaceholderState
                 // Horizontal Filter Chips
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
                   child: Row(
                     children: [
-                      _buildFilterChip('All', RecordFilter.all),
+                      _buildFilterChip(tr('all'), RecordFilter.all),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Documents', RecordFilter.documents, icon: Icons.description_outlined),
+                      _buildFilterChip(tr('documents'), RecordFilter.documents, icon: Icons.description_outlined),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Chats', RecordFilter.chats, icon: Icons.chat_outlined),
+                      _buildFilterChip(tr('voice_chats'), RecordFilter.chats, icon: Icons.chat_outlined),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Transactions', RecordFilter.transactions, icon: Icons.account_balance_wallet_outlined),
+                      _buildFilterChip(tr('transactions'), RecordFilter.transactions, icon: Icons.account_balance_wallet_outlined),
                     ],
                   ),
                 ),
@@ -267,39 +245,40 @@ class _RecordsScreenPlaceholderState
                         children: [
                           Icon(Icons.folder_open_outlined, size: 60, color: Colors.grey.shade400),
                           const SizedBox(height: 16),
-                          const Text(
-                            'No records found',
-                            style: TextStyle(
+                          Text(
+                            tr('no_records_found'),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Scanned documents, voice chat logs, and transactions will appear here.',
+                          Text(
+                            tr('no_records_desc'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
                     ),
                   )
                 : ListView(
+                    physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     children: [
                       if (todayList.isNotEmpty) ...[
-                        _buildSectionHeader('TODAY'),
+                        _buildSectionHeader(tr('today').toUpperCase()),
                         ...todayList.map((item) => _buildRecordCard(item)),
                         const SizedBox(height: 16),
                       ],
                       if (yesterdayList.isNotEmpty) ...[
-                        _buildSectionHeader('YESTERDAY'),
+                        _buildSectionHeader(tr('yesterday').toUpperCase()),
                         ...yesterdayList.map((item) => _buildRecordCard(item)),
                         const SizedBox(height: 16),
                       ],
                       if (earlierList.isNotEmpty) ...[
-                        _buildSectionHeader('EARLIER'),
+                        _buildSectionHeader(tr('earlier').toUpperCase()),
                         ...earlierList.map((item) => _buildRecordCard(item)),
                         const SizedBox(height: 16),
                       ],

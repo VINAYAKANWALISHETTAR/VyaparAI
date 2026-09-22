@@ -368,7 +368,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 ),
                 child: Stack(
                   children: [
-                    // Mock Document Texture / Guide Frame
+                    // Viewfinder / Guide Frame
                     Center(
                       child: Container(
                         margin: const EdgeInsets.all(28),

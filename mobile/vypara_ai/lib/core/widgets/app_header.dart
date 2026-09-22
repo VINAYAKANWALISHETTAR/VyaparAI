@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/widgets/language_selector.dart';
+import 'package:vypara_ai/core/widgets/notification_button.dart';
 import 'package:vypara_ai/core/widgets/vyapar_ai_ribbon_logo.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
 
@@ -86,8 +87,10 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ),
         actions: showActions
             ? [
+                const NotificationButton(),
+                const SizedBox(width: 4),
                 const LanguageSelector(),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 // Circular User Avatar with Online Dot
                 GestureDetector(
                   onTap: () => context.push('/app/settings'),
@@ -224,6 +227,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       titleSpacing: 0,
       actions: showActions
           ? [
+              const NotificationButton(),
+              const SizedBox(width: 4),
               const LanguageSelector(),
               const SizedBox(width: 8),
               GestureDetector(

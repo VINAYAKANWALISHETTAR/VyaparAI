@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.core.security import get_current_user
 from app.database.mongodb import db
@@ -19,6 +19,7 @@ from app.schemas.financial import (
     SupplierSummaryResponse,
 )
 from app.services.financial_service import FinancialService
+from app.services.pdf_service import pdf_service
 from app.services import (
     anomaly_service,
     insight_service,
@@ -199,6 +200,47 @@ def get_profit_period(
         verify_business_ownership(business_id, current_user)
     return financial_service.get_profit(business_id, period, user_id, start_date=start_date, end_date=end_date)
 
+
+@router.get("/report-overview/{period}")
+def get_report_overview_period(
+    period: str,
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    return financial_service.get_report_overview(business_id, period, user_id, start_date=start_date, end_date=end_date)
+
+
+@router.get("/report-pdf/{period}")
+def get_report_pdf_period(
+    period: str,
+    current_user=Depends(get_current_user),
+    business_id: str | None = Query(default=None),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+):
+    user_id = str(current_user["_id"])
+    if business_id:
+        verify_business_ownership(business_id, current_user)
+    pdf_bytes = pdf_service.generate_financial_report_pdf(
+        business_id=business_id,
+        period=period,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="vyapar_financial_report_{period}.pdf"',
+            "Content-Type": "application/pdf",
+        },
+    )
 
 
 @router.get("/receivables", response_model=ReceivableResponse)

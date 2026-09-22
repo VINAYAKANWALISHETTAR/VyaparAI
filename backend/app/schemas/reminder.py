@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class ReminderCreate(BaseModel):
     title: str
-    description: str
+    description: str = ""
     due_at: str | None = None
     amount: float | None = None
     party_name: str | None = None

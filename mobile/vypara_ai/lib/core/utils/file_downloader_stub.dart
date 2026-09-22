@@ -1,3 +1,7 @@
-void downloadFile(String content, String fileName) {
-  // Fallback for non-web platforms (e.g. mobile/desktop)
+Future<String?> downloadFile(String content, String fileName) async {
+  return null;
+}
+
+Future<String?> downloadBytesFile(List<int> bytes, String fileName) async {
+  return null;
 }

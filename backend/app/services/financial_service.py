@@ -221,6 +221,103 @@ class FinancialService:
             "transaction_count": income["transaction_count"] + expenses["transaction_count"],
         }
 
+    def get_report_overview(
+        self,
+        business_id: str | None,
+        period: str,
+        user_id: str,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> dict:
+        business_ids = self._get_user_business_ids(user_id)
+        if business_id:
+            try:
+                self._verify_business_access(business_id, user_id)
+                business_ids = [business_id]
+            except Exception:
+                pass
+
+        start, end = self._get_date_range(period, start_date=start_date, end_date=end_date)
+
+        match_query: dict = {
+            "$or": [
+                {"business_id": {"$in": business_ids}},
+                {"user_id": user_id},
+            ],
+        }
+        if start and end:
+            match_query["date"] = {"$gte": start, "$lte": end}
+        elif start:
+            match_query["date"] = {"$gte": start}
+        elif end:
+            match_query["date"] = {"$lte": end}
+
+        pipeline = [
+            {"$match": match_query},
+            {
+                "$group": {
+                    "_id": {"type": "$type", "category": "$category"},
+                    "amount": {"$sum": "$amount"},
+                    "count": {"$sum": 1},
+                }
+            },
+        ]
+
+        results = list(db.transactions.aggregate(pipeline))
+
+        total_income = 0.0
+        total_expenses = 0.0
+        income_breakdown = []
+        expense_breakdown = []
+
+        for r in results:
+            t = (r["_id"].get("type") or "income").lower()
+            cat = r["_id"].get("category") or "General"
+            amt = round(float(r["amount"]), 2)
+            cnt = int(r["count"])
+
+            if t == "income":
+                total_income += amt
+                income_breakdown.append({"category": cat, "amount": amt, "count": cnt})
+            else:
+                total_expenses += amt
+                expense_breakdown.append({"category": cat, "amount": amt, "count": cnt})
+
+        # Also get recent transactions for chart points
+        recent_txns = list(
+            db.transactions.find(match_query)
+            .sort("date", -1)
+            .limit(100)
+        )
+        serialized_txns = []
+        for tx in recent_txns:
+            serialized_txns.append({
+                "id": str(tx["_id"]),
+                "business_id": str(tx.get("business_id", "")),
+                "type": tx.get("type", "income"),
+                "amount": float(tx.get("amount", 0.0)),
+                "category": tx.get("category", "General"),
+                "description": tx.get("description", ""),
+                "date": tx.get("date").isoformat() if tx.get("date") else None,
+                "source": tx.get("source"),
+            })
+
+        net_profit = round(total_income - total_expenses, 2)
+        total_income = round(total_income, 2)
+        total_expenses = round(total_expenses, 2)
+        total_count = sum(item["count"] for item in income_breakdown) + sum(item["count"] for item in expense_breakdown)
+
+        return {
+            "period": period,
+            "total_income": total_income,
+            "total_expenses": total_expenses,
+            "net_profit": net_profit,
+            "transaction_count": total_count,
+            "income_breakdown": income_breakdown,
+            "expense_breakdown": expense_breakdown,
+            "transactions": serialized_txns,
+        }
+
     def get_receivables(self, business_id: str | None, user_id: str, overdue_only: bool = False, customer_id: str | None = None):
         business_ids = self._get_user_business_ids(user_id)
         if business_id:

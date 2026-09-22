@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/core/localization/app_translations.dart';
+import 'package:vypara_ai/core/services/notification_service.dart';
+import 'package:vypara_ai/features/notifications/providers/notifications_provider.dart';
 import 'package:vypara_ai/features/reminders/data/models/reminder_model.dart';
+import 'package:vypara_ai/core/providers/language_provider.dart';
 import 'package:vypara_ai/features/reminders/providers/reminders_provider.dart';
 
 class RemindersScreenPlaceholder extends ConsumerStatefulWidget {
@@ -537,19 +541,25 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
             child: Text(tr('close')),
           ),
           ElevatedButton.icon(
-            icon: const Icon(Icons.copy, size: 16, color: Colors.white),
+            icon: const Icon(Icons.share, size: 16, color: Colors.white),
             label: Text(tr('copy_and_share')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF25D366),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: text));
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(tr('whatsapp_copied'))),
-              );
+              try {
+                await SharePlus.instance.share(ShareParams(text: text, subject: 'Payment Reminder'));
+              } catch (_) {
+                await Clipboard.setData(ClipboardData(text: text));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(tr('whatsapp_copied'))),
+                  );
+                }
+              }
             },
           ),
         ],
@@ -589,19 +599,25 @@ class _RemindersScreenState extends ConsumerState<RemindersScreenPlaceholder> {
             child: Text(tr('cancel')),
           ),
           ElevatedButton.icon(
-            icon: const Icon(Icons.copy, size: 16, color: Colors.white),
+            icon: const Icon(Icons.share, size: 16, color: Colors.white),
             label: Text(tr('copy_sms')),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: text));
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(tr('sms_copied'))),
-              );
+              try {
+                await SharePlus.instance.share(ShareParams(text: text, subject: 'Payment Reminder'));
+              } catch (_) {
+                await Clipboard.setData(ClipboardData(text: text));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(tr('sms_copied'))),
+                  );
+                }
+              }
             },
           ),
         ],
@@ -960,6 +976,23 @@ class _AddReminderSheetState extends ConsumerState<_AddReminderSheet> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     if (success) {
+      final currentLang = ref.read(languageProvider).langCode;
+      NotificationService().showReminderCreatedAlert(
+        title: title,
+        amount: amt,
+        dueAt: dueDateTime,
+        language: currentLang,
+      );
+      NotificationService().scheduleReminderNotification(
+        id: 4000 + title.hashCode.abs() % 5000,
+        title: '⏰ $title',
+        body: amt != null && amt > 0
+            ? 'Payment reminder: $title (₹${amt.toStringAsFixed(0)}) is due!'
+            : 'Reminder: $title is due!',
+        scheduledDate: dueDateTime,
+      );
+      ref.read(notificationsProvider.notifier).loadNotifications();
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(tr('reminder_added_success'))),
@@ -1278,6 +1311,15 @@ class _EditReminderSheetState extends ConsumerState<_EditReminderSheet> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     if (success) {
+      final currentLang = ref.read(languageProvider).langCode;
+      NotificationService().showReminderCreatedAlert(
+        title: title,
+        amount: amt,
+        dueAt: dueDateTime,
+        language: currentLang,
+      );
+      ref.read(notificationsProvider.notifier).loadNotifications();
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(tr('reminder_updated_success'))),

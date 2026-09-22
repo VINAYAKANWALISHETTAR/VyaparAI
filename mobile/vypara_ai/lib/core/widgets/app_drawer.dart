@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vypara_ai/core/localization/app_translations.dart';
 import 'package:vypara_ai/core/widgets/vyapar_ai_ribbon_logo.dart';
 import 'package:vypara_ai/features/auth/presentation/providers/auth_provider.dart';
+import 'package:vypara_ai/features/notifications/providers/notifications_provider.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -202,6 +203,16 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context: context,
+                    icon: Icons.notifications_rounded,
+                    iconBg: const Color(0xFFFEF3C7),
+                    iconColor: const Color(0xFFD97706),
+                    label: tr('notifications_alerts'),
+                    route: '/app/notifications',
+                    isActive: location.startsWith('/app/notifications'),
+                    badgeCount: ref.watch(notificationsProvider).unreadCount,
+                  ),
+                  _buildMenuItem(
+                    context: context,
                     icon: Icons.cloud_upload_rounded,
                     iconBg: const Color(0xFFECFDF5),
                     iconColor: const Color(0xFF059669),
@@ -377,6 +388,7 @@ class AppDrawer extends ConsumerWidget {
     required String label,
     required String route,
     required bool isActive,
+    int badgeCount = 0,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3.0),
@@ -414,6 +426,23 @@ class AppDrawer extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (badgeCount > 0)
+                Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    badgeCount > 99 ? '99+' : badgeCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               Icon(
                 Icons.chevron_right_rounded,
                 size: 18,

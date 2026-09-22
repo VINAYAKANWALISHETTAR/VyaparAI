@@ -283,7 +283,8 @@ class _HomeScreenPlaceholderState extends ConsumerState<HomeScreenPlaceholder> {
                   ),
                 ],
               ),
-            );
+            ),
+          );
           },
         );
       },

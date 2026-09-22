@@ -17,8 +17,8 @@ class _NotificationsScreenPlaceholderState
     extends ConsumerState<NotificationsScreenPlaceholder> {
   int _selectedTabIndex = 0; // 0: All, 1: Unread
 
-  String _formatDate(DateTime? dt) {
-    if (dt == null) return 'Recent';
+  String _formatDate(DateTime? dt, String Function(String, [Map<String, dynamic>?]) tr) {
+    if (dt == null) return tr('recent');
     final now = DateTime.now();
     final diff = now.difference(dt);
     final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
@@ -27,9 +27,9 @@ class _NotificationsScreenPlaceholderState
     final timeStr = '$hour:$min $ampm';
 
     if (diff.inDays == 0 && dt.day == now.day) {
-      return 'Today, $timeStr';
+      return '${tr('today')}, $timeStr';
     } else if (diff.inDays == 1 || (diff.inDays == 0 && dt.day != now.day)) {
-      return 'Yesterday, $timeStr';
+      return '${tr('yesterday')}, $timeStr';
     } else {
       const months = [
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -364,7 +364,7 @@ class _NotificationsScreenPlaceholderState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _formatDate(n.createdAt),
+                          _formatDate(n.createdAt, tr),
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF94A3B8),

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
@@ -88,7 +89,53 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     }
   }
 
-  void _handleShareReport(BuildContext context, FinancialReportModel? report, String period, String Function(String, [Map<String, dynamic>?]) tr) {
+  Future<void> _handleDownloadPdf(BuildContext context, String Function(String, [Map<String, dynamic>?]) tr) async {
+    final period = ref.read(reportsProvider).selectedPeriod;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(tr('generating_pdf')),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    try {
+      final pdfBytes = await ref.read(reportsProvider.notifier).downloadReportPdf();
+      if (pdfBytes.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(tr('no_report_data')),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
+        return;
+      }
+      final now = DateTime.now();
+      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+      final fileName = 'vyapar_financial_report_${period}_$dateStr.pdf';
+      await FileDownloader.downloadBytes(pdfBytes, fileName);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${tr('download_pdf')} $fileName ✓'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(tr('failed_export_pdf')),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleShareReport(BuildContext context, FinancialReportModel? report, String period, String Function(String, [Map<String, dynamic>?]) tr) async {
     if (report == null) return;
     final income = report.totalIncome;
     final expenses = report.totalExpenses;
@@ -106,13 +153,19 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
 Generated securely via VyaparAI
 '''.trim();
 
-    Clipboard.setData(ClipboardData(text: shareText));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(tr('report_summary_copied')),
-        backgroundColor: const Color(0xFF10B981),
-      ),
-    );
+    try {
+      await SharePlus.instance.share(ShareParams(text: shareText, subject: 'VyaparAI Financial Report ($period)'));
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: shareText));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(tr('report_summary_copied')),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -433,7 +486,26 @@ Generated securely via VyaparAI
                 ),
                 const SizedBox(height: 20),
 
-                // Export & Share Action Buttons
+                // PDF & CSV Export & Share Action Buttons
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _handleDownloadPdf(context, tr),
+                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 20),
+                    label: Text(
+                      tr('download_pdf'),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -462,7 +534,7 @@ Generated securely via VyaparAI
                           child: Text(tr('share_report')),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: const Color(0xFF0F764F),
                           foregroundColor: Colors.white,
                           shape: const StadiumBorder(),
                           padding: const EdgeInsets.symmetric(vertical: 12),

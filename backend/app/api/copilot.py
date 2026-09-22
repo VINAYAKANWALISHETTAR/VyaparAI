@@ -34,7 +34,9 @@ def chat(
     result = copilot_service.chat(
         user_id=user_id,
         message=message,
-        business_id=None,
+        business_id=payload.business_id,
         language=lang,
     )
+    if "response" not in result and "answer" in result:
+        result["response"] = result["answer"]
     return CopilotChatResponse(**result)

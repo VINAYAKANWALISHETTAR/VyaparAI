@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vypara_ai/app/theme/app_colors.dart';
 import 'package:vypara_ai/app/theme/app_radius.dart';
 import 'package:vypara_ai/app/theme/app_shadows.dart';
@@ -108,7 +109,7 @@ class _CustomersScreenPlaceholderState
                   controller: nameController,
                   decoration: InputDecoration(
                     labelText: isCustomer ? tr('customer_business_name') : tr('supplier_name'),
-                    hintText: isCustomer ? 'e.g. Sharma Textiles' : 'e.g. Krishna Logistics',
+                    hintText: isCustomer ? tr('customer_business_name') : tr('supplier_name'),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                   ),
                 ),
@@ -118,7 +119,7 @@ class _CustomersScreenPlaceholderState
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: isCustomer ? tr('opening_due_balance') : tr('opening_balance_bill'),
-                    hintText: 'e.g. 15000',
+                    hintText: '0.00',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                   ),
                 ),
@@ -127,7 +128,7 @@ class _CustomersScreenPlaceholderState
                   controller: refController,
                   decoration: InputDecoration(
                     labelText: isCustomer ? tr('invoice_num_optional') : tr('category_optional'),
-                    hintText: isCustomer ? 'e.g. INV-201' : 'e.g. Inventory',
+                    hintText: isCustomer ? tr('invoice_num_optional') : tr('category_optional'),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                   ),
                 ),
@@ -307,7 +308,10 @@ class _CustomersScreenPlaceholderState
                 border: Border.all(color: AppColors.outline),
               ),
               child: Text(
-                'Dear ${party.name},\n\nThis is a gentle reminder regarding the pending balance of ${_formatAmount(party.outstandingAmount)} with Vyapar Business.\n\nPlease clear the balance at your earliest convenience. Thank you!',
+                tr('payment_reminder_template', {
+                  'name': party.name,
+                  'amount': _formatAmount(party.outstandingAmount),
+                }),
                 style: const TextStyle(fontSize: 13, height: 1.4),
               ),
             ),
@@ -319,16 +323,17 @@ class _CustomersScreenPlaceholderState
             child: Text(tr('cancel')),
           ),
           ElevatedButton.icon(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(tr('reminder_sent_whatsapp', {'name': party.name})),
-                  backgroundColor: const Color(0xFF0F764F),
-                ),
-              );
+              final reminderText = tr('payment_reminder_template', {
+                'name': party.name,
+                'amount': _formatAmount(party.outstandingAmount),
+              });
+              try {
+                await SharePlus.instance.share(ShareParams(text: reminderText, subject: 'VyaparAI Payment Reminder: ${party.name}'));
+              } catch (_) {}
             },
-            icon: const Icon(Icons.send_rounded, size: 16),
+            icon: const Icon(Icons.share, size: 16),
             label: Text(tr('send_reminder')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0F764F),

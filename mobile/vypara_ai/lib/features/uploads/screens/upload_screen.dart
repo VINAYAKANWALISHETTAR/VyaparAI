@@ -461,7 +461,7 @@ class _UploadScreenPlaceholderState
                 controller: vendorController,
                 decoration: InputDecoration(
                   labelText: '${tr('customer_vendor_name')} *',
-                  hintText: 'Enter vendor name',
+                  hintText: tr('enter_vendor_name'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -481,7 +481,7 @@ class _UploadScreenPlaceholderState
                 controller: invoiceNumController,
                 decoration: InputDecoration(
                   labelText: tr('invoice_number'),
-                  hintText: 'Auto-extracted (optional)',
+                  hintText: tr('invoice_num_optional'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -504,7 +504,7 @@ class _UploadScreenPlaceholderState
                 ),
                 decoration: InputDecoration(
                   labelText: '${tr('invoice_amount')} *',
-                  hintText: 'Enter amount',
+                  hintText: tr('enter_amount'),
                   prefixText: '₹ ',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -767,10 +767,10 @@ class _UploadScreenPlaceholderState
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Images: JPG, PNG (Max 50MB)',
+                      Text(
+                        tr('source_images_format'),
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textTertiary,
                           height: 1.3,
@@ -783,9 +783,9 @@ class _UploadScreenPlaceholderState
               const SizedBox(height: 28),
 
               // ── Source grid label ──────────────────────────────────────
-              const Text(
-                'Or choose source',
-                style: TextStyle(
+              Text(
+                tr('or_choose_source'),
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,

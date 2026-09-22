@@ -64,6 +64,10 @@ class ReportsProvider extends Notifier<ReportsState> {
   Future<String> exportReportCsv() async {
     return repository.exportReportCsv(period: state.selectedPeriod);
   }
+
+  Future<List<int>> downloadReportPdf() async {
+    return repository.downloadReportPdf(period: state.selectedPeriod);
+  }
 }
 
 final reportsProvider =

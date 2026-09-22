@@ -5,10 +5,12 @@ class CopilotChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
     language: str | None = None
+    business_id: str | None = None
 
 
 class CopilotChatResponse(BaseModel):
     answer: str
+    response: str | None = None
     intent: str | None = None
     data: dict | None = None
     action_buttons: list[dict] = []

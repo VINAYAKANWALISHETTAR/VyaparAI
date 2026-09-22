@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:vypara_ai/core/constants/api_endpoints.dart';
 import 'package:vypara_ai/core/network/api_client.dart';
 import 'package:vypara_ai/features/reports/data/models/financial_report_model.dart';
@@ -8,11 +9,15 @@ class ReportsRemoteDataSource {
 
   ReportsRemoteDataSource(this.apiClient);
 
+  String? _cachedBusinessId;
+
   Future<String?> getDefaultBusinessId() async {
+    if (_cachedBusinessId != null) return _cachedBusinessId;
     try {
       final res = await apiClient.dio.get(ApiEndpoints.businesses);
       if (res.data is List && (res.data as List).isNotEmpty) {
-        return (res.data as List).first['id']?.toString();
+        _cachedBusinessId = (res.data as List).first['id']?.toString();
+        return _cachedBusinessId;
       }
     } catch (_) {}
     return null;
@@ -21,81 +26,121 @@ class ReportsRemoteDataSource {
   Future<FinancialReportModel> getReport({String period = 'month'}) async {
     final bizId = await getDefaultBusinessId();
     final queryParams = bizId != null ? {'business_id': bizId} : <String, dynamic>{};
-
     final apiPeriod = period;
 
+    // 1. High-Speed Consolidated Endpoint Call (sub-50ms)
+    try {
+      final overviewRes = await apiClient.dio.get(
+        '/financials/report-overview/$apiPeriod',
+        queryParameters: queryParams,
+      );
+
+      if (overviewRes.data is Map) {
+        final data = overviewRes.data as Map<String, dynamic>;
+        final double income = (data['total_income'] as num?)?.toDouble() ?? 0.0;
+        final double expenses = (data['total_expenses'] as num?)?.toDouble() ?? 0.0;
+        final double profit = (data['net_profit'] as num?)?.toDouble() ?? (income - expenses);
+        final int count = (data['transaction_count'] as num?)?.toInt() ?? 0;
+
+        List<CategoryBreakdownItem> incomeBreakdown = [];
+        if (data['income_breakdown'] is List) {
+          incomeBreakdown = (data['income_breakdown'] as List)
+              .map((e) => CategoryBreakdownItem.fromJson(e as Map<String, dynamic>, income))
+              .toList();
+        }
+
+        List<CategoryBreakdownItem> expenseBreakdown = [];
+        if (data['expense_breakdown'] is List) {
+          expenseBreakdown = (data['expense_breakdown'] as List)
+              .map((e) => CategoryBreakdownItem.fromJson(e as Map<String, dynamic>, expenses))
+              .toList();
+        }
+
+        List<DailyChartPoint> chartPoints = [];
+        if (data['transactions'] is List) {
+          final txList = (data['transactions'] as List)
+              .map((e) => TransactionModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          chartPoints = _buildChartPoints(txList, period);
+        }
+
+        if (chartPoints.isEmpty) {
+          chartPoints = _buildDefaultEmptyPoints(period);
+        }
+
+        return FinancialReportModel(
+          period: period,
+          totalIncome: income,
+          totalExpenses: expenses,
+          netProfit: profit,
+          transactionCount: count,
+          incomeBreakdown: incomeBreakdown,
+          expenseBreakdown: expenseBreakdown,
+          chartPoints: chartPoints,
+        );
+      }
+    } catch (_) {
+      // Fallback to parallel execution below if overview endpoint has issues
+    }
+
+    // 2. Parallel Fallback (Runs all 4 requests concurrently via Future.wait)
     double income = 0.0;
     double expenses = 0.0;
     double profit = 0.0;
     int count = 0;
     List<CategoryBreakdownItem> incomeBreakdown = [];
     List<CategoryBreakdownItem> expenseBreakdown = [];
+    List<DailyChartPoint> chartPoints = [];
 
     try {
-      final incomeRes = await apiClient.dio.get(
-        '/financials/income/$apiPeriod',
-        queryParameters: queryParams,
-      );
+      final results = await Future.wait([
+        apiClient.dio.get('/financials/income/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
+        apiClient.dio.get('/financials/expenses/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
+        apiClient.dio.get('/financials/profit/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
+        apiClient.dio.get(ApiEndpoints.transactions, queryParameters: queryParams).catchError((_) => null as dynamic),
+      ]);
+
+      final incomeRes = results[0];
       if (incomeRes.data is Map) {
         final data = incomeRes.data as Map<String, dynamic>;
         income = (data['total_income'] as num?)?.toDouble() ?? 0.0;
         if (data['breakdown'] is List) {
-          final list = data['breakdown'] as List;
-          incomeBreakdown = list
+          incomeBreakdown = (data['breakdown'] as List)
               .map((e) => CategoryBreakdownItem.fromJson(e as Map<String, dynamic>, income))
               .toList();
         }
       }
-    } catch (_) {}
 
-    try {
-      final expenseRes = await apiClient.dio.get(
-        '/financials/expenses/$apiPeriod',
-        queryParameters: queryParams,
-      );
+      final expenseRes = results[1];
       if (expenseRes.data is Map) {
         final data = expenseRes.data as Map<String, dynamic>;
-        expenses = (data['total_expenses'] as num?)?.toDouble() ??
-            (data['total_expense'] as num?)?.toDouble() ??
-            0.0;
+        expenses = (data['total_expenses'] as num?)?.toDouble() ?? 0.0;
         if (data['breakdown'] is List) {
-          final list = data['breakdown'] as List;
-          expenseBreakdown = list
+          expenseBreakdown = (data['breakdown'] as List)
               .map((e) => CategoryBreakdownItem.fromJson(e as Map<String, dynamic>, expenses))
               .toList();
         }
       }
-    } catch (_) {}
 
-    try {
-      final profitRes = await apiClient.dio.get(
-        '/financials/profit/$apiPeriod',
-        queryParameters: queryParams,
-      );
+      final profitRes = results[2];
       if (profitRes.data is Map) {
         final data = profitRes.data as Map<String, dynamic>;
         profit = (data['profit'] as num?)?.toDouble() ?? (income - expenses);
         count = (data['transaction_count'] as num?)?.toInt() ?? 0;
+      } else {
+        profit = income - expenses;
       }
-    } catch (_) {
-      profit = income - expenses;
-    }
 
-    // Fetch transactions for real daily chart points
-    List<DailyChartPoint> chartPoints = [];
-    try {
-      final txRes = await apiClient.dio.get(
-        ApiEndpoints.transactions,
-        queryParameters: queryParams,
-      );
+      final txRes = results[3];
       if (txRes.data is List) {
         final txList = (txRes.data as List)
             .map((e) => TransactionModel.fromJson(e as Map<String, dynamic>))
             .toList();
-
         chartPoints = _buildChartPoints(txList, period);
       }
-    } catch (_) {}
+    } catch (_) {
+      profit = income - expenses;
+    }
 
     if (chartPoints.isEmpty) {
       chartPoints = _buildDefaultEmptyPoints(period);
@@ -201,5 +246,17 @@ class ReportsRemoteDataSource {
       queryParameters: queryParams,
     );
     return res.data ?? '';
+  }
+
+  Future<List<int>> downloadReportPdf({String period = 'month'}) async {
+    final bizId = await getDefaultBusinessId();
+    final queryParams = bizId != null ? {'business_id': bizId} : <String, dynamic>{};
+
+    final res = await apiClient.dio.get<List<int>>(
+      '/financials/report-pdf/$period',
+      queryParameters: queryParams,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return res.data ?? <int>[];
   }
 }

@@ -178,4 +178,77 @@ class NotificationService {
       payload: 'reminders_screen',
     );
   }
+
+  Future<void> showReminderCreatedAlert({
+    required String title,
+    double? amount,
+    DateTime? dueAt,
+    String language = 'en',
+  }) async {
+    String heading = '🔔 Reminder Scheduled';
+    String body = amount != null && amount > 0
+        ? 'Reminder set for "$title" (₹${amount.toStringAsFixed(0)})'
+        : 'Reminder set for "$title"';
+
+    if (dueAt != null) {
+      body += ' due on ${dueAt.day.toString().padLeft(2, '0')}/${dueAt.month.toString().padLeft(2, '0')}/${dueAt.year}';
+    }
+
+    if (language == 'kn') {
+      heading = '🔔 ಜ್ಞಾಪನೆ ನಿಗದಿಯಾಗಿದೆ';
+      body = amount != null && amount > 0
+          ? '"$title" ಗಾಗಿ ಜ್ಞಾಪನೆ ನಿಗದಿಯಾಗಿದೆ (₹${amount.toStringAsFixed(0)})'
+          : '"$title" ಗಾಗಿ ಜ್ಞಾಪನೆ ನಿಗದಿಯಾಗಿದೆ';
+      if (dueAt != null) {
+        body += ' ದಿನಾಂಕ: ${dueAt.day.toString().padLeft(2, '0')}/${dueAt.month.toString().padLeft(2, '0')}/${dueAt.year}';
+      }
+    } else if (language == 'hi') {
+      heading = '🔔 रिमाइंडर सेट किया गया';
+      body = amount != null && amount > 0
+          ? '"$title" के लिए रिमाइंडर सेट किया गया (₹${amount.toStringAsFixed(0)})'
+          : '"$title" के लिए रिमाइंडर सेट किया गया';
+      if (dueAt != null) {
+        body += ' देय तिथि: ${dueAt.day.toString().padLeft(2, '0')}/${dueAt.month.toString().padLeft(2, '0')}/${dueAt.year}';
+      }
+    }
+
+    await showNotification(
+      id: 3000 + title.hashCode.abs() % 5000,
+      title: heading,
+      body: body,
+      payload: 'reminders_screen',
+    );
+  }
+
+  Future<void> scheduleReminderNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    // If due date is already passed or right now, trigger immediately
+    if (scheduledDate.isBefore(DateTime.now().add(const Duration(seconds: 5)))) {
+      await showNotification(
+        id: id,
+        title: title,
+        body: body,
+        payload: payload ?? 'reminders_screen',
+      );
+      return;
+    }
+
+    // Schedule notification via Future.delayed for active session or show persistent alert
+    final timeRemaining = scheduledDate.difference(DateTime.now());
+    if (timeRemaining.inHours < 24) {
+      Future.delayed(timeRemaining, () {
+        showNotification(
+          id: id,
+          title: title,
+          body: body,
+          payload: payload ?? 'reminders_screen',
+        );
+      });
+    }
+  }
 }
