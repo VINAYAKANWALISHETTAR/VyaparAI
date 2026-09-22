@@ -62,6 +62,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1E293B),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -71,6 +73,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF64748B),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 1),
                         Text(
@@ -79,13 +83,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                             fontSize: 12,
                             color: Color(0xFF94A3B8),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
-                    onPressed: () => _showBusinessProfileModal(context, auth),
+                    onPressed: () => context.push('/app/profile'),
                   ),
                 ],
               ),
@@ -100,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
                   _buildSettingItem(
                     icon: Icons.storefront_outlined,
                     title: tr('business_profile'),
-                    onTap: () => _showBusinessProfileModal(context, auth),
+                    onTap: () => context.push('/app/profile'),
                   ),
                   _buildDivider(),
                   _buildSettingItem(
@@ -339,57 +345,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
     );
   }
 
-  void _showBusinessProfileModal(BuildContext context, AuthState auth) {
-    final tr = ref.read(appTranslationsProvider);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.storefront, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(tr('business_profile'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileRow(tr('business_name'), 'My Vyapar Store'),
-            _buildProfileRow(tr('full_name'), auth.user?.name ?? tr('business_account')),
-            _buildProfileRow(tr('email'), auth.user?.email ?? '—'),
-            _buildProfileRow(tr('currency'), 'INR (₹)'),
-            _buildProfileRow(tr('status'), tr('active')),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(tr('close')),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1E293B))),
-        ],
-      ),
-    );
-  }
 
   void _showSubscriptionModal(BuildContext context) {
     final tr = ref.read(appTranslationsProvider);
@@ -397,27 +352,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreenPlaceholder> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         title: Row(
           children: [
             const Icon(Icons.card_membership, color: AppColors.primary),
             const SizedBox(width: 8),
-            Text(tr('subscription'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Expanded(
+              child: Text(
+                tr('subscription'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(tr('subscription_active'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            Text(tr('feature_ai_copilot')),
-            const SizedBox(height: 4),
-            Text(tr('feature_smart_reminders')),
-            const SizedBox(height: 4),
-            Text(tr('feature_ocr_scanning')),
-            const SizedBox(height: 4),
-            Text(tr('feature_cashflow_projections')),
-          ],
+        content: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(tr('subscription_active'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 10),
+              Text(tr('feature_ai_copilot')),
+              const SizedBox(height: 4),
+              Text(tr('feature_smart_reminders')),
+              const SizedBox(height: 4),
+              Text(tr('feature_ocr_scanning')),
+              const SizedBox(height: 4),
+              Text(tr('feature_cashflow_projections')),
+            ],
+          ),
         ),
         actions: [
           ElevatedButton(

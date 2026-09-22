@@ -18,6 +18,7 @@ import 'package:vypara_ai/features/transactions/screens/transactions_screen.dart
 import 'package:vypara_ai/features/customers/screens/person_detail_screen.dart';
 import 'package:vypara_ai/features/insights/screens/insights_screen.dart';
 import 'package:vypara_ai/features/messages/screens/messages_screen.dart';
+import 'package:vypara_ai/features/profile/screens/profile_screen.dart';
 import 'package:vypara_ai/features/uploads/screens/scan_screen.dart';
 import 'package:vypara_ai/features/uploads/screens/upload_screen.dart';
 import 'package:vypara_ai/features/voice/screens/voice_screen.dart';
@@ -82,6 +83,10 @@ final router = GoRouter(
         GoRoute(
           path: '/app/settings',
           builder: (context, state) => const SettingsScreenPlaceholder(),
+        ),
+        GoRoute(
+          path: '/app/profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: '/app/invoices',

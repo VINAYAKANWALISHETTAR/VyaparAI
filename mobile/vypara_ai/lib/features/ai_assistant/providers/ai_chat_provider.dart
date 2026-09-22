@@ -6,6 +6,8 @@ import 'package:vypara_ai/features/ai_assistant/data/datasources/ai_remote_datas
 import 'package:vypara_ai/features/ai_assistant/data/models/chat_message_model.dart';
 import 'package:vypara_ai/features/ai_assistant/data/repositories/ai_repository_impl.dart';
 import 'package:vypara_ai/features/ai_assistant/repositories/ai_repository.dart';
+import 'package:vypara_ai/features/home/providers/home_provider.dart';
+import 'package:vypara_ai/features/transactions/providers/transactions_provider.dart';
 
 class AiChatState {
   final bool isSending;
@@ -86,6 +88,14 @@ class AiChatProvider extends Notifier<AiChatState> {
     try {
       final res = await repository.sendChatMessage(query, language: lang.langCode);
       final answer = res['answer']?.toString() ?? 'I could not process your query.';
+      final intent = res['intent']?.toString();
+
+      // If a transaction was recorded by copilot, refresh transactions and home providers
+      if (intent == 'record_transaction') {
+        ref.read(transactionsProvider.notifier).loadTransactions();
+        ref.read(homeProvider.notifier).loadDashboard();
+      }
+
       List<ChatActionButton> buttons = [];
       if (res['action_buttons'] is List) {
         buttons = (res['action_buttons'] as List)

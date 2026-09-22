@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Optional
 
 from app.services.copilot_service import copilot_service
@@ -20,6 +21,7 @@ class VoiceService:
 
     def __init__(self):
         self._simulation_mode = os.getenv("VOICE_SIMULATION_MODE", "true").lower() == "true"
+        self._recent_queries: dict[str, tuple[float, dict]] = {}
 
     def process_query(self, text: str, user_id: str, business_id: str | None = None, language: str | None = None) -> dict:
         if not text or not text.strip():
@@ -42,9 +44,20 @@ class VoiceService:
 
         activated_text = self._remove_activation(text)
 
+        # Check in-memory debounce cache to prevent rapid double-clicks/callbacks from running duplicate queries
+        cache_key = f"{user_id}:{activated_text.lower().strip()}"
+        now = time.time()
+        if cache_key in self._recent_queries:
+            last_time, cached_res = self._recent_queries[cache_key]
+            if now - last_time < 5.0:
+                return cached_res
+
         # Check for morning briefing intent
         if self._is_morning_briefing(activated_text):
-            return self._handle_morning_briefing(user_id, business_id, activated_text, final_language)
+            res = self._handle_morning_briefing(user_id, business_id, activated_text, final_language)
+            self._recent_queries = {k: v for k, v in self._recent_queries.items() if now - v[0] < 30.0}
+            self._recent_queries[cache_key] = (now, res)
+            return res
 
         # Process through copilot service (with transaction creation, financial analysis & greetings)
         result = copilot_service.chat(
@@ -54,13 +67,16 @@ class VoiceService:
             language=final_language,
         )
 
-        return {
+        res = {
             "transcription": text,
             "answer": result["answer"],
             "intent": result.get("intent"),
             "language": final_language,
             "action_buttons": result.get("action_buttons", []),
         }
+        self._recent_queries = {k: v for k, v in self._recent_queries.items() if now - v[0] < 30.0}
+        self._recent_queries[cache_key] = (now, res)
+        return res
 
     def _is_bot_activated(self, text: str) -> bool:
         text_lower = text.lower().strip()

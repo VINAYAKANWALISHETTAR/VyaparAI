@@ -75,11 +75,11 @@ a{color:var(--ink)}
 
 /* nav */
 .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--paper);border-bottom:1px solid var(--rule);backdrop-filter:saturate(1.2) blur(8px);background:color-mix(in srgb, var(--paper) 88%, transparent)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:68px}
-.brand{display:inline-flex;align-items:center;gap:10px;font:800 1.35rem/1 var(--f-display);letter-spacing:-.03em;color:var(--ink);text-decoration:none}
-.brand img{width:34px;height:34px;border-radius:8px;flex:none}
-.nav-links{display:none;gap:28px;align-items:center}
-.nav-links a{text-decoration:none;font-weight:500;font-size:.9375rem;color:var(--slate);padding:10px 2px}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px}
+.brand{display:inline-flex;align-items:center;gap:10px;font:800 1.25rem/1 var(--f-display);letter-spacing:-.03em;color:var(--ink);text-decoration:none}
+.brand img{width:30px;height:30px;border-radius:8px;flex:none}
+.nav-links{display:none;gap:24px;align-items:center}
+.nav-links a{text-decoration:none;font-weight:500;font-size:.9375rem;color:var(--slate);padding:10px 2px;white-space:nowrap}
 .nav-links a:hover{color:var(--ink)}
 .nav-right{display:flex;align-items:center;gap:8px}
 .menu-btn{min-height:44px;min-width:44px;background:none;border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);font:600 .9375rem var(--f-body);padding:0 14px;cursor:pointer}
@@ -87,7 +87,7 @@ a{color:var(--ink)}
 .menu-panel.open{display:block}
 .menu-panel a{display:block;padding:15px 0;text-decoration:none;font-weight:500;color:var(--ink);border-bottom:1px solid var(--rule)}
 @media(min-width:900px){.nav-links{display:flex}.menu-btn,.menu-panel{display:none!important}}
-@media(max-width:380px){.nav-right .btn{padding:0 12px;font-size:.875rem}.brand{font-size:1.2rem}}
+@media(max-width:380px){.nav-right .btn{padding:0 12px;font-size:.875rem}.brand{font-size:1.1rem}}
 
 /* hero */
 .hero{padding-block:var(--s7) var(--s8);position:relative;overflow:hidden}
@@ -314,6 +314,12 @@ dialog::backdrop{background:rgba(10,12,30,.88);backdrop-filter:blur(6px)}
 .dl .btn-accent{background:linear-gradient(135deg,#fff,#e8eaf6);color:#232A5C;font-weight:700}
 .dl .btn-ghost{color:#fff;border-color:#8B95D6}
 .dl .btn-ghost:hover{background:rgba(255,255,255,.08)}
+
+/* band CTA */
+.band{background:var(--brand);color:var(--on-brand);padding-block:var(--s6);text-align:center;border-block:1px solid var(--rule)}
+.band h2{color:#fff;margin-bottom:var(--s4)}
+.band .btn-accent{background:#F4F6F3;color:#232A5C}
+.band .btn-accent:hover{filter:brightness(1.08)}
 .apk-status{margin:var(--s5) 0;padding:14px 16px;border:1px solid #5A65B3;border-radius:6px;font-size:.9375rem;position:relative;z-index:1}
 .apk-status.warn{border-color:#FFB4AB;color:#fff}
 .apk-status.ok{border-color:#7FDDB4;color:#fff}
@@ -328,7 +334,7 @@ dialog::backdrop{background:rgba(10,12,30,.88);backdrop-filter:blur(6px)}
 .qrbox .ph{width:168px;height:168px;border:2px dashed #9AA3CC;border-radius:6px;display:grid;place-items:center;padding:14px;font-size:.8125rem;color:#4A5163}
 .qrbox .caption{color:#4A5163}
 .inst{list-style:none;padding:0;counter-reset:s;border-top:1px solid #5A65B3;margin-top:var(--s5)}
-.inst li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:16px 0;border-bottom:1px solid #5A65B3)}
+.inst li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:16px 0;border-bottom:1px solid #5A65B3}
 .inst li::before{content:counter(s);width:28px;height:28px;border-radius:50%;border:1.5px solid #8B95D6;display:grid;place-items:center;font:700 .875rem var(--f-display);color:#fff}
 .inst b{color:#fff;font-weight:600}
 .dl .caption{color:#AEB7E8}
@@ -361,7 +367,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   .wave.run i{height:28px}
 }
 
-/* additional polish */
+/* polish */
 .glow{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18;pointer-events:none}
 .section-label{font:600 .8125rem var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:var(--s3)}
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:var(--s5)}
@@ -397,18 +403,11 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 .stack{border-block:1px solid var(--rule);background:var(--surface)}
 .stack-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s6)}
 @media(min-width:900px){.stack-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s7)}}
-.stack-item{display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;padding:18px 0;border-bottom:1px solid var(--rule);align-items:center}
+.stack-item{display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;padding:18px 0;border-bottom:1px solid var(--rule)}
 .stack-item:last-child{border-bottom:0}
-.stack-icon{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--rule);display:grid;place-items:center;flex-shrink:0}
-.stack-icon svg{width:28px;height:28px;display:block}
-.stack-item b{display:block;color:var(--ink);font-weight:600;margin-bottom:3px}
-.stack-item span{font-size:.875rem;color:var(--slate);line-height:1.45}
-
-/* ai box */
-.ai-box{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px;margin-top:var(--s5)}
-.ai-box h3{margin-bottom:var(--s3)}
-.ai-box p{margin-bottom:var(--s4)}
-.ai-box p:last-child{margin-bottom:0}
+.stack-icon{width:48px;height:48px;border-radius:10px;background:var(--paper);border:1px solid var(--rule);display:grid;place-items:center;font-size:1.5rem}
+.stack-item b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+.stack-item span{font-size:.875rem;color:var(--slate)}
 </style>
 </head>
 <body>
@@ -417,19 +416,14 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand" href="#top" aria-label="VyaparAI home">
-      <img src="VyaparAI_logo.png" alt="VyaparAI" width="34" height="34">
+      <img src="VyaparAI_logo.png" alt="VyaparAI" width="30" height="30">
       VyaparAI
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#codebase">Codebase</a>
       <a href="#stack">Tech Stack</a>
-      <a href="#gallery">Screenshots</a>
-      <a href="#problem">Problem</a>
-      <a href="#how">How it works</a>
       <a href="#features">Features</a>
-      <a href="#ask">Ask demo</a>
-      <a href="#voice">Voice</a>
-      <a href="#trust">Trust</a>
+      <a href="#how">How it works</a>
       <a href="#download">Download</a>
     </nav>
     <div class="nav-right">
@@ -443,13 +437,8 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <div class="wrap">
       <a href="#codebase">Codebase</a>
       <a href="#stack">Tech Stack</a>
-      <a href="#gallery">Screenshots</a>
-      <a href="#problem">Problem</a>
-      <a href="#how">How it works</a>
       <a href="#features">Features</a>
-      <a href="#ask">Ask demo</a>
-      <a href="#voice">Voice</a>
-      <a href="#trust">Trust</a>
+      <a href="#how">How it works</a>
       <a href="#download">Download</a>
     </div>
   </div>
@@ -499,6 +488,31 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     </div>
   </div>
 </div>
+
+<!-- GALLERY -->
+<section class="gallery" id="gallery" aria-labelledby="gTitle">
+  <div class="wrap">
+    <h2 id="gTitle" style="font-size:clamp(1.7rem,4.2vw,2.75rem);line-height:1.08;margin-bottom:var(--s4)">App screenshots</h2>
+    <div id="shots" role="list" aria-label="VyaparAI app screenshots" style="display:flex;gap:12px;overflow-x:auto;padding-block:16px;scroll-snap-type:x mandatory"></div>
+  </div>
+</section>
+
+<dialog id="shotDlg" aria-modal="true" aria-label="Screenshot preview" style="border:0;border-radius:12px;padding:0;max-width:min(480px,95vw);background:transparent;box-shadow:0 24px 48px rgba(0,0,0,.35)">
+  <div style="background:var(--surface);border-radius:12px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--rule)">
+      <span id="dCount" style="font:600 .9375rem var(--f-body);color:var(--ink)"></span>
+      <div style="display:flex;gap:8px">
+        <button id="dPrev" type="button" aria-label="Previous screenshot" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">‹</button>
+        <button id="dNext" type="button" aria-label="Next screenshot" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">›</button>
+        <button id="dClose" type="button" aria-label="Close preview" style="min-height:36px;min-width:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer;font-size:1.25rem;display:grid;place-items:center">×</button>
+      </div>
+    </div>
+    <div style="padding:16px;text-align:center">
+      <img id="dlgImg" src="" alt="" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-inline:auto">
+      <p id="dlgCap" style="margin-top:10px;font:.8125rem var(--f-body);color:var(--slate)"></p>
+    </div>
+  </div>
+</dialog>
 
 <!-- CODEBASE -->
 <section class="codebase" id="codebase" aria-labelledby="cTitle">
@@ -551,114 +565,12 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <div class="sec-head"><h2 id="stTitle">Tech stack</h2>
     <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit.</p></div>
     <div class="stack-grid">
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="Flutter logo">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M13.5 2.5L3.2 12.8l3.6 3.6L20.3 2.5H13.5z" fill="#02569B"/>
-            <path d="M13.5 12.8L7.9 18.4l3.6 3.6L20.3 12.8H13.5z" fill="#0175C2"/>
-            <path d="M10.7 21.2l2.8-2.8 2.8 2.8H10.7z" fill="#29B6F6"/>
-            <path d="M13.5 18.4l2.8-2.8 4 4h-4.8l-2-1.2z" fill="#13B9FD"/>
-          </svg>
-        </div>
-        <div>
-          <b>Flutter Framework</b>
-          <span>Cross-platform client with 15 production screens, zero layout overflows, and 60fps scrolling on mobile devices.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="FastAPI logo">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="10.5" fill="#009688"/>
-            <path d="M12.5 3.5L5.5 13.5H12l-1 7 7.5-10.5H12l.5-6.5z" fill="#FFFFFF"/>
-          </svg>
-        </div>
-        <div>
-          <b>FastAPI Engine</b>
-          <span>Asynchronous Python REST API with Pydantic v2 schemas, JWT authentication, bcrypt hashing, and OpenAPI documentation.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="MongoDB logo">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 1.5C12 1.5 5 8 5 14.5C5 18.6 8.1 22 12 22.5C15.9 22 19 18.6 19 14.5C19 8 12 1.5 12 1.5Z" fill="#13AA52"/>
-            <path d="M12 2.5C12 2.5 12.4 7 12.4 14.5C12.4 18.2 12 22 12 22C12 22 11.6 18.2 11.6 14.5C11.6 7 12 2.5 12 2.5Z" fill="#FFEAA5"/>
-            <path d="M12 22.5C11.9 22.5 11.8 23 12 23.5C12.2 23 12.1 22.5 12 22.5Z" fill="#13AA52"/>
-          </svg>
-        </div>
-        <div>
-          <b>MongoDB Atlas</b>
-          <span>Cloud document database with indexed collections for users, businesses, invoices, transactions, and notification records.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="Python and ReportLab logo">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M11.8 2C7.3 2 7.6 3.9 7.6 3.9L7.6 5.8H12V6.5H5.4C3.4 6.5 2 7.9 2 10.3C2 12.7 3.2 13.9 5 13.9H6.4V12.1C6.4 9.9 8.2 8.2 10.4 8.2H14.8C16.3 8.2 17.5 7 17.5 5.5C17.5 3.7 16.1 2 11.8 2ZM9.6 3.6C10.2 3.6 10.6 4.1 10.6 4.6C10.6 5.2 10.1 5.6 9.6 5.6C9 5.6 8.6 5.2 8.6 4.6C8.6 4.1 9 3.6 9.6 3.6Z" fill="#387EB8"/>
-            <path d="M12.2 22C16.7 22 16.4 20.1 16.4 20.1L16.4 18.2H12V17.5H18.6C20.6 17.5 22 16.1 22 13.7C22 11.3 20.8 10.1 19 10.1H17.6V11.9C17.6 14.1 15.8 15.8 13.6 15.8H9.2C7.7 15.8 6.5 17 6.5 18.5C6.5 20.3 7.9 22 12.2 22ZM14.4 20.4C13.8 20.4 13.4 19.9 13.4 19.4C13.4 18.8 13.9 18.4 14.4 18.4C15 18.4 15.4 18.8 15.4 19.4C15.4 19.9 15 20.4 14.4 20.4Z" fill="#FFE052"/>
-          </svg>
-        </div>
-        <div>
-          <b>Python & ReportLab</b>
-          <span>Deterministic financial mathematics engine combined with ReportLab for downloadable, pixel-perfect PDF accounting statements.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="Riverpod logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#00B4D8">
-            <path d="M4 12a8 8 0 0 1 14.9-4M20 12a8 8 0 0 1-14.9 4"/>
-            <path d="M18 4l2 4-4 1M6 20l-2-4 4-1"/>
-            <circle cx="12" cy="12" r="2.5" fill="#00B4D8"/>
-          </svg>
-        </div>
-        <div>
-          <b>Riverpod 2.x Architecture</b>
-          <span>Compile-safe reactive state management with auto-dispose providers, caching, and instant multilingual UI synchronization.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="OCR Vision logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#7C3AED">
-            <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
-            <rect x="7" y="7" width="10" height="10" rx="2" fill="none"/>
-            <line x1="4" y1="12" x2="20" y2="12" stroke="#FF5F57" stroke-width="2.2"/>
-          </svg>
-        </div>
-        <div>
-          <b>PyTesseract OCR & Vision</b>
-          <span>Backend image processing and optical character recognition for physical bills, GST invoices, and UPI transaction confirmations.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="Google Gemini Copilot logo">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z" fill="url(#gemini-grad)"/>
-            <defs>
-              <linearGradient id="gemini-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#4E82EE"/>
-                <stop offset="0.5" stop-color="#9B72CF"/>
-                <stop offset="1" stop-color="#F26D85"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <div>
-          <b>Google Gemini Copilot</b>
-          <span>Natural language intent classifier and conversational copilot that explains complex financial insights without hallucinating numbers.</span>
-        </div>
-      </div>
-      <div class="stack-item">
-        <div class="stack-icon" aria-label="Voice NLP logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#1F7A5A">
-            <rect x="9" y="2" width="6" height="12" rx="3" fill="#1F7A5A" stroke="none"/>
-            <path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/>
-            <path d="M2 10a10 10 0 0 0 3 7M22 10a10 10 0 0 1-3 7" stroke-dasharray="2 3"/>
-          </svg>
-        </div>
-        <div>
-          <b>Trilingual Voice Engine</b>
-          <span>"Hey Vyapar" acoustic wake-word detection and trilingual speech-to-text pipeline supporting English, Kannada, and Hindi.</span>
-        </div>
-      </div>
+      <div class="stack-item"><div class="stack-icon">📱</div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🔌</div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🧮</div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🗄️</div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🤖</div><div><b>In-house LLM / ML model</b><span>Our own NLP model powers intent classification, natural-language understanding, and answer phrasing. It sits alongside deterministic rule-based checks for finance.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🧠</div><div><b>Rule-based intelligence</b><span>Payment matching, anomaly detection, receivable aging, cash-flow forecast, and insights are deterministic. The LLM classifies intent and explains results; it never computes money.</span></div></div>
     </div>
   </div>
 </section>
@@ -706,32 +618,6 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <p class="caption" style="margin-top:24px">All figures in examples are fictional demo data for a sample electrical-parts shop, not real business results.</p>
   </div>
 </section>
-
-<!-- SCREENSHOT GALLERY -->
-<section id="gallery" aria-labelledby="gTitle" style="border-block:1px solid var(--rule);background:var(--surface)">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="section-label">Mobile Experience</p>
-      <h2 id="gTitle">Crafted for clarity on mobile</h2>
-      <p class="lead">Tour VyaparAI's verified Flutter interface. Every screen is optimized for 60fps responsiveness, zero layout overflow, full multilingual typography (English, Kannada, Hindi), and instant accounting clarity.</p>
-    </div>
-    <div class="shots" id="shots" role="list" aria-label="VyaparAI application screenshots"></div>
-    <p class="caption" style="margin-top:14px">Swipe horizontally or tap any screenshot to inspect full resolution in lightbox.</p>
-  </div>
-</section>
-
-<dialog id="shotDlg" aria-label="Screenshot lightbox modal">
-  <div class="dlg">
-    <img id="dlgImg" src="" alt="" loading="lazy">
-    <p id="dlgCap" style="color:#fff;font-weight:600;font-size:1rem;margin-top:8px;text-align:center"></p>
-    <div class="dlg-bar">
-      <button id="dPrev" type="button" aria-label="Previous screenshot">‹ Prev</button>
-      <span id="dCount" style="font-weight:600;font-size:.9375rem"></span>
-      <button id="dNext" type="button" aria-label="Next screenshot">Next ›</button>
-      <button id="dClose" type="button" aria-label="Close lightbox">✕ Close</button>
-    </div>
-  </div>
-</dialog>
 
 <!-- ASK -->
 <section class="ask" id="ask" aria-labelledby="aTitle" style="background:var(--surface)">
@@ -886,7 +772,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <details><summary>Does an AI model calculate my money?</summary><p>No. Totals, balances, forecasts and all financial figures are calculated by deterministic Python code in the financial engine. The assistant only works out which question you asked and phrases the verified result in natural language. This is a core architectural guarantee: the LLM never becomes the source of truth for money.</p></details>
     <details><summary>Which languages does voice support?</summary><p>The voice backend detects English, Hindi and Kannada. In the mobile app, speech recognition processes native audio queries and passes intents directly into the copilot, returning verified financial results in your chosen language.</p></details>
     <details><summary>Does it show my bank balance?</summary><p>No. VyaparAI does not connect to bank accounts. It shows a recorded cash position based on the payments, transactions and invoices you have captured. What you have not recorded is not shown.</p></details>
-    <details><summary>Can I generate and download reports?</summary><p>Yes. VyaparAI provides comprehensive daily, weekly, monthly, and yearly financial reports. You can view interactive category breakdowns, income vs. expense analytics, and download official, beautifully formatted PDF statements generated by the backend ReportLab engine or export CSV files.</p></details>
+    <details><summary>Can I generate and download reports?</summary><p>Yes. VyaparAI provides comprehensive daily, weekly, monthly, and yearly financial reports. You can view interactive category breakdowns, income vs. expense analytics, and download official, beautifully formatted PDF statements generated by the backend ReportLab PDF engine or export CSV files.</p></details>
     <details><summary>How is my data handled?</summary><p>Sign-in uses JWT tokens and passwords are hashed with bcrypt. Each business's data is kept separate in MongoDB Atlas, and every query is limited to the signed-in owner's business. The backend enforces business ownership verification on all sensitive operations.</p></details>
     <details><summary>What is the tech stack?</summary><p>Mobile app: Flutter with Riverpod state management, GoRouter and Dio. Backend: FastAPI with Pydantic validation, MongoDB Atlas, PyTesseract OCR, ReportLab PDF engine, and JWT authentication. AI & Intelligence: Google Gemini AI Copilot for natural language understanding and deterministic Python financial engine for 100% error-free accounting math. Languages: English, Kannada, Hindi with 100% UI parity.</p></details>
   </div>
@@ -896,9 +782,9 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 <footer>
   <div class="wrap">
     <div class="foot">
-      <div class="full"><a class="brand" href="#top"><img src="VyaparAI_logo.png" alt="VyaparAI" width="34" height="34">VyaparAI</a>
+      <div class="full"><a class="brand" href="#top"><img src="VyaparAI_logo.png" alt="VyaparAI" width="30" height="30">VyaparAI</a>
         <p class="caption" style="margin-top:12px;max-width:34ch">AI financial copilot for small businesses. Built with FastAPI, MongoDB Atlas and Flutter.</p></div>
-      <div><h3>Product</h3><ul><li><a href="#codebase">Codebase</a></li><li><a href="#stack">Tech Stack</a></li><li><a href="#gallery">Screenshots</a></li><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
+      <div><h3>Product</h3><ul><li><a href="#codebase">Codebase</a></li><li><a href="#stack">Tech Stack</a></li><li><a href="#features">Features</a></li><li><a href="#how">How it works</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
       <div><h3>Get the app</h3><ul><li><a href="#download">Download</a></li><li><a href="#download">Installation</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h3>Contact</h3><ul id="contactList"><li><span class="caption">Contact details will appear here.</span></li></ul></div>
     </div>
@@ -957,228 +843,650 @@ const CONFIG = {
 };
 
 /* ============ helpers ============ */
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
 let toastT;
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3400)}
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 3400);
+}
 
 /* ============ nav ============ */
-$('#menuBtn').addEventListener('click',e=>{const p=$('#menuPanel'),o=p.classList.toggle('open');e.currentTarget.setAttribute('aria-expanded',o);e.currentTarget.textContent=o?'Close':'Menu'});
-$$('#menuPanel a').forEach(a=>a.addEventListener('click',()=>{$('#menuPanel').classList.remove('open');$('#menuBtn').setAttribute('aria-expanded','false');$('#menuBtn').textContent='Menu'}));
+$("#menuBtn").addEventListener("click", (e) => {
+  const p = $("#menuPanel"),
+    o = p.classList.toggle("open");
+  e.currentTarget.setAttribute("aria-expanded", o);
+  e.currentTarget.textContent = o ? "Close" : "Menu";
+});
+$$("#menuPanel a").forEach((a) =>
+  a.addEventListener("click", () => {
+    $("#menuPanel").classList.remove("open");
+    $("#menuBtn").setAttribute("aria-expanded", "false");
+    $("#menuBtn").textContent = "Menu";
+  })
+);
 
 /* ============ flow ============ */
 const STEPS = [
- {t:'Capture',s:'Camera, screenshot or voice',who:'You',h:'Start from what you already have',
-  p:'Photograph an invoice, upload a UPI or bank payment screenshot, or speak a question. Your phone is the input channel, so there is no form to fill first. The backend accepts image uploads for OCR and audio or text for voice queries.',
-  i:'A photo of an invoice, UPI screenshot, or voice audio',o:'The image or audio is sent to the FastAPI backend',w:['POST /ocr/invoice','POST /ocr/payment','POST /voice/query']},
- {t:'Read',s:'OCR and field extraction',who:'OCR engine',h:'The text is read, then the fields are picked out',
-  p:'OCR reads the words on the image. The invoice extractor pulls out the invoice number, customer name, total and dates. For payments, the payment extractor finds the amount, reference, date, sender/receiver names, and whether money came in or went out.',
-  i:'"Invoice … ABC Traders … ₹18,000 … Due 20 Sep"',o:'Customer: ABC Traders. Amount: ₹18,000. Due: 20 Sep.',w:['OCR text extraction (pytesseract)','Invoice extractor (regex)','Payment extractor (regex)']},
- {t:'Confirm',s:'You check before it is saved',who:'You',h:'Nothing is saved until you say so',
-  p:'The extracted fields come back for review in the app. Once you confirm, the backend validates them and checks for duplicates before anything is stored. This is the human-in-the-loop guarantee: AI proposes, you dispose.',
-  i:'Extracted invoice fields in the review screen',o:'Invoice saved after your confirmation',w:['POST /ocr/invoice/confirm','POST /ocr/payment/confirm']},
- {t:'Match',s:'Payments meet invoices',who:'Backend',h:'A payment finds its invoice',
-  p:'A payment is scored against your open invoices using the customer name and the amount. The result is a match, a partial match, an overpayment for review, or no match. The invoice balance and your transaction list are updated together in a single atomic operation. Duplicate payments are caught by their reference number.',
-  i:'₹8,000 received from ABC Traders',o:'Partial match. ₹10,000 of the ₹18,000 invoice is still outstanding.',w:['POST /invoices/{id}/payments','Duplicate-payment check by reference']},
- {t:'Calculate',s:'The financial engine',who:'Financial engine',calc:1,h:'The money is added up by code, not by AI',
-  p:'Income, expenses, profit, receivables, liabilities and your recorded cash position are computed from stored records with plain arithmetic in Python. This is the single source of truth every other feature uses. The LLM never touches these numbers.',
-  i:'Every recorded invoice, payment and transaction',o:'Income ₹32,500. Expenses ₹6,200. Profit ₹26,300.',w:['GET /financials/income/{today,week,month}','GET /financials/expenses/{today,week,month}','GET /financials/profit/{today,week,month}','GET /financials/receivables','GET /financials/liabilities','GET /financials/cash-position']},
- {t:'Watch',s:'Forecast, ageing, flags',who:'Rule checks',h:'Trouble is spotted early',
-  p:'VyaparAI projects your balance forward, groups unpaid invoices by age, and flags duplicate invoices, overpayments and unusually large expenses. It also turns these into short insights, such as an overdue-payment warning or a declining-revenue trend. All checks are rule-based, not probabilistic.',
-  i:'Recorded cash, expected payments, upcoming dues',o:'A projected balance with a risk indicator, plus any items to review.',w:['GET /financials/cash-flow','GET /financials/receivables/aging','GET /financials/anomalies','GET /financials/insights']},
- {t:'Ask',s:'Chat or voice',who:'Copilot',h:'Ask in plain words',
-  p:'Type or say your question. VyaparAI works out what you are asking using rule-based intent classification, runs the matching financial tool, and phrases the verified result as an answer. Voice adds a wake phrase and language detection on top. The same tools power both interfaces.',
-  i:'"Will I have enough cash?"',o:'A written answer backed by the forecast tool.',w:['POST /copilot/chat','POST /voice/query']},
- {t:'Act',s:'Reminders and briefing',who:'You',h:'Turn the answer into a next step',
-  p:'Create reminders for follow-ups, get a morning briefing that combines your financial summary with your notifications, and see notifications in the app. You act on the insight, VyaparAI makes sure you do not forget.',
-  i:'"Follow up with ABC Traders"',o:'A reminder with a due time, and a notification when it matters.',w:['POST /reminders/','GET /reminders/morning-briefing','GET /notifications/','PATCH /notifications/{id}/read']}
+  {
+    t: "Capture",
+    s: "Camera, screenshot or voice",
+    who: "You",
+    h: "Start from what you already have",
+    p: "Photograph an invoice, upload a UPI or bank payment screenshot, or speak a question. Your phone is the input channel, so there is no form to fill first. The backend accepts image uploads for OCR and audio or text for voice queries.",
+    i: "A photo of an invoice, UPI screenshot, or voice audio",
+    o: "The image or audio is sent to the FastAPI backend",
+    w: ["POST /ocr/invoice", "POST /ocr/payment", "POST /voice/query"],
+  },
+  {
+    t: "Read",
+    s: "OCR and field extraction",
+    who: "OCR engine",
+    h: "The text is read, then the fields are picked out",
+    p: "OCR reads the words on the image. The invoice extractor pulls out the invoice number, customer name, total and dates. For payments, the payment extractor finds the amount, reference, date, sender/receiver names, and whether money came in or went out.",
+    i: '"Invoice … ABC Traders … ₹18,000 … Due 20 Sep"',
+    o: "Customer: ABC Traders. Amount: ₹18,000. Due: 20 Sep.",
+    w: [
+      "OCR text extraction (pytesseract)",
+      "Invoice extractor (regex)",
+      "Payment extractor (regex)",
+    ],
+  },
+  {
+    t: "Confirm",
+    s: "You check before it is saved",
+    who: "You",
+    h: "Nothing is saved until you say so",
+    p: "The extracted fields come back for review in the app. Once you confirm, the backend validates them and checks for duplicates before anything is stored. This is the human-in-the-loop guarantee: AI proposes, you dispose.",
+    i: "Extracted invoice fields in the review screen",
+    o: "Invoice saved after your confirmation",
+    w: ["POST /ocr/invoice/confirm", "POST /ocr/payment/confirm"],
+  },
+  {
+    t: "Match",
+    s: "Payments meet invoices",
+    who: "Backend",
+    h: "A payment finds its invoice",
+    p: "A payment is scored against your open invoices using the customer name and the amount. The result is a match, a partial match, an overpayment for review, or no match. The invoice balance and your transaction list are updated together in a single atomic operation. Duplicate payments are caught by their reference number.",
+    i: "₹8,000 received from ABC Traders",
+    o: "Partial match. ₹10,000 of the ₹18,000 invoice is still outstanding.",
+    w: ["POST /invoices/{id}/payments", "Duplicate-payment check by reference"],
+  },
+  {
+    t: "Calculate",
+    s: "The financial engine",
+    who: "Financial engine",
+    calc: 1,
+    h: "The money is added up by code, not by AI",
+    p: "Income, expenses, profit, receivables, liabilities and your recorded cash position are computed from stored records with plain arithmetic in Python. This is the single source of truth every other feature uses. The LLM never touches these numbers.",
+    i: "Every recorded invoice, payment and transaction",
+    o: "Income ₹32,500. Expenses ₹6,200. Profit ₹26,300.",
+    w: [
+      "GET /financials/income/{today,week,month}",
+      "GET /financials/expenses/{today,week,month}",
+      "GET /financials/profit/{today,week,month}",
+      "GET /financials/receivables",
+      "GET /financials/liabilities",
+      "GET /financials/cash-position",
+    ],
+  },
+  {
+    t: "Watch",
+    s: "Forecast, ageing, flags",
+    who: "Rule checks",
+    h: "Trouble is spotted early",
+    p: "VyaparAI projects your balance forward, groups unpaid invoices by age, and flags duplicate invoices, overpayments and unusually large expenses. It also turns these into short insights, such as an overdue-payment warning or a declining-revenue trend. All checks are rule-based, not probabilistic.",
+    i: "Recorded cash, expected payments, upcoming dues",
+    o: "A projected balance with a risk indicator, plus any items to review.",
+    w: [
+      "GET /financials/cash-flow",
+      "GET /financials/receivables/aging",
+      "GET /financials/anomalies",
+      "GET /financials/insights",
+    ],
+  },
+  {
+    t: "Ask",
+    s: "Chat or voice",
+    who: "Copilot",
+    h: "Ask in plain words",
+    p: "Type or say your question. VyaparAI works out what you are asking using rule-based intent classification, runs the matching financial tool, and phrases the verified result as an answer. Voice adds a wake phrase and language detection on top. The same tools power both interfaces.",
+    i: '"Will I have enough cash?"',
+    o: "A written answer backed by the forecast tool.",
+    w: ["POST /copilot/chat", "POST /voice/query"],
+  },
+  {
+    t: "Act",
+    s: "Reminders and briefing",
+    who: "You",
+    h: "Turn the answer into a next step",
+    p: "Create reminders for follow-ups, get a morning briefing that combines your financial summary with your notifications, and see notifications in the app. You act on the insight, VyaparAI makes sure you do not forget.",
+    i: '"Follow up with ABC Traders"',
+    o: "A reminder with a due time, and a notification when it matters.",
+    w: [
+      "POST /reminders/",
+      "GET /reminders/morning-briefing",
+      "GET /notifications/",
+      "PATCH /notifications/{id}/read",
+    ],
+  },
 ];
-const metro=$('#metro'), side=$('#flowSide'), mq=matchMedia('(min-width:900px)');
-let curStep=0;
-const panel=document.createElement('div'); panel.className='panel'; panel.id='flowPanel';
-function stepPanel(i){const s=STEPS[i];panel.style.animation='none';panel.offsetHeight;panel.style.animation='';
- panel.innerHTML=`<h3>${s.h}</h3><p>${s.p}</p><div class="io"><div><i>In</i><b>${s.i}</b></div><div><i>Out</i><b>${s.o}</b></div></div><p class="works-h">Behind the scenes</p><ul class="works">${s.w.map(x=>`<li>${x}</li>`).join('')}</ul>`}
-function place(){const li=metro.children[curStep]; if(mq.matches){side.appendChild(panel)}else{li.appendChild(panel)}}
-STEPS.forEach((s,i)=>{const li=document.createElement('li');
- li.innerHTML=`<span class="dot" aria-hidden="true"></span><button type="button" aria-expanded="false" aria-controls="flowPanel"><b>${s.t}</b><small>${s.s}</small><span class="who ${s.calc?'calc':''}">${s.who}</span></button>`;
- li.querySelector('button').addEventListener('click',()=>selectStep(i));metro.appendChild(li)});
-function selectStep(i){curStep=i;[...metro.children].forEach((li,j)=>{li.classList.toggle('on',j===i);li.querySelector('button').setAttribute('aria-expanded',j===i)});stepPanel(i);place()}
-mq.addEventListener('change',place);
+const metro = $("#metro"),
+  side = $("#flowSide"),
+  mq = matchMedia("(min-width:900px)");
+let curStep = 0;
+const panel = document.createElement("div");
+panel.className = "panel";
+panel.id = "flowPanel";
+function stepPanel(i) {
+  const s = STEPS[i];
+  panel.style.animation = "none";
+  panel.offsetHeight;
+  panel.style.animation = "";
+  panel.innerHTML = `<h3>${s.h}</h3><p>${s.p}</p><div class="io"><div><i>In</i><b>${s.i}</b></div><div><i>Out</i><b>${s.o}</b></div></div><p class="works-h">Behind the scenes</p><ul class="works">${s.w.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+}
+function place() {
+  const li = metro.children[curStep];
+  if (mq.matches) {
+    side.appendChild(panel);
+  } else {
+    li.appendChild(panel);
+  }
+}
+STEPS.forEach((s, i) => {
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="dot" aria-hidden="true"></span><button type="button" aria-expanded="false" aria-controls="flowPanel"><b>${s.t}</b><small>${s.s}</small><span class="who ${s.calc ? "calc" : ""}">${s.who}</span></button>`;
+  li.querySelector("button").addEventListener("click", () => selectStep(i));
+  metro.appendChild(li);
+});
+function selectStep(i) {
+  curStep = i;
+  [...metro.children].forEach((li, j) => {
+    li.classList.toggle("on", j === i);
+    li.querySelector("button").setAttribute("aria-expanded", j === i);
+  });
+  stepPanel(i);
+  place();
+}
+mq.addEventListener("change", place);
 selectStep(0);
 
 /* ============ features ============ */
-const bar=(l,v,max,z)=>`<div class="bar"><span>${l}</span><span class="tr"><i class="${z?'z':''}" style="width:${max?Math.round(v/max*100):0}%"></i></span><span class="num" style="text-align:right;color:var(--ink);font-weight:600">₹${v.toLocaleString('en-IN')}</span></div>`;
-const kv=rows=>`<div class="kv">${rows.map(r=>`<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}</div>`;
+const bar = (l, v, max, z) =>
+  `<div class="bar"><span>${l}</span><span class="tr"><i class="${z ? "z" : ""}" style="width:${max ? Math.round((v / max) * 100) : 0}%"></i></span><span class="num" style="text-align:right;color:var(--ink);font-weight:600">₹${v.toLocaleString("en-IN")}</span></div>`;
+const kv = (rows) =>
+  `<div class="kv">${rows.map((r) => `<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join("")}</div>`;
 const FEATURES = [
- {g:'Capture',n:'Scan invoices',
-  d:'Point your camera at an invoice. VyaparAI uses OCR to read the customer, amount, invoice number and dates, then shows them for you to confirm. No retyping paper bills.',
-  h:'A due date you never entered can still be tracked. The backend validates every field before saving.',
-  w:['POST /ocr/invoice','POST /ocr/invoice/confirm'],
-  v:()=>`<p class="viz-t">Photo in, fields out</p><div class="two"><div class="doc"><b>Invoice</b><div class="ln"></div><div class="ln" style="width:70%"></div><hr><div>ABC Traders</div><div class="num">Total ₹18,000</div><div>Due 20 Sep</div></div><span class="arrow" aria-hidden="true">›</span>${kv([['Customer','ABC Traders'],['Amount','₹18,000'],['Due date','20 Sep'],['Next step','You confirm']])}</div>`},
- {g:'Capture',n:'Read payment screenshots',
-  d:'Upload a UPI or bank payment screenshot. VyaparAI extracts the amount, reference, date and parties, then tries to match it to an open invoice using a scoring engine.',
-  h:'Money that came in stops being a loose screenshot. It gets attached to the bill it settles. Part payments update the balance automatically.',
-  w:['POST /ocr/payment','POST /ocr/payment/confirm'],
-  v:()=>`<p class="viz-t">Every payment gets one of four outcomes</p><div class="match"><div><i></i><span>Match: the payment settles an invoice.</span></div><div class="on"><i></i><span>Partial match: ₹8,000 against an ₹18,000 invoice.</span></div><div><i></i><span>Overpayment for review: more than the invoice.</span></div><div><i></i><span>No match: nothing fits, so you decide.</span></div></div><p class="caption">Duplicate payments are caught by their reference number.</p>`},
- {g:'Money picture',n:'Invoices and payments',
-  d:'Keep every invoice with its paid and outstanding amounts. Record part payments and update status as money arrives. Each payment also creates a matching transaction, so both records stay in sync.',
-  h:'You always know how much of a bill is still open, not just whether it is "paid". The backend updates invoice status atomically when a payment is applied.',
-  w:['POST /invoices/','POST /invoices/{id}/payments','PATCH /invoices/{id}/status','GET /transactions/summary'],
-  v:()=>`<p class="viz-t">Invoice for ABC Traders</p>${bar('Paid',8000,18000,true)}${bar('Open',10000,18000)}<p class="caption">Each payment also creates a matching transaction, so both records stay in sync.</p>`},
- {g:'Money picture',n:'Income, expenses and profit',
-  d:'See income, expenses and profit for today, this week or this month, with category breakdowns. All figures come from the financial engine, not from AI.',
-  h:'A quick read on whether the day, week or month is going well. No manual spreadsheet needed.',
-  w:['GET /financials/income/{today,week,month}','GET /financials/expenses/{today,week,month}','GET /financials/profit/{today,week,month}'],
-  v:()=>`<p class="viz-t">Today</p><div class="eq"><div><small>Income</small><b class="num">₹32,500</b></div><span class="op">−</span><div><small>Expenses</small><b class="num">₹6,200</b></div><span class="op">=</span><div class="res"><small>Profit</small><b class="num">₹26,300</b></div></div><p class="caption">Sample numbers, not real results. Calculated from your stored records.</p>`},
- {g:'Money picture',n:'Who owes you, who you owe',
-  d:'See outstanding customer payments, what is overdue, and what you owe suppliers, with summaries per customer and per supplier. Receivable aging buckets are built in.',
-  h:'You know exactly whom to call first, and which bills are coming due. Aging buckets: 0–30, 31–60, 61–90 and over 90 days.',
-  w:['GET /financials/receivables','GET /financials/receivables/overdue','GET /financials/receivables/customer-summary','GET /financials/liabilities/supplier-summary'],
-  v:()=>`<p class="viz-t">Unpaid invoices by age</p><div class="bars">${bar('0–30 d',10000,10000)}${bar('31–60 d',4500,10000)}${bar('61–90 d',2000,10000)}${bar('90+ d',0,10000,true)}</div><p class="caption">Sample amounts. Ageing buckets are built into the reconciliation engine.</p>`},
- {g:'Watch',n:'Cash-flow forecast',
-  d:'Adds your recorded cash and expected receivables, subtracts upcoming liabilities, and returns a projected balance with a risk indicator. You see a possible shortage days ahead instead of on the day.',
-  h:'The forecast combines cash position, receivables and liabilities into one forward-looking number. It is a projection from recorded data, not a prediction of the future.',
-  w:['GET /financials/cash-flow?days=7','GET /financials/cash-position'],
-  v:()=>`<p class="viz-t">Projected balance</p><div class="eq"><div><small>Recorded cash</small><b class="num">₹25,000</b></div><span class="op">+</span><div><small>Expected in</small><b class="num">₹10,000</b></div><span class="op">−</span><div><small>Due out</small><b class="num">₹27,000</b></div><span class="op">=</span><div class="res"><small>Projected</small><b class="num">₹8,000</b></div></div><p class="caption">This is a projection from recorded data, not a prediction of the future.</p>`},
- {g:'Watch',n:'Unusual-item flags',
-  d:'Three rule-based checks run on your records: duplicate invoice numbers, payments larger than their invoice, and expenses far above the category average. Flagged items are marked "appears unusual, please review".',
-  h:'Mistakes and oddities surface for you to review. The system never calls anything fraud or fraudulent — it flags for human judgment.',
-  w:['GET /financials/anomalies'],
-  v:()=>`<p class="viz-t">Three rules run on your records</p><div class="chips" style="margin-bottom:14px"><span class="chip">Duplicate invoice numbers</span><span class="chip">Payment above invoice</span><span class="chip hi">Expense over 3× category average</span></div>${kv([['Category average','₹6,000'],['This expense','₹24,500'],['Message','Appears unusual. Please review it.']])}`},
- {g:'Watch',n:'Insights',
-  d:'Short, rule-based insights: falling revenue, a category with high spending, overdue receivables, cash-flow warnings and a summary of flagged items. Insights come from your financial data, not from free-form AI text.',
-  h:'The things worth your attention are gathered in one place. No scrolling through menus.',
-  w:['GET /financials/insights'],
-  v:()=>`<p class="viz-t">What it looks for</p>${kv([['Revenue','Is it declining?'],['Expenses','Is one category running high?'],['Receivables','Is anything overdue?'],['Cash flow','Is a shortfall projected?'],['Flags','Anything to review?']])}<p class="caption">Insights come from your financial data, not from free-form AI text.</p>`},
- {g:'Ask and act',n:'Ask in plain words',
-  d:'Ask about profit, income, expenses, cash position, cash flow, receivables, liabilities, invoices, a customer\'s balance, payment history, or a business summary. The copilot classifies your intent, calls the matching tool, and phrases the verified result.',
-  h:'No menus to hunt through. Ask the way you would ask your accountant. Every answer is computed by the financial engine, then put into words.',
-  w:['POST /copilot/chat'],
-  v:()=>`<p class="viz-t">Topics it can answer</p><div class="chips">${['Profit','Income','Expenses','Cash position','Cash flow','Receivables','Liabilities','Invoices','Customer balance','Payment history','Business summary'].map(x=>`<span class="chip">${x}</span>`).join('')}</div><p class="caption">Every answer is computed by the financial engine, then put into words. No LLM calculates money.</p>`},
- {g:'Ask and act',n:'Voice assistant',
-  d:'Say "Hey VyaparAI" and ask. Voice queries run through the same tools as chat. The backend detects English, Hindi or Kannada and returns the same verified answer.',
-  h:'Hands full at the counter? Ask instead of tapping. The wake phrase means background talk is ignored.',
-  w:['POST /voice/query'],
-  v:()=>`<p class="viz-t">Voice pipeline</p><div class="flowline"><span>You speak</span><em>›</em><span>Speech to text</span><em>›</em><span>Copilot</span><em>›</em><span>Answer</span></div><div class="chips" style="margin-top:14px"><span class="chip">English</span><span class="chip" lang="hi">हिन्दी</span><span class="chip" lang="kn">ಕನ್ನಡ</span></div><p class="caption">Speech-to-text runs in simulation mode for now, and answers are text. The same financial tools power both voice and chat.</p>`},
- {g:'Ask and act',n:'Reminders and morning briefing',
-  d:'Create reminders with a due time, see them in a list, and get a morning briefing that combines your financial summary with your notifications. Mark notifications as read.',
-  h:'Follow-ups do not get forgotten, and your day starts with the important things first.',
-  w:['POST /reminders/','GET /reminders/','GET /reminders/morning-briefing','GET /notifications/','PATCH /notifications/{id}/read'],
-  v:()=>`<p class="viz-t">Start of day</p><div class="flowline"><span>Morning briefing</span><em>›</em><span>Notification</span><em>›</em><span>Mark as read</span></div>${kv([['Reminder','Title, note, due time'],['You can','Create, view, edit, delete'],['Briefing','Financial summary + notifications']])}`}
+  {
+    g: "Capture",
+    n: "Scan invoices",
+    d: "Point your camera at an invoice. VyaparAI uses OCR to read the customer, amount, invoice number and dates, then shows them for you to confirm. No retyping paper bills.",
+    h: "A due date you never entered can still be tracked. The backend validates every field before saving.",
+    w: ["POST /ocr/invoice", "POST /ocr/invoice/confirm"],
+    v: () =>
+      `<p class="viz-t">Photo in, fields out</p><div class="two"><div class="doc"><b>Invoice</b><div class="ln"></div><div class="ln" style="width:70%"></div><hr><div>ABC Traders</div><div class="num">Total ₹18,000</div><div>Due 20 Sep</div></div><span class="arrow" aria-hidden="true">›</span>${kv([
+        ["Customer", "ABC Traders"],
+        ["Amount", "₹18,000"],
+        ["Due date", "20 Sep"],
+        ["Next step", "You confirm"],
+      ])}</div>`,
+  },
+  {
+    g: "Capture",
+    n: "Read payment screenshots",
+    d: "Upload a UPI or bank payment screenshot. VyaparAI extracts the amount, reference, date and parties, then tries to match it to an open invoice using a scoring engine.",
+    h: "Money that came in stops being a loose screenshot. It gets attached to the bill it settles. Part payments update the balance automatically.",
+    w: ["POST /ocr/payment", "POST /ocr/payment/confirm"],
+    v: () =>
+      `<p class="viz-t">Every payment gets one of four outcomes</p><div class="match"><div><i></i><span>Match: the payment settles an invoice.</span></div><div class="on"><i></i><span>Partial match: ₹8,000 against an ₹18,000 invoice.</span></div><div><i></i><span>Overpayment for review: more than the invoice.</span></div><div><i></i><span>No match: nothing fits, so you decide.</span></div></div><p class="caption">Duplicate payments are caught by their reference number.</p>`,
+  },
+  {
+    g: "Money picture",
+    n: "Invoices and payments",
+    d: "Keep every invoice with its paid and outstanding amounts. Record part payments and update status as money arrives. Each payment also creates a matching transaction, so both records stay in sync.",
+    h: "You always know how much of a bill is still open, not just whether it is 'paid'. The backend updates invoice status atomically when a payment is applied.",
+    w: ["POST /invoices/", "POST /invoices/{id}/payments", "PATCH /invoices/{id}/status", "GET /transactions/summary"],
+    v: () =>
+      `<p class="viz-t">Invoice for ABC Traders</p>${bar("Paid", 8000, 18000, true)}${bar("Open", 10000, 18000)}<p class="caption">Each payment also creates a matching transaction, so both records stay in sync.</p>`,
+  },
+  {
+    g: "Money picture",
+    n: "Income, expenses and profit",
+    d: "See income, expenses and profit for today, this week or this month, with category breakdowns. All figures come from the financial engine, not from AI.",
+    h: "A quick read on whether the day, week or month is going well. No manual spreadsheet needed.",
+    w: ["GET /financials/income/{today,week,month}", "GET /financials/expenses/{today,week,month}", "GET /financials/profit/{today,week,month}"],
+    v: () =>
+      `<p class="viz-t">Today</p><div class="eq"><div><small>Income</small><b class="num">₹32,500</b></div><span class="op">−</span><div><small>Expenses</small><b class="num">₹6,200</b></div><span class="op">=</span><div class="res"><small>Profit</small><b class="num">₹26,300</b></div></div><p class="caption">Sample numbers, not real results. Calculated from your stored records.</p>`,
+  },
+  {
+    g: "Money picture",
+    n: "Who owes you, who you owe",
+    d: "See outstanding customer payments, what is overdue, and what you owe suppliers, with summaries per customer and per supplier. Receivable aging buckets are built in.",
+    h: "You know exactly whom to call first, and which bills are coming due. Aging buckets: 0–30, 31–60, 61–90 and over 90 days.",
+    w: ["GET /financials/receivables", "GET /financials/receivables/overdue", "GET /financials/receivables/customer-summary", "GET /financials/liabilities/supplier-summary"],
+    v: () =>
+      `<p class="viz-t">Unpaid invoices by age</p><div class="bars">${bar("0–30 d", 10000, 10000)}${bar("31–60 d", 4500, 10000)}${bar("61–90 d", 2000, 10000)}${bar("90+ d", 0, 10000, true)}</div><p class="caption">Sample amounts. Ageing buckets are built into the reconciliation engine.</p>`,
+  },
+  {
+    g: "Watch",
+    n: "Cash-flow forecast",
+    d: "Adds your recorded cash and expected receivables, subtracts upcoming liabilities, and returns a projected balance with a risk indicator. You see a possible shortage days ahead instead of on the day.",
+    h: "The forecast combines cash position, receivables and liabilities into one forward-looking number. It is a projection from recorded data, not a prediction of the future.",
+    w: ["GET /financials/cash-flow?days=7", "GET /financials/cash-position"],
+    v: () =>
+      `<p class="viz-t">Projected balance</p><div class="eq"><div><small>Recorded cash</small><b class="num">₹25,000</b></div><span class="op">+</span><div><small>Expected in</small><b class="num">₹10,000</b></div><span class="op">−</span><div><small>Due out</small><b class="num">₹27,000</b></div><span class="op">=</span><div class="res"><small>Projected</small><b class="num">₹8,000</b></div></div><p class="caption">This is a projection from recorded data, not a prediction of the future.</p>`,
+  },
+  {
+    g: "Watch",
+    n: "Unusual-item flags",
+    d: "Three rule-based checks run on your records: duplicate invoice numbers, payments larger than their invoice, and expenses far above the category average. Flagged items are marked 'appears unusual, please review'.",
+    h: "Mistakes and oddities surface for you to review. The system never calls anything fraud or fraudulent — it flags for human judgment.",
+    w: ["GET /financials/anomalies"],
+    v: () =>
+      `<p class="viz-t">Three rules run on your records</p><div class="chips" style="margin-bottom:14px"><span class="chip">Duplicate invoice numbers</span><span class="chip">Payment above invoice</span><span class="chip hi">Expense over 3× category average</span></div>${kv([
+        ["Category average", "₹6,000"],
+        ["This expense", "₹24,500"],
+        ["Message", "Appears unusual. Please review it."],
+      ])}`,
+  },
+  {
+    g: "Watch",
+    n: "Insights",
+    d: "Short, rule-based insights: falling revenue, a category with high spending, overdue receivables, cash-flow warnings and a summary of flagged items. Insights come from your financial data, not from free-form AI text.",
+    h: "The things worth your attention are gathered in one place. No scrolling through menus.",
+    w: ["GET /financials/insights"],
+    v: () =>
+      `<p class="viz-t">What it looks for</p>${kv([
+        ["Revenue", "Is it declining?"],
+        ["Expenses", "Is one category running high?"],
+        ["Receivables", "Is anything overdue?"],
+        ["Cash flow", "Is a shortfall projected?"],
+        ["Flags", "Anything to review?"],
+      ])}<p class="caption">Insights come from your financial data, not from free-form AI text.</p>`,
+  },
+  {
+    g: "Ask and act",
+    n: "Ask in plain words",
+    d: "Ask about profit, income, expenses, cash position, cash flow, receivables, liabilities, invoices, a customer's balance, payment history, or a business summary. The copilot classifies your intent, calls the matching tool, and phrases the verified result.",
+    h: "No menus to hunt through. Ask the way you would ask your accountant. Every answer is computed by the financial engine, then put into words.",
+    w: ["POST /copilot/chat"],
+    v: () =>
+      `<p class="viz-t">Topics it can answer</p><div class="chips">${[
+        "Profit",
+        "Income",
+        "Expenses",
+        "Cash position",
+        "Cash flow",
+        "Receivables",
+        "Liabilities",
+        "Invoices",
+        "Customer balance",
+        "Payment history",
+        "Business summary",
+      ].map((x) => `<span class="chip">${x}</span>`).join("")}</div><p class="caption">Every answer is computed by the financial engine, then put into words. No LLM calculates money.</p>`,
+  },
+  {
+    g: "Ask and act",
+    n: "Voice assistant",
+    d: "Say 'Hey VyaparAI' and ask. Voice queries run through the same tools as chat. The backend detects English, Hindi or Kannada and returns the same verified answer.",
+    h: "Hands full at the counter? Ask instead of tapping. The wake phrase means background talk is ignored.",
+    w: ["POST /voice/query"],
+    v: () =>
+      `<p class="viz-t">Voice pipeline</p><div class="flowline"><span>You speak</span><em>›</em><span>Speech to text</span><em>›</em><span>Copilot</span><em>›</em><span>Answer</span></div><div class="chips" style="margin-top:14px"><span class="chip">English</span><span class="chip" lang="hi">हिन्दी</span><span class="chip" lang="kn">ಕನ್ನಡ</span></div><p class="caption">Speech-to-text runs in simulation mode for now, and answers are text. The same financial tools power both voice and chat.</p>`,
+  },
+  {
+    g: "Ask and act",
+    n: "Reminders and morning briefing",
+    d: "Create reminders with a due time, see them in a list, and get a morning briefing that combines your financial summary with your notifications. Mark notifications as read.",
+    h: "Follow-ups do not get forgotten, and your day starts with the important things first.",
+    w: ["POST /reminders/", "GET /reminders/", "GET /reminders/morning-briefing", "GET /notifications/", "PATCH /notifications/{id}/read"],
+    v: () =>
+      `<p class="viz-t">Start of day</p><div class="flowline"><span>Morning briefing</span><em>›</em><span>Notification</span><em>›</em><span>Mark as read</span></div>${kv([
+        ["Reminder", "Title, note, due time"],
+        ["You can", "Create, view, edit, delete"],
+        ["Briefing", "Financial summary + notifications"],
+      ])}`,
+  },
 ];
-const fxNav=$('#fxNav'), fxPanel=$('#fxPanel'); let curF=0, lastG='';
-FEATURES.forEach((f,i)=>{
-  if(f.g!==lastG){const p=document.createElement('p');p.className='fx-group';p.textContent=f.g;fxNav.appendChild(p);lastG=f.g}
-  const b=document.createElement('button');b.type='button';b.role='tab';b.id='fx'+i;b.textContent=f.n;b.dataset.i=i;
-  b.addEventListener('click',()=>selectF(i));fxNav.appendChild(b);
+const fxNav = $("#fxNav"),
+  fxPanel = $("#fxPanel");
+let curF = 0,
+  lastG = "";
+FEATURES.forEach((f, i) => {
+  if (f.g !== lastG) {
+    const p = document.createElement("p");
+    p.className = "fx-group";
+    p.textContent = f.g;
+    fxNav.appendChild(p);
+    lastG = f.g;
+  }
+  const b = document.createElement("button");
+  b.type = "button";
+  b.role = "tab";
+  b.id = "fx" + i;
+  b.textContent = f.n;
+  b.dataset.i = i;
+  b.addEventListener("click", () => selectF(i));
+  fxNav.appendChild(b);
 });
-function selectF(i,focus){curF=i;const f=FEATURES[i];
- $$('#fxNav [role=tab]').forEach(b=>{const on=+b.dataset.i===i;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;if(on&&focus)b.focus()});
- fxPanel.setAttribute('aria-labelledby','fx'+i);
- fxPanel.style.animation='none';fxPanel.offsetHeight;fxPanel.style.animation='';
- fxPanel.innerHTML=`<h3>${f.n}</h3><div class="fx-cols"><div><h4>What it does</h4><p>${f.d}</p></div><div><h4>How it helps</h4><p>${f.h}</p></div></div><div class="viz">${f.v()}</div><p class="works-h" style="margin-top:20px">Behind the scenes</p><ul class="works">${f.w.map(x=>`<li>${x}</li>`).join('')}</ul>`}
-fxNav.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft'].includes(e.key))return;e.preventDefault();const d=(e.key==='ArrowDown'||e.key==='ArrowRight')?1:-1;selectF((curF+d+FEATURES.length)%FEATURES.length,true)});
+function selectF(i, focus) {
+  curF = i;
+  const f = FEATURES[i];
+  $$("#fxNav [role=tab]").forEach((b) => {
+    const on = +b.dataset.i === i;
+    b.setAttribute("aria-selected", on);
+    b.tabIndex = on ? 0 : -1;
+    if (on && focus) b.focus();
+  });
+  fxPanel.setAttribute("aria-labelledby", "fx" + i);
+  fxPanel.style.animation = "none";
+  fxPanel.offsetHeight;
+  fxPanel.style.animation = "";
+  fxPanel.innerHTML = `<h3>${f.n}</h3><div class="fx-cols"><div><h4>What it does</h4><p>${f.d}</p></div><div><h4>How it helps</h4><p>${f.h}</p></div></div><div class="viz">${f.v()}</div><p class="works-h" style="margin-top:20px">Behind the scenes</p><ul class="works">${f.w.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+}
+fxNav.addEventListener("keydown", (e) => {
+  if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(e.key)) return;
+  e.preventDefault();
+  const d = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1;
+  selectF((curF + d + FEATURES.length) % FEATURES.length, true);
+});
 selectF(0);
 
 /* ============ watch bars ============ */
-$('#agingBars').innerHTML=bar('0–30 d',10000,10000)+bar('31–60 d',4500,10000)+bar('61–90 d',2000,10000)+bar('90+ d',0,10000,true);
+$("#agingBars").innerHTML = bar("0–30 d", 10000, 10000) + bar("31–60 d", 4500, 10000) + bar("61–90 d", 2000, 10000) + bar("90+ d", 0, 10000, true);
 
 /* ============ ask demo ============ */
-const QS=[
- {q:'What is my profit today?',tool:'get_today_profit(business_id, user_id)',calc:'Income ₹32,500 minus expenses ₹6,200',a:'Your recorded profit today is ₹26,300.'},
- {q:'Who owes me money?',tool:'get_receivables(business_id, user_id)',calc:'ABC Traders: invoice ₹18,000, paid ₹8,000, outstanding ₹10,000',a:'ABC Traders owes you ₹10,000. ₹8,000 of their ₹18,000 invoice has been paid.'},
- {q:'Will I have enough cash?',tool:'get_cash_flow_forecast(user_id, days)',calc:'Cash ₹25,000 plus expected ₹10,000 minus due ₹27,000',a:'Based on recorded transactions, your projected balance is ₹8,000. ₹10,000 of that depends on ABC Traders paying.'},
- {q:'Give me my morning briefing',tool:'GET /reminders/morning-briefing',calc:'Financial summary plus your notifications',a:'Good morning. Your recorded profit today is ₹26,300, and ₹10,000 is still outstanding from ABC Traders.'}
+const QS = [
+  { q: "What is my profit today?", tool: "get_today_profit(business_id, user_id)", calc: "Income ₹32,500 minus expenses ₹6,200", a: "Your recorded profit today is ₹26,300." },
+  { q: "Who owes me money?", tool: "get_receivables(business_id, user_id)", calc: "ABC Traders: invoice ₹18,000, paid ₹8,000, outstanding ₹10,000", a: "ABC Traders owes you ₹10,000. ₹8,000 of their ₹18,000 invoice has been paid." },
+  { q: "Will I have enough cash?", tool: "get_cash_flow_forecast(user_id, days)", calc: "Cash ₹25,000 plus expected ₹10,000 minus due ₹27,000", a: "Based on recorded transactions, your projected balance is ₹8,000. ₹10,000 of that depends on ABC Traders paying." },
+  { q: "Give me my morning briefing", tool: "GET /reminders/morning-briefing", calc: "Financial summary plus your notifications", a: "Good morning. Your recorded profit today is ₹26,300, and ₹10,000 is still outstanding from ABC Traders." }
 ];
-const qsEl=$('#qs'), trace=$('#trace'); let runId=0;
-QS.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.textContent=x.q;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>runAsk(i));qsEl.appendChild(b)});
-const stepsHtml=['You ask','VyaparAI picks the tool','Financial engine calculates','Answer'].map(t=>`<li><span class="ic"></span><div><b>${t}</b><span class="tool"></span></div></li>`).join('');
-trace.innerHTML=stepsHtml;
-trace.children[0].querySelector('.tool').textContent='Choose a question on the left to see the steps.';
-trace.children[0].classList.add('done');
-async function runAsk(i){const id=++runId,x=QS[i];
- $$('#qs button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
- trace.innerHTML=stepsHtml; const L=[...trace.children], f=k=>L[k].querySelector('.tool');
- const setS=async(k,txt,cls)=>{if(id!==runId)return false;L[k].classList.add('act');f(k).textContent='';await wait(550);if(id!==runId)return false;f(k).textContent=txt;L[k].classList.remove('act');L[k].classList.add('done');return true};
- if(!await setS(0,'"'+x.q+'"'))return;
- if(!await setS(1,x.tool))return;
- if(!await setS(2,x.calc))return;
- if(!await setS(3,''))return;
- const ans=document.createElement('span');ans.className='ans';ans.textContent=x.a;f(3).replaceWith(ans);
+const qsEl = $("#qs"),
+  trace = $("#trace");
+let runId = 0;
+QS.forEach((x, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = x.q;
+  b.setAttribute("aria-pressed", "false");
+  b.addEventListener("click", () => runAsk(i));
+  qsEl.appendChild(b);
+});
+const stepsHtml = ["You ask", "VyaparAI picks the tool", "Financial engine calculates", "Answer"]
+  .map((t) => `<li><span class="ic"></span><div><b>${t}</b><span class="tool"></span></div></li>`)
+  .join("");
+trace.innerHTML = stepsHtml;
+trace.children[0].querySelector(".tool").textContent = "Choose a question on the left to see the steps.";
+trace.children[0].classList.add("done");
+async function runAsk(i) {
+  const id = ++runId,
+    x = QS[i];
+  $$("#qs button").forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+  trace.innerHTML = stepsHtml;
+  const L = [...trace.children],
+    f = (k) => L[k].querySelector(".tool");
+  const setS = async (k, txt, cls) => {
+    if (id !== runId) return false;
+    L[k].classList.add("act");
+    f(k).textContent = "";
+    await wait(550);
+    if (id !== runId) return false;
+    f(k).textContent = txt;
+    L[k].classList.remove("act");
+    L[k].classList.add("done");
+    return true;
+  };
+  if (!(await setS(0, '"' + x.q + '"'))) return;
+  if (!(await setS(1, x.tool))) return;
+  if (!(await setS(2, x.calc))) return;
+  if (!(await setS(3, ""))) return;
+  const ans = document.createElement("span");
+  ans.className = "ans";
+  ans.textContent = x.a;
+  f(3).replaceWith(ans);
 }
 
 /* ============ voice demo ============ */
-const VO={
- en:{n:'English',lang:'en',q:'Hey VyaparAI, what is my profit today?',det:'English',a:'Your recorded profit today is ₹26,300.'},
- hi:{n:'हिन्दी',lang:'hi',q:'Hey VyaparAI, आज का मुनाफ़ा कितना है?',det:'Hindi',a:'आपका आज का दर्ज किया गया मुनाफ़ा ₹26,300 है।'},
- kn:{n:'ಕನ್ನಡ',lang:'kn',q:'Hey VyaparAI, ಇಂದಿನ ಲಾಭ ಎಷ್ಟು?',det:'Kannada',a:'ನಿಮ್ಮ ಇಂದಿನ ದಾಖಲಾದ ಲಾಭ ₹26,300.'}
+const VO = {
+  en: { n: "English", lang: "en", q: "Hey VyaparAI, what is my profit today?", det: "English", a: "Your recorded profit today is ₹26,300." },
+  hi: { n: "हिन्दी", lang: "hi", q: "Hey VyaparAI, आज का मुनाफ़ा कितना है?", det: "Hindi", a: "आपका आज का दर्ज किया गया मुनाफ़ा ₹26,300 है।" },
+  kn: { n: "ಕನ್ನಡ", lang: "kn", q: "Hey VyaparAI, ಇಂದಿನ ಲಾಭ ಎಷ್ಟು?", det: "Kannada", a: "ನಿಮ್ಮ ಇಂದಿನ ದಾಖಲಾದ ಲಾಭ ₹26,300." }
 };
-let vl='en', vRun=0;
-const langsEl=$('#langs'),wave=$('#wave'),trLine=$('#trLine'),stagesEl=$('#stages'),vOut=$('#vOut');
-for(let i=0;i<40;i++){const s=document.createElement('i');s.style.setProperty('--w',(Math.random()*.9).toFixed(2)+'s');wave.appendChild(s)}
-const STAGES=['Listening','Transcribing','Understanding','Calculating','Answer'];
-stagesEl.innerHTML=STAGES.map(s=>`<span>${s}</span>`).join('');
-Object.keys(VO).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=VO[k].n;b.lang=VO[k].lang;b.setAttribute('aria-pressed',k===vl);
- b.addEventListener('click',()=>{vl=k;$$('#langs button').forEach(x=>x.setAttribute('aria-pressed',x===b));toast('Language selected: '+({en:'English',hi:'Hindi',kn:'Kannada'})[k]);resetVoice()});langsEl.appendChild(b)});
-function resetVoice(){vRun++;wave.classList.remove('run');trLine.innerHTML='<small>Tap the microphone to play a sample question.</small>';vOut.innerHTML='';$$('#stages span').forEach(s=>s.className='')}
-function stg(k){$$('#stages span').forEach((s,i)=>{s.className=i<k?'dn':i===k?'on':''})}
-$('#mic').addEventListener('click',async()=>{const id=++vRun,v=VO[vl];
- vOut.innerHTML='';trLine.innerHTML='<small>Listening…</small>';wave.classList.add('run');stg(0);
- await wait(1800);if(id!==vRun)return;wave.classList.remove('run');
- stg(1);const words=v.q.split(' ');trLine.innerHTML='';const tl=document.createElement('div');tl.lang=v.lang;const sm=document.createElement('small');sm.textContent='Transcript';trLine.append(sm,tl);
- for(const w of words){if(id!==vRun)return;tl.textContent+=(tl.textContent?' ':'')+w;await wait(160)}
- stg(2);vOut.innerHTML=`<div class="k">Wake phrase heard. Language detected: ${v.det}.</div>`;await wait(900);if(id!==vRun)return;
- stg(3);vOut.innerHTML=`<div class="k">Running <span style="font-family:var(--f-code)">get_today_profit</span> in the financial engine.</div>`;await wait(900);if(id!==vRun)return;
- stg(4);vOut.innerHTML=`<div class="k">Answer</div><div class="a" lang="${v.lang}"></div>`;vOut.querySelector('.a').textContent=v.a;
+let vl = "en",
+  vRun = 0;
+const langsEl = $("#langs"),
+  wave = $("#wave"),
+  trLine = $("#trLine"),
+  stagesEl = $("#stages"),
+  vOut = $("#vOut");
+for (let i = 0; i < 40; i++) {
+  const s = document.createElement("i");
+  s.style.setProperty("--w", (Math.random() * 0.9).toFixed(2) + "s");
+  wave.appendChild(s);
+}
+const STAGES = ["Listening", "Transcribing", "Understanding", "Calculating", "Answer"];
+stagesEl.innerHTML = STAGES.map((s) => `<span>${s}</span>`).join("");
+Object.keys(VO).forEach((k) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = VO[k].n;
+  b.lang = VO[k].lang;
+  b.setAttribute("aria-pressed", k === vl);
+  b.addEventListener("click", () => {
+    vl = k;
+    $$("#langs button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    toast("Language selected: " + ({ en: "English", hi: "Hindi", kn: "Kannada" })[k]);
+    resetVoice();
+  });
+  langsEl.appendChild(b);
+});
+function resetVoice() {
+  vRun++;
+  wave.classList.remove("run");
+  trLine.innerHTML = '<small>Tap the microphone to play a sample question.</small>';
+  vOut.innerHTML = "";
+  $$("#stages span").forEach((s) => (s.className = ""));
+}
+function stg(k) {
+  $$("#stages span").forEach((s, i) => (s.className = i < k ? "dn" : i === k ? "on" : ""));
+}
+$("#mic").addEventListener("click", async () => {
+  const id = ++vRun,
+    v = VO[vl];
+  vOut.innerHTML = "";
+  trLine.innerHTML = "<small>Listening…</small>";
+  wave.classList.add("run");
+  stg(0);
+  await wait(1800);
+  if (id !== vRun) return;
+  wave.classList.remove("run");
+  stg(1);
+  const words = v.q.split(" ");
+  trLine.innerHTML = "";
+  const tl = document.createElement("div");
+  tl.lang = v.lang;
+  const sm = document.createElement("small");
+  sm.textContent = "Transcript";
+  trLine.append(sm, tl);
+  for (const w of words) {
+    if (id !== vRun) return;
+    tl.textContent += tl.textContent ? " " : "" + w;
+    await wait(160);
+  }
+  stg(2);
+  vOut.innerHTML = `<div class="k">Wake phrase heard. Language detected: ${v.det}.</div>`;
+  await wait(900);
+  if (id !== vRun) return;
+  stg(3);
+  vOut.innerHTML = `<div class="k">Running <span style="font-family:var(--f-code)">get_today_profit</span> in the financial engine.</div>`;
+  await wait(900);
+  if (id !== vRun) return;
+  stg(4);
+  vOut.innerHTML = `<div class="k">Answer</div><div class="a" lang="${v.lang}"></div>`;
+  vOut.querySelector(".a").textContent = v.a;
 });
 
 /* ============ download / share / QR ============ */
-const apk=CONFIG.apk, ready=!!apk.url;
-const pageUrl=()=>CONFIG.shareUrl||location.href.split('#')[0];
-const statusEl=$('#apkStatus');
-function setStatus(msg,cls){statusEl.className='apk-status '+(cls||'');statusEl.textContent=msg}
-$$('[data-f]').forEach(dd=>{const map={version:apk.version,size:apk.size,date:apk.releaseDate,android:apk.minAndroid};const v=map[dd.dataset.f];
-  if(v){dd.textContent=v}else{dd.textContent='Shown once published';dd.classList.add('na')}});
-if(ready){setStatus('The APK is ready to download.','ok');$('#directA').href=apk.url}
-else{setStatus('The Android APK has not been published yet. The download will start from this page once the link is added.','warn')}
-$$('[data-apk]').forEach(a=>a.addEventListener('click',e=>{
-  if(!ready){e.preventDefault();$('#download').scrollIntoView({behavior:reduce?'auto':'smooth'});setStatus('The Android APK has not been published yet. Check back soon.','warn');toast('The APK is not published yet.');return}
-  e.preventDefault();
-  try{const l=document.createElement('a');l.href=apk.url;l.download='';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();
-    setStatus('Download started. If Android asks, allow the file to open, then follow the install steps.','ok');$('#directLink').hidden=false;toast('Download started')}
-  catch(err){setStatus('The download could not start. Use the direct link below.','warn');$('#directLink').hidden=false}
-}));
-async function copyLink(){const u=pageUrl();try{await navigator.clipboard.writeText(u);toast('Link copied')}catch(e){const t=document.createElement('textarea');t.value=u;document.body.appendChild(t);t.select();try{document.execCommand('copy');toast('Link copied')}catch(_){toast('Copy failed. Long-press the address bar to copy.')}t.remove()}}
-$('#copyBtn').addEventListener('click',copyLink);
-$('#shareBtn').addEventListener('click',async()=>{
-  if(navigator.share){try{await navigator.share({title:'VyaparAI',text:'VyaparAI: AI financial copilot for small businesses.',url:pageUrl()})}catch(e){if(e&&e.name!=='AbortError')copyLink()}}
-  else copyLink()});
-(function qr(){const box=$('#qr'),cap=$('#qrCap');
-  if(!ready){box.innerHTML='<div class="ph">The QR code appears here once the APK link is set.</div>';cap.textContent='It will open the APK download.';return}
-  try{if(!window.QRCode)throw 0;new QRCode(box,{text:apk.url,width:168,height:168,colorDark:'#232A5C',colorLight:'#F4F6F3',correctLevel:QRCode.CorrectLevel.M});
-    cap.textContent='Scan with your phone camera to download the APK.'}
-  catch(e){box.innerHTML='<div class="ph">QR code unavailable. Use the download button.</div>';cap.textContent=''}
+const apk = CONFIG.apk,
+  ready = !!apk.url;
+const pageUrl = () => CONFIG.shareUrl || location.href.split("#")[0];
+const statusEl = $("#apkStatus");
+function setStatus(msg, cls) {
+  statusEl.className = "apk-status " + (cls || "");
+  statusEl.textContent = msg;
+}
+$$("[data-f]").forEach((dd) => {
+  const map = { version: apk.version, size: apk.size, date: apk.releaseDate, android: apk.minAndroid };
+  const v = map[dd.dataset.f];
+  if (v) {
+    dd.textContent = v;
+  } else {
+    dd.textContent = "Shown once published";
+    dd.classList.add("na");
+  }
+});
+if (ready) {
+  setStatus("The APK is ready to download.", "ok");
+  $("#directA").href = apk.url;
+} else {
+  setStatus("The Android APK has not been published yet. The download will start from this page once the link is added.", "warn");
+}
+$$("[data-apk]").forEach((a) =>
+  a.addEventListener("click", (e) => {
+    if (!ready) {
+      e.preventDefault();
+      $("#download").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+      setStatus("The Android APK has not been published yet. Check back soon.", "warn");
+      toast("The APK is not published yet.");
+      return;
+    }
+    e.preventDefault();
+    try {
+      const l = document.createElement("a");
+      l.href = apk.url;
+      l.download = "";
+      l.rel = "noopener";
+      document.body.appendChild(l);
+      l.click();
+      l.remove();
+      setStatus("Download started. If Android asks, allow the file to open, then follow the install steps.", "ok");
+      $("#directLink").hidden = false;
+      toast("Download started");
+    } catch (err) {
+      setStatus("The download could not start. Use the direct link below.", "warn");
+      $("#directLink").hidden = false;
+    }
+  })
+);
+async function copyLink() {
+  const u = pageUrl();
+  try {
+    await navigator.clipboard.writeText(u);
+    toast("Link copied");
+  } catch (e) {
+    const t = document.createElement("textarea");
+    t.value = u;
+    document.body.appendChild(t);
+    t.select();
+    try {
+      document.execCommand("copy");
+      toast("Link copied");
+    } catch (_) {
+      toast("Copy failed. Long-press the address bar to copy.");
+    }
+    t.remove();
+  }
+}
+$("#copyBtn").addEventListener("click", copyLink);
+$("#shareBtn").addEventListener("click", async () => {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "VyaparAI", text: "VyaparAI: AI financial copilot for small businesses.", url: pageUrl() });
+    } catch (e) {
+      if (e && e.name !== "AbortError") copyLink();
+    }
+  } else copyLink();
+});
+(function qr() {
+  const box = $("#qr"),
+    cap = $("#qrCap");
+  if (!ready) {
+    box.innerHTML = '<div class="ph">The QR code appears here once the APK link is set.</div>';
+    cap.textContent = "It will open the APK download.";
+    return;
+  }
+  try {
+    if (!window.QRCode) throw 0;
+    new QRCode(box, { text: apk.url, width: 168, height: 168, colorDark: "#232A5C", colorLight: "#F4F6F3", correctLevel: QRCode.CorrectLevel.M });
+    cap.textContent = "Scan with your phone camera to download the APK.";
+  } catch (e) {
+    box.innerHTML = '<div class="ph">QR code unavailable. Use the download button.</div>';
+    cap.textContent = "";
+  }
 })();
 
 /* ============ gallery ============ */
-if(CONFIG.screens.length){
-  const shots=$('#shots'),dlg=$('#shotDlg');let si=0;
-  CONFIG.screens.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','listitem');b.setAttribute('aria-label','Open screenshot '+(i+1)+' of '+CONFIG.screens.length+': '+s.alt);
-    b.innerHTML=`<img src="${s.src}" alt="${s.alt}" width="${s.width||360}" height="${s.height||780}" loading="lazy" decoding="async"><span class="shot-cap">${s.caption||s.alt}</span>`;
-    const im=b.querySelector('img');im.onerror=()=>{b.hidden=true};b.addEventListener('click',()=>{si=i;show();dlg.showModal?dlg.showModal():dlg.setAttribute('open','')});shots.appendChild(b)});
-  const show=()=>{const s=CONFIG.screens[si];$('#dlgImg').src=s.src;$('#dlgImg').alt=s.alt;if($('#dlgCap'))$('#dlgCap').textContent=s.caption||s.alt;$('#dCount').textContent='Screenshot '+(si+1)+' of '+CONFIG.screens.length};
-  const go=d=>{si=(si+d+CONFIG.screens.length)%CONFIG.screens.length;show()};
-  $('#dPrev').onclick=()=>go(-1);$('#dNext').onclick=()=>go(1);$('#dClose').onclick=()=>dlg.close();
-  dlg.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(-1);if(e.key==='ArrowRight')go(1)});
-  let x0=null;dlg.addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});dlg.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)go(dx<0?1:-1);x0=null});
-  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+if (CONFIG.screens.length) {
+  const shots = $("#shots"),
+    dlg = $("#shotDlg");
+  let si = 0;
+  CONFIG.screens.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "listitem");
+    b.setAttribute("aria-label", "Open screenshot " + (i + 1) + " of " + CONFIG.screens.length + ": " + s.alt);
+    b.innerHTML = `<img src="${s.src}" alt="${s.alt}" width="${s.width || 360}" height="${s.height || 780}" loading="lazy" decoding="async"><span class="shot-cap">${s.caption || s.alt}</span>`;
+    const im = b.querySelector("img");
+    im.onerror = () => (b.hidden = true);
+    b.addEventListener("click", () => {
+      si = i;
+      show();
+      dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "");
+    });
+    shots.appendChild(b);
+  });
+  const show = () => {
+    const s = CONFIG.screens[si];
+    $("#dlgImg").src = s.src;
+    $("#dlgImg").alt = s.alt;
+    if ($("#dlgCap")) $("#dlgCap").textContent = s.caption || s.alt;
+    $("#dCount").textContent = "Screenshot " + (si + 1) + " of " + CONFIG.screens.length;
+  };
+  const go = (d) => {
+    si = (si + d + CONFIG.screens.length) % CONFIG.screens.length;
+    show();
+  };
+  $("#dPrev").onclick = () => go(-1);
+  $("#dNext").onclick = () => go(1);
+  $("#dClose").onclick = () => dlg.close();
+  dlg.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") go(-1);
+    if (e.key === "ArrowRight") go(1);
+  });
+  let x0 = null;
+  dlg.addEventListener("touchstart", (e) => (x0 = e.touches[0].clientX), { passive: true });
+  dlg.addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    x0 = null;
+  });
+  dlg.addEventListener("click", (e) => {
+    if (e.target === dlg) dlg.close();
+  });
 }
 
 /* ============ footer ============ */
-if(CONFIG.supportEmail){$('#contactList').innerHTML=`<li><a href="mailto:${CONFIG.supportEmail}">${CONFIG.supportEmail}</a></li>`}
-$('#copyLine').textContent='© '+new Date().getFullYear()+' '+CONFIG.name+(apk.version?'. App version '+apk.version+'.':'.');
+if (CONFIG.supportEmail) {
+  $("#contactList").innerHTML = `<li><a href="mailto:${CONFIG.supportEmail}">${CONFIG.supportEmail}</a></li>`;
+}
+$("#copyLine").textContent = "© " + new Date().getFullYear() + " " + CONFIG.name + (apk.version ? ". App version " + apk.version + "." : ".");
 </script>
 </body>
 </html>
