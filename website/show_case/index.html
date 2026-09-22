@@ -400,6 +400,12 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 .stack-icon{width:48px;height:48px;border-radius:10px;background:var(--paper);border:1px solid var(--rule);display:grid;place-items:center;font-size:1.5rem}
 .stack-item b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
 .stack-item span{font-size:.875rem;color:var(--slate)}
+
+/* ai box */
+.ai-box{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px;margin-top:var(--s5)}
+.ai-box h3{margin-bottom:var(--s3)}
+.ai-box p{margin-bottom:var(--s4)}
+.ai-box p:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -413,6 +419,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#codebase">Codebase</a>
+      <a href="#stack">Tech Stack</a>
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
@@ -431,6 +438,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   <div class="menu-panel" id="menuPanel">
     <div class="wrap">
       <a href="#codebase">Codebase</a>
+      <a href="#stack">Tech Stack</a>
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
@@ -532,6 +540,22 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
   </div>
 </section>
 
+<!-- TECH STACK -->
+<section class="stack" id="stack" aria-labelledby="stTitle">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="stTitle">Tech stack</h2>
+    <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit.</p></div>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="stack-icon">📱</div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🔌</div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🧮</div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🗄️</div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🤖</div><div><b>In-house LLM / ML model</b><span>Our own NLP model powers intent classification, natural-language understanding, and answer phrasing. It sits alongside deterministic rule-based checks for finance.</span></div></div>
+      <div class="stack-item"><div class="stack-icon">🧠</div><div><b>Rule-based intelligence</b><span>Payment matching, anomaly detection, receivable aging, cash-flow forecast, and insights are deterministic. The LLM classifies intent and explains results; it never computes money.</span></div></div>
+    </div>
+  </div>
+</section>
+
 <!-- PROBLEM -->
 <section class="problem" id="problem" aria-labelledby="pTitle">
   <div class="wrap">
@@ -560,22 +584,6 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
       <div class="flow-side" id="flowSide"></div>
     </div>
     <div class="rule-note"><b>AI reads and explains. The backend decides and calculates.</b> A scan is only saved after you confirm it, and every rupee figure comes from the financial engine, not from a language model's guess. Financial calculations are deterministic — no LLM ever computes your money.</div>
-  </div>
-</section>
-
-<!-- TECH STACK -->
-<section class="stack" id="stack" aria-labelledby="stTitle">
-  <div class="wrap">
-    <div class="sec-head"><h2 id="stTitle">Tech stack</h2>
-    <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit.</p></div>
-    <div class="stack-grid">
-      <div class="stack-item"><div class="stack-icon">📱</div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🔌</div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🧮</div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🗄️</div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🤖</div><div><b>Rule-based AI</b><span>Intent classification, payment matching, anomaly detection, and insights are all rule-based. The LLM only classifies intent and phrases answers.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🌐</div><div><b>FastAPI + Web</b><span>This showcase page is a single static HTML file with vanilla JS, CSS variables, and responsive design. No build step, no framework lock-in.</span></div></div>
-    </div>
   </div>
 </section>
 
@@ -744,7 +752,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <details><summary>Does it show my bank balance?</summary><p>No. VyaparAI does not connect to bank accounts. It shows a recorded cash position based on the payments, transactions and invoices you have captured. What you have not recorded is not shown.</p></details>
     <details><summary>Can I generate and download reports?</summary><p>Income, expense and profit figures for today, this week and this month are already available. Full daily, weekly and monthly reports in the app are planned, and PDF or Excel export is not available yet.</p></details>
     <details><summary>How is my data handled?</summary><p>Sign-in uses JWT tokens and passwords are hashed with bcrypt. Each business's data is kept separate in MongoDB Atlas, and every query is limited to the signed-in owner's business. The backend enforces business ownership verification on all sensitive operations.</p></details>
-    <details><summary>What is the tech stack?</summary><p>Mobile app: Flutter with Riverpod state management, GoRouter and Dio. Backend: FastAPI with Pydantic validation, MongoDB Atlas, PyTesseract OCR. AI layer: rule-based intent classification, deterministic financial tools, and natural-language explanation. Languages: English, Hindi, Kannada for MVP.</p></details>
+    <details><summary>What is the tech stack?</summary><p>Mobile app: Flutter with Riverpod state management, GoRouter and Dio. Backend: FastAPI with Pydantic validation, MongoDB Atlas, PyTesseract OCR. AI layer: our in-house LLM/ML model for NLP, plus rule-based intent classification, deterministic financial tools, and natural-language explanation. Languages: English, Hindi, Kannada for MVP.</p></details>
   </div>
 </section>
 </main>
@@ -754,7 +762,7 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
     <div class="foot">
       <div class="full"><a class="brand" href="#top"><img src="VyaparAI_logo.png" alt="VyaparAI" width="34" height="34">VyaparAI</a>
         <p class="caption" style="margin-top:12px;max-width:34ch">AI financial copilot for small businesses. Built with FastAPI, MongoDB Atlas and Flutter.</p></div>
-      <div><h3>Product</h3><ul><li><a href="#codebase">Codebase</a></li><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
+      <div><h3>Product</h3><ul><li><a href="#codebase">Codebase</a></li><li><a href="#stack">Tech Stack</a></li><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#voice">Voice</a></li><li><a href="#trust">Trust & status</a></li></ul></div>
       <div><h3>Get the app</h3><ul><li><a href="#download">Download</a></li><li><a href="#download">Installation</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h3>Contact</h3><ul id="contactList"><li><span class="caption">Contact details will appear here.</span></li></ul></div>
     </div>
