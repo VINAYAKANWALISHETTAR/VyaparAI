@@ -821,7 +821,7 @@ const CONFIG = {
   name: "VyaparAI",
   shareUrl: "https://github.com/VINAYAKANWALISHETTAR/VyaparAI",
   apk: {
-    url: "https://github.com/VINAYAKANWALISHETTAR/VyaparAI/releases/latest/download/app-release.apk",
+    url: "https://github.com/VINAYAKANWALISHETTAR/VyaparAI/releases/download/v1.0.0/app-release.apk",
     version: "1.0.0 (Production Release)",
     size: "59 MB",
     releaseDate: "September 2026",
@@ -1390,7 +1390,7 @@ $$("[data-apk]").forEach((a) =>
     try {
       const l = document.createElement("a");
       l.href = apk.url;
-      l.download = "";
+      l.download = "app-release.apk";
       l.rel = "noopener";
       document.body.appendChild(l);
       l.click();
