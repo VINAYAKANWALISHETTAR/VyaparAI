@@ -1,3 +1,4 @@
+import time
 from calendar import monthrange
 from datetime import date, datetime, timezone, timedelta
 from typing import Optional
@@ -7,6 +8,16 @@ from app.database.mongodb import db
 
 
 class FinancialService:
+    _overview_cache: dict[str, tuple[float, dict]] = {}
+
+    def invalidate_report_cache(self, user_id: str | None = None) -> None:
+        if not user_id:
+            self._overview_cache.clear()
+            return
+        keys_to_del = [k for k in self._overview_cache if k.startswith(f"{user_id}_")]
+        for k in keys_to_del:
+            self._overview_cache.pop(k, None)
+
     def _get_date_range(
         self,
         period: str,
@@ -237,6 +248,12 @@ class FinancialService:
             except Exception:
                 pass
 
+        cache_key = f"{user_id}_{business_id or 'all'}_{period}_{start_date}_{end_date}"
+        cached = self._overview_cache.get(cache_key)
+        now_ts = time.time()
+        if cached and (now_ts - cached[0] < 20.0):
+            return cached[1]
+
         start, end = self._get_date_range(period, start_date=start_date, end_date=end_date)
 
         match_query: dict = {
@@ -307,7 +324,7 @@ class FinancialService:
         total_expenses = round(total_expenses, 2)
         total_count = sum(item["count"] for item in income_breakdown) + sum(item["count"] for item in expense_breakdown)
 
-        return {
+        result = {
             "period": period,
             "total_income": total_income,
             "total_expenses": total_expenses,
@@ -317,6 +334,8 @@ class FinancialService:
             "expense_breakdown": expense_breakdown,
             "transactions": serialized_txns,
         }
+        self._overview_cache[cache_key] = (now_ts, result)
+        return result
 
     def get_receivables(self, business_id: str | None, user_id: str, overdue_only: bool = False, customer_id: str | None = None):
         business_ids = self._get_user_business_ids(user_id)

@@ -2,9 +2,14 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
-Future<String?> downloadFile(String content, String fileName) async {
+Future<String?> downloadFile(
+  String content,
+  String fileName, {
+  String? mimeType,
+  String? subject,
+}) async {
   final bytes = utf8.encode(content);
-  final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
+  final blob = html.Blob([bytes], mimeType ?? 'text/csv;charset=utf-8');
   final url = html.Url.createObjectUrlFromBlob(blob);
   final anchor = html.document.createElement('a') as html.AnchorElement
     ..href = url
@@ -17,9 +22,14 @@ Future<String?> downloadFile(String content, String fileName) async {
   return null;
 }
 
-Future<String?> downloadBytesFile(List<int> bytes, String fileName) async {
-  final mimeType = fileName.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream';
-  final blob = html.Blob([bytes], mimeType);
+Future<String?> downloadBytesFile(
+  List<int> bytes,
+  String fileName, {
+  String? mimeType,
+  String? subject,
+}) async {
+  final type = mimeType ?? (fileName.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+  final blob = html.Blob([bytes], type);
   final url = html.Url.createObjectUrlFromBlob(blob);
   final anchor = html.document.createElement('a') as html.AnchorElement
     ..href = url

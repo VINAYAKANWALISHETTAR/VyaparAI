@@ -24,15 +24,12 @@ class ReportsRemoteDataSource {
   }
 
   Future<FinancialReportModel> getReport({String period = 'month'}) async {
-    final bizId = await getDefaultBusinessId();
-    final queryParams = bizId != null ? {'business_id': bizId} : <String, dynamic>{};
     final apiPeriod = period;
 
     // 1. High-Speed Consolidated Endpoint Call (sub-50ms)
     try {
       final overviewRes = await apiClient.dio.get(
         '/financials/report-overview/$apiPeriod',
-        queryParameters: queryParams,
       );
 
       if (overviewRes.data is Map) {
@@ -94,10 +91,10 @@ class ReportsRemoteDataSource {
 
     try {
       final results = await Future.wait([
-        apiClient.dio.get('/financials/income/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
-        apiClient.dio.get('/financials/expenses/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
-        apiClient.dio.get('/financials/profit/$apiPeriod', queryParameters: queryParams).catchError((_) => null as dynamic),
-        apiClient.dio.get(ApiEndpoints.transactions, queryParameters: queryParams).catchError((_) => null as dynamic),
+        apiClient.dio.get('/financials/income/$apiPeriod').catchError((_) => null as dynamic),
+        apiClient.dio.get('/financials/expenses/$apiPeriod').catchError((_) => null as dynamic),
+        apiClient.dio.get('/financials/profit/$apiPeriod').catchError((_) => null as dynamic),
+        apiClient.dio.get(ApiEndpoints.transactions).catchError((_) => null as dynamic),
       ]);
 
       final incomeRes = results[0];
@@ -237,24 +234,19 @@ class ReportsRemoteDataSource {
   }
 
   Future<String> exportReportCsv({String period = 'month'}) async {
-    final bizId = await getDefaultBusinessId();
     final queryParams = <String, dynamic>{'period': period};
-    if (bizId != null) queryParams['business_id'] = bizId;
 
     final res = await apiClient.dio.get<String>(
       '/financials/export/csv',
       queryParameters: queryParams,
+      options: Options(responseType: ResponseType.plain),
     );
     return res.data ?? '';
   }
 
   Future<List<int>> downloadReportPdf({String period = 'month'}) async {
-    final bizId = await getDefaultBusinessId();
-    final queryParams = bizId != null ? {'business_id': bizId} : <String, dynamic>{};
-
     final res = await apiClient.dio.get<List<int>>(
       '/financials/report-pdf/$period',
-      queryParameters: queryParams,
       options: Options(responseType: ResponseType.bytes),
     );
     return res.data ?? <int>[];

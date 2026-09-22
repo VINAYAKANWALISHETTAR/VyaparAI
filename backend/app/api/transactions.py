@@ -10,6 +10,7 @@ from app.database.mongodb import db
 from app.models.transaction import transaction_document
 from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
 from app.services.notification_service import notification_service
+from app.services.financial_service import financial_service
 
 
 router = APIRouter(
@@ -281,6 +282,7 @@ def create_transaction(
 
     result = db.transactions.insert_one(new_transaction)
     created_transaction = db.transactions.find_one({"_id": result.inserted_id})
+    financial_service.invalidate_report_cache(user_id)
 
     # Trigger real transaction notification
     try:
@@ -352,6 +354,7 @@ def update_transaction(
         {"_id": transaction_object_id},
         {"$set": update_data},
     )
+    financial_service.invalidate_report_cache(user_id)
 
     updated_transaction = db.transactions.find_one({"_id": transaction_object_id})
     return serialize_transaction(updated_transaction)
@@ -385,6 +388,8 @@ def delete_transaction(
             status_code=500,
             detail="Failed to delete transaction from database",
         )
+
+    financial_service.invalidate_report_cache(user_id)
 
     return {
         "message": "Transaction deleted successfully",

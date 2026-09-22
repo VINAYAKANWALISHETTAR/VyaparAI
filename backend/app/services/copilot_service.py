@@ -660,6 +660,7 @@ class CopilotService:
                 user_id=user_id,
             )
             db.transactions.insert_one(doc)
+            financial_service.invalidate_report_cache(user_id)
             try:
                 from app.services.notification_service import notification_service
                 notification_service.create_notification(

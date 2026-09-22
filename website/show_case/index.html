@@ -563,15 +563,16 @@ footer{border-top:1px solid var(--rule);padding-block:var(--s7) var(--s6)}
 <section class="stack" id="stack" aria-labelledby="stTitle">
   <div class="wrap">
     <div class="sec-head"><h2 id="stTitle">Tech stack</h2>
-    <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit.</p></div>
+    <p class="lead">The tools and libraries that make VyaparAI reliable, fast, and easy to audit — including an in-house LLM deployed on Render.</p></div>
     <div class="stack-grid">
-      <div class="stack-item"><div class="stack-icon">📱</div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🔌</div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🧮</div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🗄️</div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🤖</div><div><b>In-house LLM / ML model</b><span>Our own NLP model powers intent classification, natural-language understanding, and answer phrasing. It sits alongside deterministic rule-based checks for finance.</span></div></div>
-      <div class="stack-item"><div class="stack-icon">🧠</div><div><b>Rule-based intelligence</b><span>Payment matching, anomaly detection, receivable aging, cash-flow forecast, and insights are deterministic. The LLM classifies intent and explains results; it never computes money.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/flutter.svg" alt="Flutter" width="28" height="28" style="border-radius:6px"></div><div><b>Flutter</b><span>Cross-platform Android app with Riverpod state management, GoRouter navigation, and Dio for HTTP.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/fastapi.svg" alt="FastAPI" width="28" height="28" style="border-radius:6px"></div><div><b>FastAPI</b><span>High-performance Python REST API with Pydantic validation, JWT authentication, bcrypt password hashing, CORS, and Swagger docs.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/eye.svg" alt="OCR" width="28" height="28" style="border-radius:6px"></div><div><b>PyTesseract + Regex</b><span>OCR for invoice and payment screenshot reading. No cloud OCR dependency — runs on the backend.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mongodb.svg" alt="MongoDB Atlas" width="28" height="28" style="border-radius:6px"></div><div><b>MongoDB Atlas</b><span>Multi-tenant document database with indexed queries for users, businesses, invoices, transactions, reminders, and notifications.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/brain.svg" alt="In-house LLM" width="28" height="28" style="border-radius:6px"></div><div><b>In-house LLM / ML model</b><span>Our own custom-trained NLP model powers intent classification, natural-language understanding, and answer phrasing. Trained in-house and deployed on Render for low-latency inference. It sits alongside deterministic rule-based checks for finance.</span></div></div>
+      <div class="stack-item"><div class="stack-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/logic.svg" alt="Rule-based intelligence" width="28" height="28" style="border-radius:6px"></div><div><b>Rule-based intelligence</b><span>Payment matching, anomaly detection, receivable aging, cash-flow forecast, and insights are deterministic. The LLM classifies intent and explains results; it never computes money.</span></div></div>
     </div>
+    <p style="margin-top:24px;font-size:.9375rem;color:var(--slate)"><b>Deployment:</b> Backend and the in-house LLM are deployed on Render. The Flutter app is distributed as an Android APK. MongoDB Atlas hosts the multi-tenant cloud data layer.</p>
   </div>
 </section>
 

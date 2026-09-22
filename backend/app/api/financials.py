@@ -393,15 +393,18 @@ def export_financial_report_csv(
         if biz:
             business_name = biz.get("name", "My Business")
 
+    overview = financial_service.get_report_overview(
+        business_id=business_id,
+        period=period,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    total_inc = float(overview.get("total_income", 0.0))
+    total_exp = float(overview.get("total_expenses", 0.0))
+    net_profit = float(overview.get("net_profit", total_inc - total_exp))
+
     start, end = financial_service._get_date_range(period, start_date=start_date, end_date=end_date)
-    inc_data = financial_service.get_income(business_id, period, user_id, start_date=start_date, end_date=end_date)
-    exp_data = financial_service.get_expenses(business_id, period, user_id, start_date=start_date, end_date=end_date)
-    prof_data = financial_service.get_profit(business_id, period, user_id, start_date=start_date, end_date=end_date)
-
-    total_inc = inc_data.get("total_income", 0.0)
-    total_exp = exp_data.get("total_expenses", 0.0)
-    net_profit = prof_data.get("profit", total_inc - total_exp)
-
     query = {
         "$or": [
             {"business_id": {"$in": business_ids}},

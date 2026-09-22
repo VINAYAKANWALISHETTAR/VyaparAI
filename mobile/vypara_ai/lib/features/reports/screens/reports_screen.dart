@@ -67,13 +67,32 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
       final now = DateTime.now();
       final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
       final fileName = 'vyapar_financial_report_${period}_$dateStr.csv';
-      FileDownloader.download(csvData, fileName);
+      final savedPath = await FileDownloader.download(
+        csvData,
+        fileName,
+        mimeType: 'text/csv',
+        subject: 'VyaparAI Financial Report CSV ($period)',
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${tr('export_csv')} $fileName ✓'),
             backgroundColor: const Color(0xFF10B981),
+            action: savedPath != null
+                ? SnackBarAction(
+                    label: tr('share'),
+                    textColor: Colors.white,
+                    onPressed: () {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          files: [XFile(savedPath, mimeType: 'text/csv', name: fileName)],
+                          subject: 'VyaparAI Financial Report CSV ($period)',
+                        ),
+                      );
+                    },
+                  )
+                : null,
           ),
         );
       }
@@ -94,7 +113,7 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(tr('generating_pdf')),
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 1),
       ),
     );
     try {
@@ -113,13 +132,32 @@ class _ReportsScreenPlaceholderState extends ConsumerState<ReportsScreenPlacehol
       final now = DateTime.now();
       final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
       final fileName = 'vyapar_financial_report_${period}_$dateStr.pdf';
-      await FileDownloader.downloadBytes(pdfBytes, fileName);
+      final savedPath = await FileDownloader.downloadBytes(
+        pdfBytes,
+        fileName,
+        mimeType: 'application/pdf',
+        subject: 'VyaparAI Financial Report ($period)',
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${tr('download_pdf')} $fileName ✓'),
             backgroundColor: const Color(0xFF10B981),
+            action: savedPath != null
+                ? SnackBarAction(
+                    label: tr('share'),
+                    textColor: Colors.white,
+                    onPressed: () {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          files: [XFile(savedPath, mimeType: 'application/pdf', name: fileName)],
+                          subject: 'VyaparAI Financial Report ($period)',
+                        ),
+                      );
+                    },
+                  )
+                : null,
           ),
         );
       }
